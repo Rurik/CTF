@@ -1,0 +1,4 @@
+bbaskin@Brians-MacBook-Pro:~/CTF/PaloAlto/Windows/5/RGB$ python dec.py
+(21, 16, 5) (83, 168, 203)
+
+# 0x10be92, 66, PAN{l4byr1n7h_s4yz_x0r1s_4m4z1ng}

@@ -1,0 +1,97 @@
+#     Squirtle Challenge v0.1     #
+#          ___                    #
+#     _.-~~   ~~~-.               #
+#    /         _   ~.             #
+#   |#`       /#`    \            #
+#   |-'|      |-'|    |      Amw  #
+#   /--        --     |-.         #
+#   \__   .  .        / /\_       #
+#    \ ~~--___---~~/\| |   ~-.    #
+# .---`~~--____---_)  \ \-__  \   #
+# ) <    |__    __\_   \ \     |  #
+# ~-.__ /   ~~~~   \   \ \     |  #
+#      ~-.   |     .~-.-' |    |  #
+#       | \___|___/     / /     | #
+#       | /   |   \     | |  /  | #
+#        \     |   ~-___ \ \/  /  #
+#        /\__ / `._ /   ~-\ \_/   #
+#       /    \_____|      |`~     #
+#      |      |    |      |       #
+#       \     |    |      |       #
+#       >______)   /_/\/\_\       #
+#                                 #
+
+Type the password:
+incorrect
+You typed: incorrect
+Squirtle Happy! You got the password!
+
+Squirtle is a shy pokemon and doesn't like to be watched.
+ Debugger WindowClass found
+ https://msdn.microsoft.com/en-us/library/windows/desktop/ms633499(v=vs.85).aspx
+
+Squirtle is glad you are watching him now! fs:[30h+2]
+
+Squirtle appreciates you taking the ticks to get to know him.
+ TickCount: 124dc8e
+
+You took too long. Squirtle took a nap or you are watching him.
+ Ticks passed: a4c7
+ http://anti-reversing.com/Downloads/Anti-Reversing/The_Ultimate_Anti-Reversing_Reference.pdf
+
+Don't watch Squirtle squirtle! I bet there is a plugin to help hide.
+ https://msdn.microsoft.com/en-us/library/windows/desktop/ms680345(v=vs.85).aspx
+
+That's creepy are you watching Squirtle remotely?
+ https://msdn.microsoft.com/en-us/library/windows/desktop/ms679280(v=vs.85).aspx
+
+Squirtle needs more CPUs for his HydroPump!
+ https://www.trustedsec.com/may-2015/bypassing-virtualization-and-sandbox-technologies/
+
+Squirtle bites you because there is less than 1024 RAM
+
+Squirtle's Aqua Jet doesn't work with fake water.
+ CPU HV Bit Set
+ http://artemonsecurity.com/vmde.pdf
+
+
+Password - incorrect - 0x401070 at 0x401317 - 0xD11317
+Debugger check  - 0x401010 at 0x4014BC - 0xD114BC
+FS PEB - 0x4011B0 at 0x40167D - 0xD1167D
+Tick count - GetTickCount at 0x40183E -- must be >= 0xFFFFF - 0xD1183E
+Too many ticks - Delta 0xFF from prev tick cnt - GetTickCount at 0x401A1D - 0xD11A1D
+Watch squirtle - IsDebuggerPresent at 0x401C0D -- 0xD11C0D
+Watch squirtle remote - 0x401110 at 0x401DCF - 0xD11DCF
+More CPUs - 0x401140 at 0x401F90 - 0xD11F90
+Memory - GlobalMemoryStatusEx at 0x402162 - 0xD12162
+HV Bit set - 0x401160 at 0x40235D - 0xD1235D
+
+
+
+
+01010000 01000001
+01001110 01111011
+01010100 01101000
+00110011 01011111
+00100100 01110001
+01110101 01101001
+01110010 01110100
+01001100 00110011
+01011111 00100100
+01110001 01110101
+01000000 01100100
+01011111 01110111
+01000000 01111010
+01011111 01100010
+01001100 01110101
+01100110 01100110
+01101001 01001110
+01100111 01111101
+
+PAN{Th3_$quirtL3_$qu@d_w@z_bLuffiNg}
+
+
+
+
+
+

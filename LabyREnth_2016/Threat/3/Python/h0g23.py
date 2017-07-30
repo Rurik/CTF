@@ -1,0 +1,12 @@
+from Crypto.Cipher import AES as tiywynstbg
+import base64 as ufjliotyds
+import itertools as abtwsjxzys
+from itertools import cycle, izip
+def gasfewfesafds(message, key):
+	return ''.join(chr(ord(c)^ord(k)) for c,k in abtwsjxzys.izip(message, abtwsjxzys.cycle(key)))
+
+ghakzma7mby7kpha = lambda c, e, f: c.decrypt(gasfewfesafds(ufjliotyds.b64decode(e), f))
+nhwfpenq = tiywynstbg.new("uqfpjtlenktet1frh3mxgdz7fgvwj9gx")
+wxwlun=ghakzma7mby7kpha(nhwfpenq, "wpwCmfY0ksW61AIH7sr1Mnud5lIO8h9OZ1JIhYmuROIeCbdtC/95EojEvgZRqg23/nG+FyK+CX+ncYj2vr4AH3iIhDwNPIlsxoHOWyRgwyD15gH+ySiyjpdBNofRyVmy6X40YOgn5zC0HYqzE9ujr1/VbkhrnEe5tPlVweJPDTvkFA/qSUkhAag2jLbVfXW1ORiJWFPFMPPJ5F00tLnE2Kq32/wMd/6NpL2jsd8Ily45a3ltD5bY2QDjuP/qrr6OhClkEmAUe/jn52ex+jElNut0VGuSlcl6arn5FwqvTr/MIT2TJ77NyFgEL7WKkVMaERL+85EUKuXKPNgaWqUJSA5Ut1xJHA6QVazwjbqeyQMQZFkrTMvFzwsByPZGOHS7bvxruT2X7KkDNEtWxSA/JqN3raZhmITALG8a9b7x0ypuqrbwqJcnNX8s9dxR+O0SFz8MfJ6oFxE5rPIQo9waV/jLY3igIMzFVxWGErDGIHdcmsaHZUGz9wggy4BvNnwG4CY6Y7oZMpMLNMWpoACViGIdE/kTcrk/HhCew/JcUh2x7weueqc4+b/zudTk/MlgpXO8aHNT4Tp6LhZ5F2Dz76iU1tesJNhC0wI4zMoQytuRlJMRbzBShjZCd4AiKtUcUeScGPWnnSxQVLWJDXkX8ajEI63uccrXOLZYB2JG5xcdbsZSMwy6qweqAMPV8BFzInZOEE5VU4aXryv93GtnerBhZ3ArZKzxUwdcOnVacezW87ypysJL12Hx2S2gVhgpTOQjD3a1Z7ByJHOR9+nZe6kZSquHP3UgMfvWEhn9fSOpOQb/G1oGFXaguahiZL1j8KHiP9oLkHC5qPfN1kugvGQrSjX1gNxihIIn5lyO3Gp8cORibunXjE+iRMkC+J0cG31U3NTcXkbDmvhVSdZudXFoMQWrdp5oGb1JBadjAc7PZBQxBR3vX0XgeumBlAS61b/7DeYhcqhRIJm3RTak1r8xc+S1lxh17SUkkCyWVNE=", "w3t9ljei")
+print(wxwlun)
+		             

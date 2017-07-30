@@ -1,0 +1,270 @@
+bbaskin@Brians-MBP:~/CTF/PaloAlto/Linux/2/Rust$ sudo dtruss ./challenge
+
+<!doctype html>
+<html>
+<head>
+    <title>Example Domain</title>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type="text/css">
+    body {
+        background-color: #f0f0f2;
+        margin: 0;
+        padding: 0;
+        font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+    }
+    div {
+        width: 600px;
+        margin: 5em auto;
+        padding: 50px;
+        background-color: #fff;
+        border-radius: 1em;
+    }
+    a:link, a:visited {
+        color: #38488f;
+        text-decoration: none;
+    }
+    @media (max-width: 700px) {
+        body {
+            background-color: #fff;
+        }
+        div {
+            width: auto;
+            margin: 0 auto;
+            border-radius: 0;
+            padding: 1em;
+        }
+    }
+    </style>
+</head>
+
+<body>
+<div>
+    <h1>Example Domain</h1>
+    <p>This domain is established to be used for illustrative examples in documents. You may use this
+    domain in examples without prior coordination or asking for permission.</p>
+    <p><a href="http://www.iana.org/domains/example">More information...</a></p>
+</div>
+</body>
+</html>
+
+SYSCALL(args) 		 = return
+thread_selfid(0x0, 0x0, 0x0)		 = 13885545 0
+open(".\0", 0x0, 0x1)		 = 3 0
+fstat64(0x3, 0x7FFF56B7D830, 0x1)		 = 0 0
+fcntl(0x3, 0x32, 0x7FFF56B7DAD0)		 = 0 0
+close(0x3)		 = 0 0
+stat64("/Users/bbaskin/CTF/PaloAlto/Linux/2/Rust\0", 0x7FFF56B7D7A0, 0x7FFF56B7DAD0)		 = 0 0
+csops(0x0, 0x0, 0x7FFF56B7DAD0)		 = 0 0
+issetugid(0x0, 0x0, 0x7FFF56B7DAD0)		 = 0 0
+shared_region_check_np(0x7FFF56B7B9D8, 0x0, 0x7FFF56B7DAD0)		 = 0 0
+stat64("/usr/lib/dtrace/libdtrace_dyld.dylib\0", 0x7FFF56B7CF68, 0x7FFF56B7DAD0)		 = 0 0
+open("/usr/lib/dtrace/libdtrace_dyld.dylib\0", 0x0, 0x0)		 = 3 0
+pread(0x3, "\312\376\272\276\0", 0x1000, 0x0)		 = 4096 0
+pread(0x3, "\317\372\355\376\a\0", 0x1000, 0x1000)		 = 4096 0
+fcntl(0x3, 0x61, 0x7FFF56B7B2B0)		 = 0 0
+mmap(0x0, 0x670, 0x5, 0x1, 0x3, 0x1000)		 = 0x109207000 0
+munmap(0x109207000, 0x670)		 = 0 0
+mmap(0x109207000, 0x2000, 0x5, 0x12, 0x3, 0x1000)		 = 0x109207000 0
+mmap(0x109209000, 0x1000, 0x3, 0x12, 0x3, 0x3000)		 = 0x109209000 0
+mmap(0x10920A000, 0x2F40, 0x1, 0x12, 0x3, 0x4000)		 = 0x10920A000 0
+close(0x3)		 = 0 0
+stat64("/usr/lib/dtrace/libdtrace_dyld.dylib\0", 0x7FFF56B7D4E8, 0x1)		 = 0 0
+stat64("/usr/lib/libssl.0.9.8.dylib\0", 0x7FFF56B7CD68, 0x1)		 = 0 0
+stat64("/usr/lib/libcrypto.0.9.8.dylib\0", 0x7FFF56B7CD68, 0x1)		 = 0 0
+stat64("/usr/lib/libSystem.B.dylib\0", 0x7FFF56B7CD68, 0x1)		 = 0 0
+stat64("/System/Library/PrivateFrameworks/TrustEvaluationAgent.framework/Versions/A/TrustEvaluationAgent\0", 0x7FFF56B7CB68, 0x1)		 = 0 0
+stat64("/usr/lib/libz.1.dylib\0", 0x7FFF56B7CB68, 0x1)		 = 0 0
+stat64("/usr/lib/system/libcache.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libcommonCrypto.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libcompiler_rt.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libcopyfile.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libcorecrypto.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libdispatch.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libdyld.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libkeymgr.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/liblaunch.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libmacho.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libquarantine.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libremovefile.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_asl.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_blocks.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_c.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_configuration.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_coreservices.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_coretls.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_dnssd.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_info.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_kernel.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_m.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_malloc.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_network.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_networkextension.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_notify.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_platform.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_pthread.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_sandbox.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_secinit.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libsystem_trace.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libunc.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libunwind.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/system/libxpc.dylib\0", 0x7FFF56B7C698, 0x1)		 = 0 0
+stat64("/usr/lib/libobjc.A.dylib\0", 0x7FFF56B7B978, 0x1)		 = 0 0
+stat64("/usr/lib/libauto.dylib\0", 0x7FFF56B7B978, 0x1)		 = 0 0
+stat64("/usr/lib/libc++abi.dylib\0", 0x7FFF56B7B858, 0x1)		 = 0 0
+stat64("/usr/lib/libc++.1.dylib\0", 0x7FFF56B7B858, 0x1)		 = 0 0
+stat64("/usr/lib/libDiagnosticMessagesClient.dylib\0", 0x7FFF56B7B748, 0x1)		 = 0 0
+getpid(0x7FFF8C70D740, 0x7FFF56B7B748, 0x1)		 = 19493 0
+open("/dev/dtracehelper\0", 0x2, 0x7FFF56B7D990)		 = 3 0
+ioctl(0x3, 0x80086804, 0x7FFF56B7D918)		 = 0 0
+close(0x3)		 = 0 0
+sysctl(0x7FFF56B7CF60, 0x2, 0x7FFF56B7CF70)		 = 0 0
+thread_selfid(0x7FFF56B7CF60, 0x2, 0x7FFF56B7CF70)		 = 13885545 0
+bsdthread_register(0x7FFF94B5C344, 0x7FFF94B5C334, 0x2000)		 = 1073741887 0
+mprotect(0x10920E000, 0x88, 0x1)		 = 0 0
+mprotect(0x109210000, 0x1000, 0x0)		 = 0 0
+mprotect(0x109226000, 0x1000, 0x0)		 = 0 0
+mprotect(0x109227000, 0x1000, 0x0)		 = 0 0
+mprotect(0x10923D000, 0x1000, 0x0)		 = 0 0
+mprotect(0x10923E000, 0x1000, 0x1)		 = 0 0
+mprotect(0x10920E000, 0x88, 0x3)		 = 0 0
+mprotect(0x10920E000, 0x88, 0x1)		 = 0 0
+issetugid(0x10920E000, 0x88, 0x1)		 = 0 0
+getpid(0x10920E000, 0x88, 0x1)		 = 19493 0
+stat64("/AppleInternal/XBS/.isChrooted\0", 0x7FFF56B7CEC8, 0x1)		 = -1 Err#2
+stat64("/AppleInternal\0", 0x7FFF56B7CE38, 0x1)		 = -1 Err#2
+csops(0x4C25, 0x7, 0x7FFF56B7C950)		 = -1 Err#22
+sysctl(0x7FFF56B7CD10, 0x4, 0x7FFF56B7CA88)		 = 0 0
+csops(0x4C25, 0x7, 0x7FFF56B7C240)		 = -1 Err#22
+proc_info(0x2, 0x4C25, 0x11)		 = 56 0
+readlink("/etc/je_malloc.conf\0", 0x7FFF56B7CC70, 0x400)		 = -1 Err#2
+issetugid(0x1091233A9, 0x7FFF56B7CC70, 0x400)		 = 0 0
+mmap(0x0, 0x200000, 0x3, 0x1002, 0xFFFFFFFF, 0x0)		 = 0x10943F000 0
+munmap(0x10943F000, 0x200000)		 = 0 0
+mmap(0x0, 0x3FF000, 0x3, 0x1002, 0xFFFFFFFF, 0x0)		 = 0x10943F000 0
+munmap(0x10943F000, 0x1C1000)		 = 0 0
+munmap(0x109800000, 0x3E000)		 = 0 0
+sysctl(0x7FFF56B7D07C, 0x2, 0x7FFF56B7D054)		 = 0 0
+mmap(0x0, 0x200000, 0x3, 0x1002, 0xFFFFFFFF, 0x0)		 = 0x109800000 0
+sigaction(0xD, 0x7FFF56B7EAD8, 0x7FFF56B7EB00)		 = 0 0
+sysctl(0x7FFF56B7EA88, 0x2, 0x7FFF7AEFFE00)		 = 0 0
+mmap(0x7FFF5637F000, 0x1000, 0x0, 0x1012, 0xFFFFFFFF, 0x0)		 = 0x7FFF5637F000 0
+sigaction(0xB, 0x7FFF56B7EB08, 0x0)		 = 0 0
+sigaction(0xA, 0x7FFF56B7EB08, 0x0)		 = 0 0
+sigaltstack(0x0, 0x7FFF56B7EB00, 0x0)		 = 0 0
+mmap(0x0, 0x20000, 0x3, 0x1002, 0xFFFFFFFF, 0x0)		 = 0x10943F000 0
+sigaltstack(0x7FFF56B7EB00, 0x0, 0x3)		 = 0 0
+open("/dev/urandom\0", 0x20004, 0xFFFFFFFFFFFFFFD0)		 = 3 0
+fstat64(0x3, 0x7FFF56B7D3A0, 0xFFFFFFFFFFFFFFD0)		 = 0 0
+select(0x4, 0x7FFF56B7D310, 0x0, 0x0, 0x7FFF56B7D300)		 = 1 0
+read(0x3, "\211\002\353vd\256o\207N3\376\224(\356@\037\224gHI\313w\342\205\222\262\230#u\301\272\b\0", 0x20)	 = 32 0
+close(0x3)		 = 0 0
+getuid(0x3, 0x7FFF56B7D550, 0x20)		 = 0 0
+getrlimit(0x1008, 0x7FFF56B7D428, 0x20)		 = 0 0
+open_nocancel("/System/Library/OpenSSL/cert.pem\0", 0x0, 0x1B6)		 = -1 Err#2
+open("/dev/urandom\0", 0x1000000, 0x1B6)		 = 3 0
+read(0x3, "\213\266\354\352\212\263\266GP\254VF\311W2\222n\255^\260\300\337t0\221\211R\327hf\315\333}\223n}MG\306\316\016\roN\377\370\316l\217\2258\371\272Q9B,\265\277\311&\343\203\230\030\252\200\256O.\352\226'\314\352\223Z\017o\241}\016:8\365\276\254W(>\313\215\0", 0x800)		 = 2048 0
+close(0x3)		 = 0 0
+shm_open(0x7FFF971B5D7F, 0x0, 0x0)		 = 3 0
+mmap(0x0, 0x1000, 0x1, 0x1, 0x3, 0x0)		 = 0x10945F000 0
+close_nocancel(0x3)		 = 0 0
+open_nocancel("/etc/.mdns_debug\0", 0x0, 0x0)		 = -1 Err#2
+sysctl(0x7FFF56B794C0, 0x6, 0x0)		 = 0 0
+sysctl(0x7FFF56B794C0, 0x6, 0x7F85D1000000)		 = 0 0
+kqueue(0x7FFF56B794C0, 0x6, 0x7F85D1000000)		 = 3 0
+kevent(0x3, 0x7FFF56B79650, 0x1)		 = 0 0
+socket(0x1, 0x1, 0x0)		 = 4 0
+setsockopt(0x4, 0xFFFF, 0x1022)		 = 0 0
+setsockopt(0x4, 0xFFFF, 0x1100)		 = 0 0
+connect_nocancel(0x4, 0x7FFF56B79470, 0x6A)		 = 0 0
+sendto_nocancel(0x4, 0x7F85D0500800, 0x1C)		 = 28 0
+select_nocancel(0x5, 0x7FFF56B79410, 0x0)		 = 1 0
+recvfrom_nocancel(0x4, 0x7FFF56B7940C, 0x4)		 = 4 0
+socketpair(0x1, 0x1, 0x0)		 = 0 0
+setsockopt(0x5, 0xFFFF, 0x1100)		 = 0 0
+sendto_nocancel(0x4, 0x7F85D0500890, 0x38)		 = 56 0
+sendmsg_nocancel(0x4, 0x7FFF56B79380, 0x0)		 = 1 0
+close_nocancel(0x6)		 = 0 0
+select_nocancel(0x6, 0x7FFF56B79380, 0x0)		 = 1 0
+recvfrom_nocancel(0x5, 0x7FFF56B7937C, 0x4)		 = 4 0
+close_nocancel(0x5)		 = 0 0
+socketpair(0x1, 0x1, 0x0)		 = 0 0
+setsockopt(0x5, 0xFFFF, 0x1100)		 = 0 0
+sendto_nocancel(0x4, 0x7F85D0500890, 0x38)		 = 56 0
+sendmsg_nocancel(0x4, 0x7FFF56B79380, 0x0)		 = 1 0
+close_nocancel(0x6)		 = 0 0
+select_nocancel(0x6, 0x7FFF56B79380, 0x0)		 = 1 0
+recvfrom_nocancel(0x5, 0x7FFF56B7937C, 0x4)		 = 4 0
+close_nocancel(0x5)		 = 0 0
+kevent(0x3, 0x7FFF56B79650, 0x1)		 = 0 0
+kevent(0x3, 0x0, 0x0)		 = 1 0
+kevent(0x3, 0x0, 0x0)		 = 1 0
+recvfrom_nocancel(0x4, 0x7FFF56B79460, 0x1C)		 = 28 0
+recvfrom_nocancel(0x4, 0x7F85D0500940, 0x2B)		 = 43 0
+select_nocancel(0x5, 0x7FFF56B79490, 0x0)		 = 1 0
+kevent(0x3, 0x7FFF56B78F60, 0x1)		 = 0 0
+recvfrom_nocancel(0x4, 0x7FFF56B79460, 0x1C)		 = 28 0
+recvfrom_nocancel(0x4, 0x7F85D05009A0, 0x37)		 = 55 0
+select_nocancel(0x5, 0x7FFF56B79490, 0x0)		 = 0 0
+kevent(0x3, 0x7FFF56B78F60, 0x1)		 = 0 0
+sendto_nocancel(0x4, 0x7F85D0500800, 0x1C)		 = 28 0
+sendto_nocancel(0x4, 0x7F85D0500800, 0x1C)		 = 28 0
+close_nocancel(0x3)		 = 0 0
+sysctlbyname(0x7FFF9B2F4AE2, 0xE, 0x7FFF7B92A940)		 = 0 0
+socket(0x20, 0x2, 0x2)		 = 3 0
+setsockopt(0x3, 0xFFFF, 0x1022)		 = 0 0
+ioctl(0x3, 0xC0644E03, 0x7FFF56B79350)		 = 0 0
+connect(0x3, 0x7FFF56B79330, 0x20)		 = 0 0
+setsockopt(0x3, 0xFFFF, 0x1002)		 = 0 0
+fcntl(0x3, 0x3, 0x0)		 = 2 0
+fcntl(0x3, 0x4, 0x6)		 = 0 0
+sendto(0x3, 0x7FFF56B79440, 0x24)		 = -1 Err#65
+open("/Library/Preferences/com.apple.networkd.plist\0", 0x0, 0x7FFF7B92A9C0)		 = -1 Err#2
+socket(0x20, 0x2, 0x2)		 = 5 0
+setsockopt(0x5, 0xFFFF, 0x1022)		 = 0 0
+ioctl(0x5, 0xC0644E03, 0x7FFF56B79200)		 = 0 0
+connect(0x5, 0x7FFF56B791E0, 0x20)		 = 0 0
+setsockopt(0x5, 0xFFFF, 0x1002)		 = 0 0
+fcntl(0x5, 0x3, 0x0)		 = 2 0
+fcntl(0x5, 0x4, 0x6)		 = 0 0
+sendto(0x5, 0x7FFF56B79320, 0x50)		 = 80 0
+recvfrom(0x5, 0x7FFF56B79320, 0x50)		 = 80 0
+close(0x5)		 = 0 0
+sendto(0x3, 0x7FFF56B79440, 0x24)		 = 36 0
+recvfrom(0x3, 0x7FFF56B79410, 0x28)		 = 40 0
+socket(0x20, 0x2, 0x2)		 = 5 0
+setsockopt(0x5, 0xFFFF, 0x1022)		 = 0 0
+ioctl(0x5, 0xC0644E03, 0x7FFF56B79200)		 = 0 0
+connect(0x5, 0x7FFF56B791E0, 0x20)		 = 0 0
+setsockopt(0x5, 0xFFFF, 0x1002)		 = 0 0
+fcntl(0x5, 0x3, 0x0)		 = 2 0
+fcntl(0x5, 0x4, 0x6)		 = 0 0
+sendto(0x5, 0x7FFF56B79320, 0x50)		 = 80 0
+recvfrom(0x5, 0x7FFF56B79320, 0x50)		 = 24 0
+sendto(0x5, 0x7FFF56B79320, 0x14)		 = 20 0
+recvfrom(0x5, 0x7FFF56B79320, 0x84)		 = 132 0
+sendto(0x5, 0x7FFF56B79320, 0x14)		 = 20 0
+recvfrom(0x5, 0x7FFF56B79320, 0x8C)		 = 140 0
+close(0x5)		 = 0 0
+socket(0x2, 0x1, 0x0)		 = 5 0
+ioctl(0x5, 0x20006601, 0x0)		 = 0 0
+connect(0x5, 0x7FFF56B79F8C, 0x10)		 = 0 0
+setsockopt(0x5, 0xFFFF, 0x1005)		 = 0 0
+setsockopt(0x5, 0xFFFF, 0x1006)		 = 0 0
+sendto(0x5, 0x109852000, 0x3C)		 = 60 0
+read(0x5, "HTTP/1.1 200 OK\r\nCache-Control: max-age=604800\r\nContent-Type: text/html\r\nDate: Sat, 16 Jul 2016 23:02:43 GMT\r\nEtag: \"359670651+gzip+ident\"\r\nExpires: Sat, 23 Jul 2016 23:02:43 GMT\r\nLast-Modified: Fri, 09 Aug 2013 23:54:35 GMT\r\nServer: ECS (phl/9D2C)\r\nVary: ", 0x1000)		 = 1622 0
+issetugid(0x5, 0x109866000, 0x1000)		 = 0 0
+open_nocancel("/usr/share/zoneinfo/UTC\0", 0x0, 0x8)		 = 6 0
+fstat64(0x6, 0x7FFF56B79FD0, 0x8)		 = 0 0
+read_nocancel(0x6, "TZif\0", 0x2A64)		 = 56 0
+close_nocancel(0x6)		 = 0 0
+write(0x1, "<!doctype html>\n<html>\n<head>\n    <title>Example Domain</title>\n\n    <meta charset=\"utf-8\" />\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <style ty", 0x4F6)		 = 1270 0
+write(0x1, "\n            margin: 0 auto;\n            border-radius: 0;\n            padding: 1em;\n        }\n    }\n    </style>    \n</head>\n\n<body>\n<div>\n    <h1>Example Domain</h1>\n    <p>This domain is established to be used for illustrative examples in documents. You", 0x1)		 = 1 0
+shutdown(0x5, 0x2, 0x1)		 = 0 0
+close(0x5)		 = 0 0
+sigaltstack(0x7FFF56B7EA48, 0x0, 0x1)		 = 0 0
+munmap(0x10943F000, 0x20000)		 = 0 0
+

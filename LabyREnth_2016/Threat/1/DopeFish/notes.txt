@@ -1,0 +1,92 @@
+GET /MTYK.php?=owVXdTMzc1V3EzMXd1NxMzVXdTMz4yO3EzM7szNxMjLXdTMzc1V3EzMXd1NxMzVXdTMzc1V3EzMXd1NxMzVXdTMzc1V3EzMXd1NxMzVXdTMzclL3EzMusz&L4bry1nth_18519?NxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7szNxMzO7cTMzsDU3EzM7szNxMzO7cTMzsjL3EzMu4yNxMzVXdTMzc1V3EzMXd1NxMzVXdTMzc1V3EzMXd1NxMzVXdTMzc1V3EzM-30452%26%71%77port%3D27500 HTTP/1.1
+User-Agent: Mozilla/2.02Gold (Win95; I)
+Host: www.dopefish.com
+Referer: PAN-29325
+Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/x-ms-application, application/x-ms-xbap, application/vnd.ms-xpsdocument, application/xaml+xml, */*
+Accept-Language: en-us
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+<html>
+  <head>
+    <title>
+      E2M3
+    </title>
+  </head>
+  <body style="background-color:black;"><center>
+<font color="lime">welcome to the crypt of decay in the realm of black magic</font>
+<br>
+<img src="http://i.imgur.com/Rsn3kq4.png"></center>
+  </body>
+<!-- ohce "=4iLuMXblV2cgQXagMXYgMXagcmbphGd5JXZ2VGI09mT" -->
+</html>
+
+
+
+}PhA031N3D3hp{stsl
+
+
+
+h133hstsl
+h33ls
+th1s
+D0p3
+PAN{}
+PAN{sh33lth1sD0p3}
+
+}fPhA031N3D3hp{stsl
+}fPhA01NDhp{stsl
+
+fh0Dhpvstsl
+fhodhpvstslieee
+
+
+Redo - delimit on 317, get one char per line out.
+Decode all filenames - that's the index.
+Sort by filename number and you get your password 
+16 P
+17 A
+18 N
+19 {
+20 t
+21 h
+22 3
+23 D
+24 0
+25 p
+26 3
+27 f
+28 s t
+29 h
+30 l
+31 1
+32 v
+33 3
+34 s
+35 }
+36 + v
+
+PAN{h3D0p3fshll3s} ?
+
+No, missing 20, 32. Why does 28 and 36 have two? PCAP not parsing correctly. Skipping 20 due to some weird issue
+Base64 enc "20" = MjA= Can't get dpkt to get that packet out. Manually pull
+
+MjAK
+=owVXdTMzclL3EzMuszNxMzO7cTMzszO3EzM7szNxMzOucTMzc1V3EzMXd1NxMzVXdTMzc1V3EzMXd1NxMjL7cTMzsz
+NxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7Q3NxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM74yNxMjLucTMz4yV3EzMXd1NxMzVXdTMzc1V3EzMO3EzM7szNxMzO7cTMzszO3EzM7sz
+Letter: t
+
+PAN{th3D0p3fshl13s} ?
+
+I can assume from here:
+PAN{th3D0p3fshl1v3s} << wrong!
+
+MzIK
+=owVXdTMzc1V3EzMu4yNxMzO7cTMzszO3EzM7szNxMzO7cTMz4iL3EzMXd1NxMzVXdTMzc1V3EzMu4yNxMjLucTMzszO3EzMu4yNxMzO7cTMzszO3EzM7Y3NxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7szNxMzO7cTMzsjL3EzM7szNxMzO7cTMz4yO3EzM7szNxMzO7cTMzsjL3EzMWd1NxMzVXdTMzclL3EzMXd1NxMjLXdTMzc1V3EzM
+20 = t
+
+32 = v
+
+28 = s
+Mjg
+=owVXdTMzc1V3EzMX5yNxMjL7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7szNxMzO7cTMzszO3EzM7szNxMzO7cTMzszc3EzM7szNxMzO7cTMzsjL3EzMuszNxMzO7cTMz4iL3EzM7szNxMzO7cTMzszO3EzMu4yNxMjLucTMz4iL3EzM7szNxMzOucTMz4iL3EzMu4yNxMjLXdTMzc1V3EzM

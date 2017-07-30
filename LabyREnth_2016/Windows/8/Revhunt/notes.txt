@@ -1,0 +1,80 @@
+Congrats! You successfully solved level 7 for the windows tier.
+
+Your next challenge awaits here. The password is 'infected'
+
+Prepare for windows kernel debugging! (smile) @xedi25
+
+
+Revloader. 64-bit installer
+.text:000000013F5424EB mov     dword ptr [rbp-30h], 176B5F47h
+...
+Decodes to:
+
+55 69 79 21 75 70 21 69  47 6A 73 66 47 31 59 21  Uiy!up!iGjsfG1Y!
+62 6F 65 21 55 69 66 46  6F 66 73 68 7A 54 75 70  boe!UifFofshzTup
+73 7A 21 67 70 73 21 75  69 66 21 6A 65 66 62 21  sz!gps!uif!jefb!
+75 70 21 76 74 66 21 65  74 66 67 6A 79 2F 66 79  up!vtf!etfgjy/fy
+66 2F 21 4A 75 28 74 21  62 6E 62 7B 6A 6F 68 22  f/!Ju(t!bnb{joh"
+00 00 00 00 00 00 00 00  0E 98 54 3F 01 00 00 00  .........ÿT?....
+
+Drops resource 0x65 to dsefix.exe
+Drops resource 0x66 to revhunt.sys
+Drops resource 0x67 to revhunt.inf
+Run dsefix.exe
+
+
+x64dbg Notepad, copy into mem, set mem pages to full acess
+DriverMain at 00000000FF0D0538
+00000000FF0D0538 | 48 89 5C 24 08           | mov qword ptr ss:[rsp+8],rbx            | DriverMain()
+00000000FF0D053D | 48 89 74 24 18           | mov qword ptr ss:[rsp+18],rsi           |
+00000000FF0D0542 | 55                       | push rbp                                |
+00000000FF0D0543 | 57                       | push rdi                                |
+00000000FF0D0544 | 41 56                    | push r14                                |
+
+00000000FF0D0C1C | 48 89 5C 24 08           | mov qword ptr ss:[rsp+8],rbx            | ValidateFLAG()
+00000000FF0D0C21 | 55                       | push rbp                                |
+00000000FF0D0C22 | 56                       | push rsi                                |
+00000000FF0D0C23 | 57                       | push rdi                                |
+00000000FF0D0C24 | 41 56                    | push r14                                |
+
+
+(*(&FLAG + 10) & 0xFFFFFFFFFFFFFFF0ui64 ^ 0x8888999900001110ui64) == 0xA9FAFCEA72656770i64 )
+((i + 10) & 0xFFFFFFFFFFFFFFF0 ^ 0x8888999900001110) == 0xA9FAFCEA72656770i64
+
+PAN{
+Wow, 
+r     V
+Great Moves
+
+
+, ibakit up, 
+, pr?ud3
+of 
+you!}
+
+PAN{Wow, Great Moves, ibakit up, proud3 of you3}
+PAN{Wow, Great Moves, ibakit up, proud3 of           you3}
+PAN{Wow, reverser! Great Moves U ibakit up, proud of you!}
+
+[10] = everser!
+[18] = <space>Great Moves
+[30] = re
+First, reaad 13 bytes from gsrt.txt. must == labyrenth.com
+Read 58 bytes from "pan.flag", == PAN{}
+
+
+https://alexandreborgesbrazil.files.wordpress.com/2014/03/intro_win_debugging.pdf
+
+sxe ld revhunt.sys
+
+How do you get it to trigger?
+  v2 = FltRegisterFilter(v1, &unk_140003140, &qword_140004030);
+  if ( v2 >= 0 )
+  {
+    v2 = FltStartFiltering(qword_140004030);
+    if ( v2 < 0 )
+      FltUnregisterFilter(qword_140004030);
+  }
+  
+  
+  

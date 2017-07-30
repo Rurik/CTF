@@ -1,0 +1,86 @@
+Some guy found this pcap and executable. Ready, set, go! @jgrunzweig
+
+E:\CTF\PaloAlto\Windows\7\PCAP>"c:\Program Files\Wireshark\tshark.exe" -r G0blinKing.pcap  -T fields -e tcp.segment_data | uniq >> pcap_bytes.txt
+>>> data = open('pcap_bytes.txt', 'r').readlines()
+>>> out = ''
+>>> for i in data: out += chr(int(i, 16))
+...
+>>> out
+'B6XGLACYYUdwodupUtF0geaE5NKnf5gTiKxgwfWCJdi8Iq/b36ShdY/gs18m2VwpkTJPmg03FDpavvJF3EcAX8SUkrbpI1T61ZGKnrbD9gkf79eqi4giA4uKYEv9O/Iw3Godkhd0tB9e1ojQgW4307/OSTtWIzyEVhHbqksum94+fSZLD7FYMa80QYJQ5JRV/B6XGLACYYUdwodupUtF0geaE5NKnf5gT/Ycz/Ptt/q=='
+>>>
+
+B6XGLACYYUdwodupUtF0geaE5NKnf5gTiKxgwfWCJdi8Iq/b36ShdY/gs18m2VwpkTJPmg03FDpavvJF3EcAX8SUkrbpI1T61ZGKnrbD9gkf79eqi4giA4uKYEv9O/Iw3Godkhd0tB9e1ojQgW4307/OSTtWIzyEVhHbqksum94+fSZLD7FYMa80QYJQ5JRV/B6XGLACYYUdwodupUtF0geaE5NKnf5gT/Ycz/Ptt/q==
+
+175 bytes decoded
+
+Base64 with custom alphabet?
+aQtgjyka8y5l4fl db 'qtgJYKa8y5L4flzMQ/BsGpSkHIjhVrm3NCAi9cbeXvuwDx+R6dO7ZPEno21T0UFW',0
+
+Translated to?
+SwoUKihEE9xr4xqV9B+8CnG2JgF3MJC7jFtCrM/hDxjHZARmfwWbxERCT6He5crVX7D1eC8f+sVGppD+f2lioHW9XdmVZ67w60UF3dmskCXMzknAjLCjiLqFE2pkyRZrfU4xXbx8BSkn64aQC/Lf8zRyW7B/ZOI2cbYmAXcwkLuMW0Ksz+EPGH8QEDQJDvcRSwoUKihEE9xr4xqV9B+8CnG2JgF3MJC7RElOR1BBRA==
+
+Decoded to= 
+Offset      0  1  2  3  4  5  6  7   8  9 10 11 12 13 14 15
+
+00000000   4B 0A 14 2A 28 44 13 DC  6B E3 1A 95 F4 1F BC 0A   K..*(D.Ükã.•ô.¼.
+00000016   71 B6 26 01 77 30 90 BB  8C 5B 42 AC CF E1 0F 18   q¶&.w0.»Œ[B¬Ïá..
+00000032   C7 64 04 66 7F 05 9B C4  44 42 4F A1 DE E5 CA D5   Çd.f..›ÄDBO¡ÞåÊÕ
+00000048   5F B0 F5 78 2F 1F FA C5  46 A6 90 FE 7F 69 62 A0   _°õx/.úÅF¦.þ.ib 
+00000064   75 BD 5D D9 95 67 AE F0  EB 45 05 DD D9 AC 90 25   u½]Ù•g®ðëE.ÝÙ¬.%
+00000080   CC CE 49 C0 8C B0 A3 88  BA 85 13 6A 64 C9 16 6B   ÌÎIÀŒ°£ˆº….jdÉ.k
+00000096   7D 4E 31 5D BC 7C 05 29  27 EB 86 90 0B F2 DF F3   }N1]¼|.)'ë†..òßó
+00000112   34 72 5B B0 7F 64 E2 36  71 B6 26 01 77 30 90 BB   4r[°.dâ6q¶&.w0.»
+00000128   8C 5B 42 AC CF E1 0F 18  7F 10 10 34 09 0E F7 11   Œ[B¬Ïá.....4..÷.
+00000144   4B 0A 14 2A 28 44 13 DC  6B E3 1A 95 F4 1F BC 0A   K..*(D.Ükã.•ô.¼.
+00000160   71 B6 26 01 77 30 90 BB  44 49 4E 47 50 41 44      q¶&.w0.»DINGPAD
+
+Encryption:
+  v13 = 0xBADA55;
+  v9 = 0x9E3769B9;
+  v12 = 0x4913092;
+  v11 = 0x12345678;
+  v10 = 0xDEADBEEF;
+  v0 = *a2;
+  
+  Very similar to method248()?:
+  https://www.rune-server.org/runescape-development/rs2-server/tutorials/77777-altering-encryption-block-clients.html
+  
+  int l = i1 = j1 = k1 = l1 = i2 = j2 = k2 = 0x9e3779b9;
+
+  signed int __cdecl Encryption(unsigned int length, int data, int key)
+{
+  memset(&v4, 0xCCu, 0x138u);
+  delta = 0x9E3769B9;
+  v0 = *data;
+  v1 = *(data + 4);
+  sum = 0;
+  for ( i = 0; i < length; ++i )
+  {
+    v0 += (((v1 >> 5) ^ 16 * v1) + v1) ^ (sum + key[sum & 3]));
+    sum += delta + 4096;
+    v1 += (((v0 >> 5) ^ 16 * v0) + v0) ^ (sum + key[(sum >> 11) & 3]));
+  }
+  *data = v0;
+  result = 4;
+  *(data + 4) = v1;
+  return result;
+}
+
+void encipher(unsigned int num_rounds, uint32_t v[2], uint32_t const key[4]){
+    unsigned int i;
+    uint32_t v0=v[0], v1=v[1], sum=0, delta=0x9E3779B9;
+
+    for (i=0; i < num_rounds; i++){
+        v0 += (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + key[sum & 3]);
+        sum += delta;
+        v1 += (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + key[(sum>>11) & 3]);
+    }
+    v[0]=v0; v[1]=v1;
+}
+
+
+Eventhough custom encryption, standard decryption worked. WTF?
+E:\CTF\PaloAlto\Windows\7\PCAP>C:\Python27\python TEA_Decrypt.py
+PADDINGPADDINGPADDINGPADDINGPADDINGPADDINGPADDINGPADDINGP
+PAN{did_1_mention_th0se_pupp3ts_fr34ked_m3_out_recent1y?}
+PADDINGPADDINGPADDINGhibobPADDINGPADDINGPADDINGPADe¦+a¦E?r

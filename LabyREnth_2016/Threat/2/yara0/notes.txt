@@ -1,0 +1,52 @@
+http://regex.info/exif.cgi
+
+GIF
+Animation	unknown
+Error	invalid block label found [157]
+GIF Version	89a
+Has Color Map	No
+Color Resolution Depth	8
+Bits Per Pixel	8
+Background Color	0
+Animation Iterations	Infinite
+Frame Count	8
+Duration	0.40 s
+Image Size	461 × 305
+
+Block 157
+http://giflib.sourceforge.net/whatsinagif/bits_and_bytes.html
+
+
+
+XOR 0xAA
+binwalk
+find 7z
+unzip
+"file"
+html
+
+
+XOR 0xAA
+Write a YARA rule to find normal valid GIF files.
+
+Write a YARA rule to detect all variations of this encoded data.
+Using the template below:
+1. replace each "**" pair in $header with the appropriate 6 bytes.
+2. replace each "*" in $trailer with the appropriate regex.
+3. replace the "*" in condition with the appropriate digit.
+
+rule valid_gif : valid_gif
+{
+        strings:
+
+                        $header = { ** ** ** ** ** ** }
+                        $trailer = *******
+
+        condition:
+                        $header at * and $trailer
+}
+
+bbaskin@Brians-MBP:/Volumes/CTF/PaloAlto/Threat/2/yara0$ nc 52.41.90.65 2600
+rule valid_gif : valid_gif { strings: $header = {47 49 46 38 39 61 } $trailer = /\x3B$/ condition: $header at 0 and $trailer }
+
+SUCCESS! KEY IS: PAN{848Y_wIsh3D_4w4y}bbaskin@Brians-MBP:/Volumes/CTF/PaloAlto/Threat/2/yara0$

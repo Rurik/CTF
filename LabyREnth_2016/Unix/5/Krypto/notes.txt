@@ -1,0 +1,66 @@
+All your filez are belongz to us. @tylerhalfpop
+
+Subroutine mangling
+http://rotlogix.com/2016/01/25/digging-into-swift-objects/
+
+
+"/Users/thalfpop/labyrinth/Challenges/Younix/Krypto_Halfpop/krypto/RNCryptor.swift"
+https://github.com/RNCryptor/RNCryptor
+AES
+
+https://github.com/gsingh93/ida-swift-demangle
+
+TF6krypto6get_pwFT_SS():
+0x100282710
+__text:0000000100282738                 mov     byte ptr [rdx], 3  << same header as encrypted PNG file
+__text:000000010028273B                 mov     byte ptr [rdx+1], 1
+__text:000000010028273F                 mov     byte ptr [rdx+2], 19h
+__text:0000000100282743                 mov     byte ptr [rdx+3], 52h
+__text:0000000100282747                 mov     byte ptr [rdx+4], 0AAh
+__text:000000010028274B                 mov     byte ptr [rdx+5], 2Fh
+__text:000000010028274F                 mov     byte ptr [rdx+6], 2Dh
+
+
+_text:000000010026D550 krypt_get_nar   proc near               ; DATA XREF: __data:00000001002F4620o
+__text:000000010026D550
+__text:000000010026D550 var_8           = qword ptr -8
+__text:000000010026D550
+__text:000000010026D550                 push    rbp
+__text:000000010026D551                 mov     rbp, rsp
+__text:000000010026D554                 sub     rsp, 10h
+__text:000000010026D558                 mov     eax, 2D5Ah
+__text:000000010026D55D                 mov     ecx, eax
+__text:000000010026D55F                 mov     [rbp+var_8], rdi
+__text:000000010026D563                 mov     rdi, rcx
+__text:000000010026D566                 call    __TTSg5Vs5UInt8___TFs27_allocateUninitializedArrayurFBwTGSax_Bp_
+__text:000000010026D56B                 mov     byte ptr [rdx], 0FFh << JPG
+__text:000000010026D56E                 mov     byte ptr [rdx+1], 0D8h
+__text:000000010026D572                 mov     byte ptr [rdx+2], 0FFh
+__text:000000010026D576                 mov     byte ptr [rdx+3], 0E0h
+__text:000000010026D57A                 mov     byte ptr [rdx+4], 0
+__text:000000010026D57E                 mov     byte ptr [rdx+5], 10h
+__text:000000010026D582                 mov     byte ptr [rdx+6], 4Ah << JFIF
+__text:000000010026D586                 mov     byte ptr [rdx+7], 46h
+__text:000000010026D58A                 mov     byte ptr [rdx+8], 49h
+__text:000000010026D58E                 mov     byte ptr [rdx+9], 46h
+__text:000000010026D592                 mov     byte ptr [rdx+0Ah], 0
+
+JFIF is the output "Congrtulations, All your pngs are belong to us. Pay us all the moneyz"
+0x0301 is the encrypted file
+
+Won't decrypt. From RNCryptor code:
+
+        /// Generate a key from a password and salt
+        /// - parameters:
+        ///     - password: Password to convert
+        ///     - salt: Salt. Generally constructed with RNCryptor.randomDataOfLength(FormatV3.saltSize)
+        /// - returns: Key of length FormatV3.keySize
+        public static func keyForPassword(password: String, salt: NSData) -> NSData {
+
+        internal convenience init(password: String, encryptionSalt: NSData, hmacSalt: NSData, iv: NSData) {
+            let encryptionKey = V3.keyForPassword(password, salt: encryptionSalt)
+            let hmacKey = V3.keyForPassword(password, salt: hmacSalt)
+
+0000000100286257         call       krypto.RNCryptor.EncryptorV3.__allocating_init (password : Swift.String) -> krypto.RNCryptor.EncryptorV3
+
+PAN{Gr0und_C0ntr01_2_M@j0r_T0m!}

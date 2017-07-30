@@ -1,0 +1,87 @@
+DialogFunc
+
+
+    Read in the serial
+    serial = j__calloc_base(260, 2);
+
+        Make sure it's 32 bytes or more.
+        while ( serial[v24] );
+        if ( v24 >= 32 )
+
+12345678901234567890123456789012
+33333333333333333333333333333333
+31231231231231231231231231231231
+
+
+000000013FFA1500 | movzx eax,word ptr ds:[rbx+rax*2]       | "P" 0x50
+000000013FFA1504 | add eax,FFFFFFFFFFFFFFCF                | 0x50 > 0x1F
+000000013FFA1507 | cmp eax,2                               | 0x33 should work ("3")
+
+
+
+...
+http://www.codedebug.com/php/Products/Products_NikPEViewer_12v.php
+
+
+
+000000013FFE17CB | nop dword ptr ds:[rax+rax]              |
+000000013FFE17D0 | movzx ecx,word ptr ds:[r11]             | r11:L"0123456789@ABCDEFGHIPQRSTUVWXY`a"
+000000013FFE17D4 | mov edx,esi                             |
+000000013FFE17D6 | mov rax,rsi                             |
+000000013FFE17D9 | nop dword ptr ds:[rax]                  |
+000000013FFE17E0 | cmp word ptr ss:[rsp+rax*2+10],cx       | CX = [0] "1" == "0123456789"[0] "0"
+000000013FFE17E5 | je jugsofbeer.13FFE17F2                 |
+000000013FFE17E7 | inc edx                                 |
+000000013FFE17E9 | inc rax                                 |
+000000013FFE17EC | cmp rax,A                               |
+000000013FFE17F0 | jl jugsofbeer.13FFE17E0                 |
+000000013FFE17F2 | movzx r8d,word ptr ds:[r11+2]           | r11+2:L"123456789@ABCDEFGHIPQRSTUVWXY`a"
+000000013FFE17F7 | mov ecx,esi                             |
+000000013FFE17F9 | mov rax,rsi                             |
+000000013FFE17FC | nop dword ptr ds:[rax]                  |
+000000013FFE1800 | cmp word ptr ss:[rsp+rax*2+28],r8w      |
+000000013FFE1806 | je jugsofbeer.13FFE1813                 |
+
+
+31231231231231231231231231231231
+31212331231211111111111111111111 = sum = 44
+31212331231211111111111111111111
+31231231231231231231231231233233 = sum = 68
+31211111231233231231232233233233
+ 
+
+Get to where it's encoding Message by Guess
+0x27 ^ 0x33 (just a guess) = 0x14. 0x14 ^ 0x50 ("P") = key may be 0x44.
+
+
+E:\CTF\PaloAlto\Windows\4\JugsofBeer>bruteforce3.py
+
+0x44 ==================================================
+1 R A M { C 2 l d r 6 5 v o a V 2 o l q \ b w f g z _ { 3 U t 1 \ q o o v e f ] w h g ] q f 4 n \ _ r p L b N 1 N ~
+2 Q B N x @ 1 o g q 5 6 u l b U 1 l o r _ a t e d y \ x 0 V w 2 _ r l l u f e ^ t k d ^ r e 7 m _ \ q s O a M 2 M }
+3 P C O y A 0 n f p 4 7 t m c T 0 m n s ^ ` u d e x ] y 1 W v 3 ^ s m m t g d _ u j e _ s d 6 l ^ ] p r N ` L 3 L |
+0x45 ==================================================
+1 S @ L z B 3 m e s 7 4 w n ` W 3 n m p ] c v g f { ^ z 2 T u 0 ] p n n w d g \ v i f \ p g 5 o ] ^ s q M c O 0 O ¦
+2 P C O y A 0 n f p 4 7 t m c T 0 m n s ^ ` u d e x ] y 1 W v 3 ^ s m m t g d _ u j e _ s d 6 l ^ ] p r N ` L 3 L |
+3 Q B N x @ 1 o g q 5 6 u l b U 1 l o r _ a t e d y \ x 0 V w 2 _ r l l u f e ^ t k d ^ r e 7 m _ \ q s O a M 2 M }
+0x46 ==================================================
+1 P C O y A 0 n f p 4 7 t m c T 0 m n s ^ ` u d e x ] y 1 W v 3 ^ s m m t g d _ u j e _ s d 6 l ^ ] p r N ` L 3 L |
+2 S @ L z B 3 m e s 7 4 w n ` W 3 n m p ] c v g f { ^ z 2 T u 0 ] p n n w d g \ v i f \ p g 5 o ] ^ s q M c O 0 O ¦
+3 R A M { C 2 l d r 6 5 v o a V 2 o l q \ b w f g z _ { 3 U t 1 \ q o o v e f ] w h g ] q f 4 n \ _ r p L b N 1 N ~
+
+
+Copy block out, XOR all by 0x44, then brute each XOR each by 1/2/3 (0x31, 0x32, 0x33)
+
+R A M { C 2 l d r 6 5 v o a V 2 o l q \ b w f g z _ { 3 U t 1 \ q o o v e f ] w h g ] v f 4 n \ _ r p L b N 1 ~
+Q B N x @ 1 o g q 5 6 u l b U 1 l o r _ a t e d y \ x 0 V w 2 _ r l l u f e ^ t k d ^ u e 7 m _ \ q s O a M 2 }
+P C O y A 0 n f p 4 7 t m c T 0 m n s ^ ` u d e x ] y 1 W v 3 ^ s m m t g d _ u j e _ t d 6 l ^ ] p r N ` L 3 |
+
+
+ A {C   r    a  o   b    _  U    oo e   h    4  _rpLbN1N 
+  N    g   ul  1   _   dy  0   _r      t    e m_ qsOaM M}
+P    0n  47   T  ns  ud   y  v3    t d_  e_s     prN L3L 
+PAN{C0ngr47ulaT1ons_buddy_y0Uv3_rooted_the_se4m__pr0aN3L}
+312113321332213213321332213213322113133213332122
+31211332133221321332133221321332
+
+PAN{C0ngr47ulaT1ons_buddy_y0Uv3_solved_the_re4l__prObL3M}

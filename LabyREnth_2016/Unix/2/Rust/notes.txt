@@ -1,0 +1,40 @@
+rust executable
+running output "HTML" page contents
+
+ran with dtruss
+
+    if ( (HIDWORD(v282) - 0x13) > 0x10FFFF || ((HIDWORD(v282) - 0x13) & 0xFFFFF800) == 0xD800 )
+      core::panicking::panic::hdbcf9a6d5c170498(&_$LT$option..Option$LT$T$GT$$GT$::unwrap::_MSG_FILE_LINE::h4a67dc7742eec9fe);
+    v631 = HIDWORD(v282) - 0x13;
+    if ( (HIDWORD(v282) - 0x22) > 0x10FFFF || ((HIDWORD(v282) - 0x22) & 0xFFFFF800) == 0xD800 )
+      core::panicking::panic::hdbcf9a6d5c170498(&_$LT$option..Option$LT$T$GT$$GT$::unwrap::_MSG_FILE_LINE::h4a67dc7742eec9fe);
+    v630 = HIDWORD(v282) - 0x22;
+    if ( (HIDWORD(v282) - 0x15) > 0x10FFFF || ((HIDWORD(v282) - 0x15) & 0xFFFFF800) == 0xD800 )
+      core::panicking::panic::hdbcf9a6d5c170498(&_$LT$option..Option$LT$T$GT$$GT$::unwrap::_MSG_FILE_LINE::h4a67dc7742eec9fe);
+    v629 = HIDWORD(v282) - 0x15;
+...
+
+
+0x63 = c
+v631 = - 0x13 = 50 = P
+v630 = - 0x22 = 41 = A
+v629 = - 0x15 = 4E = N
+v628 = + 0x18 = 7B = {
+v627 = -F = 54 = T
+v626 = +5 = 68 = h
+v625 = -2 = 61 = a
+v624 = +1 = 64 = d
+v623 = +1 = 64 = d
+v622 = +2 = 65 = e
+v621 = +12 = 75 = u
+v620 = +10 = 73 = s
+v619 = -D  = 56 = V
+v618 = +2 = 65 = e
+v617 = +B = 6E = n
+v616 = +11 = 74 = t
+v615 = +12 = 75 = u
+v614 = +F = 72 = r
+v613 = +2 = 65 = e
+v612 = +1A = 7D = }
+PAN{ThaddeusVenture}
+cccc

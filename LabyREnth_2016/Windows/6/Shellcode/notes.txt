@@ -1,0 +1,74 @@
+Discover the key in the sh>E11C0DE to rescue the Princess! 
+
+004010E7 > $ 31C0           XOR EAX,EAX
+004010E9   . B8 C0D40100    MOV EAX,1D4C0
+004010EE   . 50             PUSH EAX
+004010EF   . B8 B0492DDB    MOV EAX,DB2D49B0
+004010F4   . 50             PUSH EAX
+004010F5   . E8 D1030000    CALL Ambrosiu.004014CB
+004010FA   . 50             PUSH EAX
+004010FB   . E8 DF030000    CALL Ambrosiu.004014DF
+00401100   . 5A             POP EDX
+00401101   . 5A             POP EDX
+00401102   . FFD0           CALL EAX                                 ;  sleep
+
+Modify to remove the 0x1D4C0 sleep. Change to 100
+
+0040113C   . FFD0           CALL EAX                                 ;  GetUserDefaultLanguage
+0040113E   . 3C 00          CMP AL,0
+
+Returns 0x09 (English). Needs to return 0x00 (Neutral)
+
+
+....
+
+At 0x401194, opens small page at 0x30000 and writes some data.
+00030000  BA 00 00 00 00 00 03 00 00 DF F3 00 00 00 00 00  º.......ßó.....
+00030010  00 00 1F 00 00 12 00 00 00 00 00 00 00 00 00 9D  .............
+00030020  00 00 00 00 43 00 FE 00 00 00 00 00 EF 00 00 00  ....C.þ.....ï...
+00030030  E1 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  á...............
+
+At 0x0040131F, call GetVersion() - returns 0x1DB10106
+BL (0x06)
+00401327   . 88DA           MOV DL,BL   (BL = 0x06)
+00401329   . 83C2 3C        ADD EDX,3C
+0040132C   . 8851 07        MOV BYTE PTR DS:[ECX+7],DL
+0040132F   . 31D2           XOR EDX,EDX
+
+00401331   . 88FA           MOV DL,BH   (BH = 0x01)
+00401333   . 83C2 3F        ADD EDX,3F
+00401336   . 8851 08        MOV BYTE PTR DS:[ECX+8],DL
+00401339   . 51             PUSH ECX
+0040133A   . 50             PUSH EAX
+0040133B   . 31D2           XOR EDX,EDX
+
+At 0x401374, call GetLocalTime - returns at 0x160000:
+00160000  E0 07 07 00 04 00 15 00 12 00 2D 00 0F 00 F3 02  à....-..ó
+
+Builds out the b00! string, passed it to sub_40106C
+
+sub_40106C builds a 256-byte array (inc from 00 to 0xFF)
+for each letter in b00!, add respective byte from array, pull that from array
+e.g. "b" = 0x62. 0x62 + 0x00 = 0x62. Array[0x62] = 0x62. Replace Array[0x00] with it.
+
+
+Current date: 13/12
+b00!9kLA@jf
+62303021396b4c41406a66
+['P', 'A', 'N', '{', 't', 'h', '0', 's', 'e', '_', 'p', 'u', 'P', 'P', '3', 't', 's', '_', 'c', 'r', 'e', 'e', 'p', 'e', 'd', '_', 'm', '3', '_', 'o', 'u', 't', '_', 'a', 'n', 'd', '_', 'I', '_', 'h', '4', 'd', '_', 'N', 'I', 'G', 'H', 'T', 'M', 'A', 'R', 'E', 'S', '}']
+PAN{th0se_puPP3ts_creeped_m3_out_and_I_h4d_NIGHTMARES}
+
+
+b00!9kLA@jf
+
+byte 1 is static 'b'
+byte 2 is static '0' #0x40116E
+byte 3 is static '0'
+byte 4 ! is static
+byte 5 = 9 (0x39) GetLocalTime Month 12 December 
+byte 6 = k (0x6B)GetLocalTime Day 13
+byte 7 = L (0x4C) GetLocalTime Hour 10
+byte 8 = A (0x41) GetVersion = 1DB10106. 5
+byte 9 = @ (0x40) is GetVersion = 1DB10106. = 1
+byte 10 = j (0x6A) = FS:[30] = 0x01 
+byte 11 = f (0x66) 0x04 (default user lang of 0x0400) + 0x5E = 0x62 = 0x0800

@@ -1,0 +1,68 @@
+Change ups to UPX
+
+mov     [ebp+key], 8Ch
+mov     [ebp+var_2B], 0F1h
+mov     [ebp+var_2A], 53h
+mov     [ebp+var_29], 0A3h
+mov     [ebp+var_28], 8
+mov     [ebp+var_27], 0D7h
+mov     [ebp+var_26], 0DCh
+mov     [ebp+var_25], 48h
+mov     [ebp+var_24], 0DBh
+mov     [ebp+var_23], 0Ch
+mov     [ebp+var_22], 3Ah
+mov     [ebp+var_21], 0EEh
+mov     [ebp+var_20], 15h
+mov     [ebp+var_1F], 22h
+mov     [ebp+var_1E], 0C4h
+mov     [ebp+var_1D], 0E5h
+mov     [ebp+var_1C], 0C9h
+mov     [ebp+var_1B], 0A0h
+mov     [ebp+var_1A], 0A5h
+mov     [ebp+var_19], 0Ch
+mov     [ebp+var_18], 0D3h
+mov     [ebp+var_17], 0DCh
+mov     [ebp+var_16], 51h
+mov     [ebp+var_15], 0C7h
+mov     [ebp+var_14], 39h
+mov     [ebp+var_13], 0FDh
+mov     [ebp+var_12], 0D0h
+mov     [ebp+var_11], 0F8h
+mov     [ebp+var_10], 3Bh
+mov     [ebp+var_F], 0E8h
+mov     [ebp+var_E], 0CCh
+mov     [ebp+var_D], 3
+mov     [ebp+var_C], 6
+mov     [ebp+var_B], 43h
+mov     [ebp+var_A], 0F7h
+mov     [ebp+var_9], 0DAh
+mov     [ebp+var_8], 7Eh
+mov     [ebp+var_7], 65h
+mov     [ebp+var_6], 0AEh
+mov     [ebp+var_5], 80h
+
+
+====================
+    if (memcmp(isection[0].name,"UPX",3) == 0)
+    {
+        ...
+    }
+    if (is_packed && ih.entry < isection[2].vaddr)
+    {
+        ...
+            if (offset >= 0 && find(buf + offset + 1, sizeof(buf) - offset - 1, magic, 7) >= 0)
+                x = true;
+        } catch (...) {
+            //x = true;
+        }
+        if (x)
+            throwCantUnpack("file is modified/hacked/protected; take care!!!");
+        else
+            throwCantUnpack("file is possibly modified/hacked/protected; take care!");
+        return false;   // not reached
+    }
+==========================
+
+
+
+PAN{C0nf1agul4ti0ns_0n_4_J08_W3LL_D0N3!}
