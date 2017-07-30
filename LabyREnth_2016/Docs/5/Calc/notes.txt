@@ -1,0 +1,158 @@
+ E:\ctf\Congrats! You successfully solved level 4 for the docs tier.
+Your next challenge awaits here. The password is 'infected'
+Macros are fun. Curtis Carmony (@c1fe)
+
+E:\CTF\PaloAlto\Docs\5\Calc>c:\Python27\python.exe e:\CTF\PaloAlto\Docs\oledump\oledump.py calc.xls
+  1:       107 '\x01CompObj'
+  2:       308 '\x05DocumentSummaryInformation'
+  3:       224 '\x05SummaryInformation'
+  4:     36604 'Workbook'
+  5:       549 '_VBA_PROJECT_CUR/PROJECT'
+  6:       104 '_VBA_PROJECT_CUR/PROJECTwm'
+  7: m     999 '_VBA_PROJECT_CUR/VBA/Sheet1'
+  8: m     999 '_VBA_PROJECT_CUR/VBA/Sheet2'
+  9: m     999 '_VBA_PROJECT_CUR/VBA/Sheet3'
+ 10: M    1677 '_VBA_PROJECT_CUR/VBA/ThisWorkbook'
+ 11:      2678 '_VBA_PROJECT_CUR/VBA/_VBA_PROJECT'
+ 12:      1760 '_VBA_PROJECT_CUR/VBA/__SRP_0'
+ 13:       198 '_VBA_PROJECT_CUR/VBA/__SRP_1'
+ 14:       816 '_VBA_PROJECT_CUR/VBA/__SRP_2'
+ 15:       156 '_VBA_PROJECT_CUR/VBA/__SRP_3'
+ 16:       551 '_VBA_PROJECT_CUR/VBA/dir'
+ 
+ E:\CTF\PaloAlto\Docs\5\Calc>C:\Python27\python E:\CTF\PaloAlto\Tools\oletools-0.46\oletools\oleid.py calc.xls
+
+Filename: calc.xls
++-------------------------------+-----------------+
+| Indicator                     | Value           |
++-------------------------------+-----------------+
+| OLE format                    | True            |
+| Has SummaryInformation stream | True            |
+| Application name              | Microsoft Excel |
+| Encrypted                     | False           |
+| Word Document                 | False           |
+| VBA Macros                    | True            |
+| Excel Workbook                | True            |
+| PowerPoint Presentation       | False           |
+| Visio Drawing                 | False           |
+| ObjectPool                    | False           |
+| Flash objects                 | 0               |
++-------------------------------+-----------------+
+
+E:\CTF\PaloAlto\Docs\5\Calc>C:\Python27\python E:\CTF\PaloAlto\Tools\oletools-0.46\oletools\oledir.py calc.xls
+oledir 0.03 - http://decalage.info/python/oletools
+OLE directory entries in file calc.xls:
+----+------+-------+----------------------+-----+-----+-----+--------+------
+id  |Status|Type   |Name                  |Left |Right|Child|1st Sect|Size
+----+------+-------+----------------------+-----+-----+-----+--------+------
+0   |<Used>|Root   |Root Entry            |-    |-    |2    |4C      |12096
+1   |<Used>|Stream |Workbook              |18   |-    |-    |2       |36567
+2   |<Used>|Storage|_VBA_PROJECT_CUR      |1    |16   |14   |0       |0
+3   |<Used>|Storage|VBA                   |-    |-    |7    |0       |0
+4   |<Used>|Stream |dir                   |-    |-    |-    |0       |551
+5   |<Used>|Stream |Sheet1                |4    |6    |-    |9       |991
+6   |<Used>|Stream |Sheet2                |-    |-    |-    |19      |991
+7   |<Used>|Stream |Sheet3                |5    |9    |-    |29      |991
+8   |<Used>|Stream |__SRP_0               |-    |-    |-    |39      |1677
+9   |<Used>|Stream |__SRP_1               |8    |11   |-    |54      |198
+10  |<Used>|Stream |__SRP_2               |-    |-    |-    |58      |762
+11  |<Used>|Stream |__SRP_3               |10   |12   |-    |64      |156
+12  |<Used>|Stream |ThisWorkbook          |-    |13   |-    |67      |1408
+13  |<Used>|Stream |_VBA_PROJECT          |-    |-    |-    |7D      |2682
+14  |<Used>|Stream |PROJECT               |3    |15   |-    |A7      |545
+15  |<Used>|Stream |PROJECTwm             |-    |-    |-    |B0      |104
+16  |<Used>|Stream |\x05SummaryInformation|-    |17   |-    |B2      |224
+17  |<Used>|Stream |\x05DocumentSummaryInf|-    |-    |-    |B6      |308
+    |      |       |ormation              |     |     |     |        |
+18  |<Used>|Stream |\x01CompObj           |-    |-    |-    |BB      |107
+19  |unused|Empty  |                      |-    |-    |-    |0       |0
+
+E:\CTF\PaloAlto\Docs\5\Calc>C:\Python27\python E:\CTF\PaloAlto\Tools\oletools-0.46\oletools\olevba.py calc.xls
+olevba 0.46 - http://decalage.info/python/oletools
+Flags        Filename
+-----------  -----------------------------------------------------------------
+OLE:M-S-H--- calc.xls
+===============================================================================
+FILE: calc.xls
+Type: OLE
+-------------------------------------------------------------------------------
+VBA MACRO ThisWorkbook.cls
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/ThisWorkbook'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Sub excelulate()
+    Application.Quit
+End Sub
+
+-------------------------------------------------------------------------------
+VBA MACRO Sheet1.cls
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/Sheet1'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(empty macro)
+-------------------------------------------------------------------------------
+VBA MACRO Sheet2.cls
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/Sheet2'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(empty macro)
+-------------------------------------------------------------------------------
+VBA MACRO Sheet3.cls
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/Sheet3'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(empty macro)
++------------+-------------+-----------------------------------------+
+| Type       | Keyword     | Description                             |
++------------+-------------+-----------------------------------------+
+| Suspicious | Hex Strings | Hex-encoded strings were detected, may  |
+|            |             | be used to obfuscate strings (option    |
+|            |             | --decode to see all)                    |
++------------+-------------+-----------------------------------------+
+
+
+00000000: 09 08 10 00 00 06 05 00 54 38 CD 07 C9 C0 01 00  ........T8-.++..
+00000010: 06 07 00 00 E1 00 02 00 B0 04 C1 00 02 00 00 00  ....ß...¦.-.....
+00000020: E2 00 00 00 5C 00 70 00 0C 00 00 6D 6C 77 72 5F  G...\.p....mlwr_
+00000030: 73 61 6E 64 62 6F 78 20 20 20 20 20 20 20 20 20  sandbox
+00000040: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+
+
+Hidden sheet. Unhide "secret"
+
+=IF(RUN(D1))	=SET.NAME("fail", fail+1)	=ALERT("EXCEL.EXE misses CALC.EXE")	=REGISTER("Shlwapi.dll", "PathFileExistsA", "AC")
+=RUN(A14)	=IF(fail=1)	=BEEP(2)	=RETURN(CALL(D1, "C:\windows\system32\calc.exe"))
+=ELSE()	=ALERT("Looks like you're having some trouble with Excel. Maybe you should try a calculator.")	=BEEP(3)	
+=RUN(C1)	=ELSE.IF(fail=5)	=BEEP(4)	
+=END.IF()	=ALERT("I thought I told you to stick with calculators?")	=RETURN()	
+=FORMULA("", Sheet1!B3)	=ELSE.IF(fail=10)		
+=CLOSE(TRUE)	=ALERT("Wow, you must really like calculators huh?")		
+=RETURN()	=ELSE.IF(fail=20)		
+	=ALERT("I'll give you a hint. There are macros.")		
+	=ELSE()		
+	=ALERT(fail&" failures = " &fail& " calculators")		
+	=END.IF()		
+	=FOR("calc_fun", 1, fail)		
+=IF(RUN(supersecret!F13))	=BEEP()		
+=ALERT("YES! You are a true EXCELULATOR!!!")	=BEEP()		
+=ALERT(fail&" EXCEL'S!!!!!")	=BEEP()	=ALERT(Sheet1!B3)	
+=FOR("excel_fun", 1, fail)	=BEEP()	=RETURN()	
+=BEEP()	=BEEP()		
+=BEEP()	=BEEP()		
+=BEEP()	=BEEP()		
+=BEEP()	=EXEC("c:\windows\system32\calc.exe")		
+=BEEP()	=NEXT()		
+=BEEP()	=RETURN()		
+=BEEP()			
+=NEW(1)			
+=NEXT()			
+=CLOSE(TRUE)			
+=ELSE()			
+=RUN(B1)			
+=END.IF()			
+=RETURN()			
+
+
+E:\CTF\PaloAlto\Docs\5\Calc>python sheetcode.py | sort
+
+"""(D7,A5,C5,B4,E20,B6,A8,B8,A12,B10,E10,C9,B13,D12,C11,B16,A25,A18,B19,C20,B21,B2,D23,B24,E4,B26,D16,A21,C14,A16),undefined!B4))"""
+O@MzDwb2
+
+
+PAN{Exc3l4=3x7r3me1y4An7a5+!c}

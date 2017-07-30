@@ -1,0 +1,167 @@
+Congrats! You successfully solved level 3 for the docs tier.
+
+Your next challenge awaits here. The password is 'infected'
+
+EXCEL.EXE not just CALC.EXE Curtis Carmony (@c1fe)
+
+E:\CTF\PaloAlto\Docs\4\Doc>c:\python27\python ..\..\oledump\oledump.py fun.docm
+A: word/vbaProject.bin
+ A1:        97 'NpuXrzgq/\x01CompObj'
+ A2:       291 'NpuXrzgq/\x03VBFrame'
+ A3:       175 'NpuXrzgq/f'
+ A4:    199860 'NpuXrzgq/o'
+ A5:       678 'PROJECT'
+ A6:       137 'PROJECTwm'
+ A7:        97 'U8pblvDZuAh8GY/\x01CompObj'
+ A8:       348 'U8pblvDZuAh8GY/\x03VBFrame'
+ A9:       219 'U8pblvDZuAh8GY/f'
+A10:      1524 'U8pblvDZuAh8GY/o'
+A11: m    1433 'VBA/NpuXrzgq'
+A12: M   13970 'VBA/ThisDocument'
+A13: m    1452 'VBA/U8pblvDZuAh8GY'
+A14: M   13147 'VBA/Z1yiWeP'
+A15:      6690 'VBA/_VBA_PROJECT'
+A16:      7661 'VBA/__SRP_0'
+A17:      1038 'VBA/__SRP_1'
+A18:      6560 'VBA/__SRP_2'
+A19:       934 'VBA/__SRP_3'
+A20:      5437 'VBA/__SRP_4'
+A21:       866 'VBA/__SRP_5'
+A22:       672 'VBA/__SRP_6'
+A23:       106 'VBA/__SRP_7'
+A24:       922 'VBA/__SRP_8'
+A25:       106 'VBA/__SRP_9'
+A26:      1076 'VBA/dir'
+
+E:\CTF\PaloAlto\Docs\4\Doc>c:\python27\python ..\..\oledump\oledump.py fun.docm -a -s A8
+00000000: 56 45 52 53 49 4F 4E 20 35 2E 30 30 0D 0A 42 65  VERSION 5.00..Be
+00000010: 67 69 6E 20 7B 43 36 32 41 36 39 46 30 2D 31 36  gin {C62A69F0-16
+00000020: 44 43 2D 31 31 43 45 2D 39 45 39 38 2D 30 30 41  DC-11CE-9E98-00A
+00000030: 41 30 30 35 37 34 41 34 46 7D 20 55 38 70 62 6C  A00574A4F} U8pbl
+00000040: 76 44 5A 75 41 68 38 47 59 20 0D 0A 20 20 20 43  vDZuAh8GY ..   C
+00000050: 61 70 74 69 6F 6E 20 20 20 20 20 20 20 20 20 3D  aption         =
+00000060: 20 20 20 22 55 73 65 72 46 6F 72 6D 31 22 0D 0A     "UserForm1"..
+00000070: 20 20 20 43 6C 69 65 6E 74 48 65 69 67 68 74 20     ClientHeight
+00000080: 20 20 20 3D 20 20 20 32 33 31 30 0D 0A 20 20 20     =   2310..
+00000090: 43 6C 69 65 6E 74 4C 65 66 74 20 20 20 20 20 20  ClientLeft
+000000A0: 3D 20 20 20 31 32 30 0D 0A 20 20 20 43 6C 69 65  =   120..   Clie
+000000B0: 6E 74 54 6F 70 20 20 20 20 20 20 20 3D 20 20 20  ntTop       =
+000000C0: 31 30 39 35 0D 0A 20 20 20 43 6C 69 65 6E 74 57  1095..   ClientW
+000000D0: 69 64 74 68 20 20 20 20 20 3D 20 20 20 31 37 34  idth     =   174
+000000E0: 30 0D 0A 20 20 20 48 65 6C 70 43 6F 6E 74 65 78  0..   HelpContex
+000000F0: 74 49 44 20 20 20 3D 20 20 20 34 34 0D 0A 20 20  tID   =   44..
+00000100: 20 54 61 67 20 20 20 20 20 20 20 20 20 20 20 20   Tag
+00000110: 20 3D 20 20 20 22 42 5A 62 2B 4E 4B 74 6D 44 39   =   "BZb+NKtmD9
+00000120: 58 51 36 75 51 41 67 4A 73 75 76 76 75 64 62 37  XQ6uQAgJsuvvudb7
+00000130: 74 5A 67 6F 44 2F 52 43 4A 58 22 0D 0A 20 20 20  tZgoD/RCJX"..
+00000140: 54 79 70 65 49 6E 66 6F 56 65 72 20 20 20 20 20  TypeInfoVer
+00000150: 3D 20 20 20 33 0D 0A 45 6E 64 0D 0A              =   3..End..
+BZb+NKtmD9XQ6uQAgJsuvvudb7tZgoD/RCJX
+
+E:\CTF\PaloAlto\Docs\4\Doc>c:\python27\python ..\..\oledump\oledump.py fun.docm -v -s A12
+Attribute VB_Name = "ThisDocument"
+Attribute VB_Base = "1Normal.ThisDocument"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+Attribute VB_TemplateDerived = True
+Attribute VB_Customizable = True
+#If VBA7 And Win64 Then
+Private Declare PtrSafe Function jFlnz8 Lib "winmm.dll" Alias "sndPlaySoundA" _
+       (ByVal lpszSoundName As String, ByVal uFlags As Long) As Long
+#Else
+Private Declare Function jFlnz8 Lib "winmm.dll" Alias "sndPlaySoundA" _
+       (ByVal lpszSoundName As String, ByVal uFlags As Long) As Long
+#End If
+
+Public cMSuxt As Variant
+Public gkKg As Object
+Public cN3r As String
+Public kZ4gU8sc As String
+Public qa317 As Integer
+
+Sub znOIKcDsLlMKQVsnFfWaE2bHu18RdOmKFoVb()
+    Selection.WholeStory
+    Selection.Font.ColorIndex = (Selection.Font.ColorIndex + 1) Mod 15
+    If Selection.Font.ColorIndex Mod 2 = 0 Then
+        Set gkKg = CreateObject("Excel.Application")
+        gkKg.Speech.speak NpuXrzgq.Label1, True
+        gkKg.Quit
+    ElseIf Selection.Font.ColorIndex Mod 2 = 1 Then
+        adk49an = Environ("tmp") & "\" & "asdf"
+        jFlnz8 adk49an, 1
+    End If
+    Application.OnTime Now + TimeValue("00:00:01"), "znOIKcDsLlMKQVsnFfWaE2bHu18RdOmKFoVb"
+End Sub
+
+...
+
+E:\CTF\PaloAlto\Docs\4\Doc>c:\python27\python ..\..\oledump\oledump.py fun.docm -d -s A5
+ID="{00000000-0000-0000-0000-000000000000}"
+Document=ThisDocument/&H00000000
+Package={AC9F2F90-E877-11CE-9F68-00AA00574A4F}
+BaseClass=NpuXrzgq
+Module=Z1yiWeP
+BaseClass=U8pblvDZuAh8GY
+HelpFile=""
+Name="Project"
+HelpContextID="0"
+VersionCompatible32="393222000"
+CMG="C6C46AB6F6BAB8BEB8BEBCC2BCC2"
+DPB="8C8E20FC20DF3DDF3D20C3E03D289391E15F3D9EAE80DCEE08CA2A633851F96EE361702ACA0E"
+GC="5250FE3AC53BC53BC5"
+
+[Host Extender Info]
+&H00000001={3832D640-CF90-11CF-8E43-00A0C911005A};VBE;&H00000000
+
+[Workspace]
+ThisDocument=75, 75, 1271, 651, Z
+NpuXrzgq=0, 0, 0, 0, C, 25, 25, 870, 202,
+Z1yiWeP=50, 50, 1321, 496,
+U8pblvDZuAh8GY=0, 0, 0, 0, C, 50, 50, 895, 227,
+...
+
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} NpuXrzgq
+   Caption         =   "UserForm1"
+   ClientHeight    =   3030
+   ClientLeft      =   120
+   ClientTop       =   450
+   ClientWidth     =   4560
+   StartUpPosition =   1  'CenterOwner
+   TypeInfoVer     =   3
+End
+
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} U8pblvDZuAh8GY
+   Caption         =   "UserForm1"
+   ClientHeight    =   2310
+   ClientLeft      =   120
+   ClientTop       =   1095
+   ClientWidth     =   1740
+   HelpContextID   =   44
+   Tag             =   "BZb+NKtmD9XQ6uQAgJsuvvudb7tZgoD/RCJX"
+   TypeInfoVer     =   3
+End
+
+
+....
+
+Maybe this is the decoding routine?
+
+Sub XWn5TNdoykQb0QoitVEG7sLOxIRSi97XmqmM(Data, Data2_B64)
+    ang8rjzwn = XOR_Data_Key(Data, U8pblvDZuAh8GY.ScrollWidth)
+    upnFZMT9P = XOR_Key_Data(U8pblvDZuAh8GY.Zoom, ang8rjzwn)
+    s06 = XOR_Data_String(upnFZMT9P, decodeBase64(Data2_B64))
+    If StringCompare(s06, decodeBase64(StrReverse(U8pblvDZuAh8GY.Tag))) Then
+        MsgBox StrToUnicode(Data)
+    End If
+End Sub
+
+   Tag             =   "BZb+NKtmD9XQ6uQAgJsuvvudb7tZgoD/RCJX"
+>>  XJCR/DogZt7bduvvusJgAQu6QX9DmtKN+bZB
+>>> base64.b64decode(a)
+b'\\\x90\x91\xfc: f\xde\xdbv\xeb\xef\xba\xc2`\x01\x0b\xbaA\x7fC\x9a\xd2\x8d\xf9\xb6A'
+
+
+PAN{VBA=V3ryb!gAdv3n7ur3s!}

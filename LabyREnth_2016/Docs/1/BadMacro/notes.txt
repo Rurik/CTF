@@ -1,0 +1,58 @@
+E:\CTF\PaloAlto\Docs\1\BadMacro>c:\Python27\python.exe E:\CTF\PaloAlto\oledump\oledump.py challenge.doc
+  1:       121 '\x01CompObj'
+  2:      4096 '\x05DocumentSummaryInformation'
+  3:      4096 '\x05SummaryInformation'
+  4:    106321 '1Table'
+  5:     22716 'Data'
+  6:       363 'Macros/PROJECT'
+  7:        41 'Macros/PROJECTwm'
+  8: M    4689 'Macros/VBA/ThisDocument'
+  9:      2872 'Macros/VBA/_VBA_PROJECT'
+ 10:       520 'Macros/VBA/dir'
+ 11:      4096 'WordDocument'
+ 
+E:\CTF\PaloAlto\Docs\1\BadMacro>c:\Python27\python.exe E:\CTF\PaloAlto\oledump\oledump.py challenge.doc -s 8 | more
+00000000: 01 16 01 00 00 00 01 00 00 E6 04 00 00 E4 00 00  .........µ...S..
+00000010: 00 EA 01 00 00 FF FF FF FF ED 04 00 00 01 0D 00  .O...    f......
+00000020: 00 00 00 00 00 01 00 00 00 DE 9A D9 42 00 00 FF  .........¦Ü+B.. 
+00000030: FF A3 01 00 00 88 00 00 00 B6 00 FF FF 01 01 00   ú...ê...¦.  ...
+00000040: 00 00 00 FF FF FF FF 00 00 00 00 FF FF FF FF FF  ...    ....     
+00000050: FF 00 00 CC 7A C9 7A 99 85 3A 49 88 8C 10 21 AE   ..¦z+zÖà:Iêî.!«
+00000060: B5 C2 59 1F 1C E8 AD 58 55 4E 4B 9C 14 5B 62 6D  ¦-Y..F¡XUNK£.[bm
+...
+00000D00: 00 FF FF FF FF 00 00 01 46 B5 00 41 74 74 72 69  .    ...F¦.Attri
+00000D10: 62 75 74 00 65 20 56 42 5F 4E 61 6D 00 65 20 3D  but.e VB_Nam.e =
+00000D20: 20 22 54 68 69 00 73 44 6F 63 75 6D 65 6E 10 74   "Thi.sDocumen.t
+00000D30: 22 0D 0A 0A 8C 42 61 73 01 02 8C 31 4E 6F 72 6D  "...îBas..î1Norm
+00000D40: 61 6C 02 2E 19 56 47 6C 6F 62 61 6C 21 01 AA 53  al...VGlobal!.¬S
+00000D50: 70 61 63 01 6C 46 61 08 6C 73 65 0C A2 43 72 65  pac.lFa.lse.óCre
+00000D60: 61 10 74 61 62 6C 15 1F 50 72 65 20 64 65 63 6C  a.tabl..Pre decl
+00000D70: 61 00 06 49 64 11 00 9E 54 72 75 0D 42 45 78 70  a..Id..PTru.BExp
+00000D80: 08 6F 73 65 14 1C 54 65 6D 70 00 6C 61 74 65 44  .ose..Temp.lateD
+
+"http://10.1.33.7/b64/x58/MDgxOTE2MjMwZTMxMDIzMTNhNjk2YjA3NjgzNjM0MjE2YTJjMzA2ODJiNmIwNzBmMzA2ODA3MTMz\nNjY4MmYwNzJmMzA2YjJhNmI2YTM0Njg2ODMzMjU=/evil.exe"
+
+>>> import base64
+>>> a = 'MDgxOTE2MjMwZTMxMDIzMTNhNjk2YjA3NjgzNjM0MjE2YTJjMzA2ODJiNmIwNzBmMzA2ODA3MTMz'
+>>> b = base64.b64decode(a)
+>>> b
+'081916230e3102313a696b07683634216a2c30682b6b070f306807133'
+>>> b.decode('hex')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "c:\python27\lib\encodings\hex_codec.py", line 42, in hex_decode
+    output = binascii.a2b_hex(input)
+TypeError: Odd-length string
+>>> c = 'NjY4MmYwNzJmMzA2YjJhNmI2YTM0Njg2ODMzMjU='
+>>> d = base64.b64decode(c)
+>>> d
+'6682f072f306b2a6b6a3468683325'
+>>> e = b+d
+>>> e
+'081916230e3102313a696b07683634216a2c30682b6b070f3068071336682f072f306b2a6b6a3468683325'
+>>> e.decode('hex')
+'\x08\x19\x16#\x0e1\x021:ik\x07h64!j,0h+k\x07\x0f0h\x07\x136h/\x07/0k*kj4hh3%'
+>>> open('a.dat', 'wb').write(e.decode('hex'))
+
+E:\CTF\PaloAlto\Docs\1\BadMacro>xorsearch a.dat PAN
+Found XOR 58 position 0000: PAN{ViZib13_0nly2th0s3_Wh0_Kn0w_wh3r32l00k}
