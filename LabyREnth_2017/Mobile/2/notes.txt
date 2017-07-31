@@ -1,0 +1,49 @@
+ifconfig7z Password: labyrenth
+Hint: RouterLocker is free encryption software for securing your
+router. Thank you, in advance, for purchasing RouterLocker.
+Author(s): int0x80
+
+http://ftp.de.debian.org/debian/dists/stretch/main/installer-mips/current/images/malta/netboot/
+https://www.aurel32.net/info/debian_mips_qemu.php
+
+
+apt-get install strace
+
+strace -e open,access -f ./routerlocker
+searches for /tmp/router.lck
+apt-get install gdb
+
+gdb routerlocker
+info files
+-- entrypoint 0x400780
+break *0x400780
+break *0x400b1c  (start of parsing data)
+break *0x400d18 (read data strlen)
+set follow-fork-mode child
+
+@ 0x400990: xturkte/rom/.pl
+stepi
+@ 0x4120b20
+i r a0
+i r v0
+x/16 0x4120a8
+x/16 0x412008
+disas /m
+@
+
+
+break *0x400c5c
+stepi
+i r v1
+get xor key?
+
+break *0x400c78
+stepi
+i r a0 (key byte)
+i r v0 (xor key)
+i r v1 (check byte)
+set $v0 = $v1
+
+v0 ^ v1 = byte. change $v0 = $v1 to continue
+
+key = 'that_ransomware_ran_somewhere'

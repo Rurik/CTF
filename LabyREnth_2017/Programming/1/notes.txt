@@ -1,0 +1,41 @@
+7z Download
+7z Password: labyrenth
+Hint: A classic puzzle that a Dutch physicist may be able to help you out with... 54.69.145.229:16000
+Author(s): @wartortell
+
+
+https://www.whitehatters.academy/labyrinth-of-1001-mazes/
+This looks like it needs a maze route algorithm. I coded an A* algo (see http://en.wikipedia.org/wiki/A*_search_algorithm) once before for the WibblyWobbly challenge of LegitBS CTF, can some of that code be reused ?
+
+###########
+#>      # #
+# ##### # #
+# #     # #
+### ##### #
+#   #    X#
+# ### ### #
+#     #   #
+####### ###
+#         #
+###########
+
+The solution would be: 
+>>>>>>VV<<<<VV<<VV>>>>^^>>>>
+>>>>>>vv<<<<vv<<vv>>>>^^>>>>
+
+Solving board:
+#######################
+#>        #           #
+# ### ### # ####### ###
+#     # # #     # #   #
+####### # ##### # ### #
+#       #     #     # #
+# ### ####### ####### #
+# # #       #       # #
+# # ### ### ####### # #
+# # X #   # #       # #
+# ### ### ### ####### #
+#       #             #
+#######################
+>>>>>>>>VVVV>>>>VV>>>>>>VV<<<<<<VV<<<<^^<<^^<<^^<<<<VVVVVV>>>>^^<
+b"You're aMAZEing! (See what we did there? hehehe) PAN{my_f1rst_labyM4z3.jpeg}\n"

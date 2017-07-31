@@ -1,0 +1,8 @@
+7z Download
+7z Password: labyrenth
+Hint: Just because it's protocol compliant doesn't mean it is a good idea.
+Author(s): @anthonykasza
+
+Pull Base64 parts, concat to zip, get file.dat:
+
+PAN{AllPointersInDNSShouldPointBackwards}

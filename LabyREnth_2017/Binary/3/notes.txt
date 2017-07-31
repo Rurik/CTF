@@ -1,0 +1,45 @@
+https://sites.google.com/site/chitchatvmback/backdoor
+http://csis.gmu.edu/ksun/publications/Malt-sp2015.pdf
+
+https://www.vmware.com/support/developer/vc-sdk/visdk25pubs/ReferenceGuide/vim.vm.ConfigInfo.html
+
+http://wayback.archive.org/web/20100610223425/http://chitchat.at.infoseek.co.jp:80/vmware/backdoor.html
+
+vmx.exe
+
+calls 0x5658, check ECX for command code
+
+VMware version 4
+CPU Speed
+UUID BIOS
+    orig: 0x656F4D56
+    cmp to 0x6E78565F
+    
+    0x4A60565F
+    0x55294E5B
+    0x5B624B4A
+    0x515D574E
+    
+    ebp-3C = VM UUID
+    ebp-54 = check UUID
+    5F 56 60 4A 5B 4E 29 55 4A 4B 62 5B 4E 57 5D 51  = 5F56604A5B4E29554A4B625B4E575D51
+    codecs.decode(b'564d57415245204c41425952454e5448', "hex_codec") = b'VMWARE LABYRENTH'
+    
+    https://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1541 == must remove vmtools to change UUID, or else it reverts
+    
+    uuid.bios = "4d 44 4e 38 49 3c 17 43 38 39 50 49 3c 45 4b 3f"
+
+    012C8B28 | 8B 58 04                 | mov ebx,dword ptr ds:[eax+4]            |
+    
+    Mouse around top left
+    clipboard of 40 bytes
+    
+    omg_labyrenth_2017 - key
+    
+    0035F80C  50 41 4E 7B 56 4D 57 61 72 65 20 4C 61 62 79 72  PAN{VMWare Labyr  
+0035F81C  65 6E 74 68 20 32 30 31 37 20 43 68 61 6C 6C 65  enth 2017 Challe  
+0035F82C  6E 67 65 2E 20 56 4D 57 61 72 65 20 42 61 63 6B  nge. VMWare Back  
+0035F83C  64 6F 6F 72 20 41 50 49 20 69 73 20 6E 69 63 65  door API is nice  
+0035F84C  2E 7D 00 00 DA 34 CA 5C B0 FB 35 00 D6 9A 2C 01  .}..Ú4Ê\°û5.Ö.,.  
+
+ESP : 0035F6FC     &"PAN{VMWare Labyrenth 2017 Challenge. VMWare Backdoor API is nice.}"

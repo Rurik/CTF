@@ -1,0 +1,93 @@
+Read C:\config.jpg or c:\notdroids.jpg
+
+
+Depending on isDebugger, use key of:
+No:  7ZfKiuNbDcmXJvzRuVHRiD4pH6EEApCmb4ciUmzbH6TXEh7nmuQ3LghuGx38t2BT
+Yes: 7ZfKiuNbDcmXJvzRuVHRiD4pH6EEApCmb4ciUmzbH6TXEh7nmuQ3LghuGx38t2BX
+
+Decrypt from file, inject into ping, run
+
+
+
+char __usercall sub_1393B50@<al>(_DWORD *a1@<edx>, int a2@<ecx>, LPCWSTR Data)
+{
+  _DWORD *v3; // edi@1
+  void *v4; // ebx@1
+  int sizeof_Data; // eax@6
+  void *v6; // esi@8
+  int v7; // eax@9
+  int v8; // edi@9
+  unsigned __int8 v9; // bl@9
+  _DWORD *v11; // [esp+8h] [ebp-1Ch]@1
+  void *v12; // [esp+Ch] [ebp-18h]@1
+  int hKey; // [esp+10h] [ebp-14h]@1
+  int v14; // [esp+14h] [ebp-10h]@10
+  HCRYPTPROV phProv; // [esp+18h] [ebp-Ch]@1
+  int hHash; // [esp+1Ch] [ebp-8h]@1
+  char v17; // [esp+23h] [ebp-1h]@1
+
+  v3 = a1;
+  v17 = 0;
+  v11 = a1;
+  hKey = 0;
+  hHash = 0;
+  phProv = 0;
+  v4 = CreateFileW_0(a2, 1, 1, 0, 3, 128, 0);
+  v12 = v4;
+  if ( v4 != -1
+    && (CryptAcquireContextW(&phProv, 0, L"Microsoft Enhanced Cryptographic Provider v1.0", PROV_RSA_FULL, 0)
+     || GetLastError() != 0x80090016
+     || CryptAcquireContextW(&phProv, 0, L"Microsoft Enhanced Cryptographic Provider v1.0", PROV_RSA_FULL, 8u)) )
+  {
+    if ( CryptCreateHash(phProv, CALG_MD5, 0, 0, &hHash) )
+    {
+      sizeof_Data = lstrlenW(Data);
+      if ( CryptHashdata(hHash, Data, sizeof_Data, 0) )
+      {
+        if ( CryptDeriveKey(phProv, CALG_RC4, hHash, 0x800000, &hKey) )
+        {
+          v6 = sub_13958C7(0x3E8u);
+          if ( v6 )
+          {
+            v7 = GetFileSize(v4, 0);
+            *v3 = sub_139413A(v7);
+            v8 = 0;
+            v9 = 0;
+            while ( ReadFile(v12, v6, 1000, &v14, 0) )
+            {
+              if ( v14 < 0x3E8 )
+                v9 = 1;
+              if ( !CryptDecrypt(hKey, 0, v9, 0, v6, &v14) )
+                break;
+              sub_139E2F0(v8 + *v11, v6, v14);
+              v8 += v14;
+              if ( v9 )
+              {
+                v17 = 1;
+                break;
+              }
+            }
+            sub_13958D2(v6);
+            v4 = v12;
+          }
+        }
+      }
+    }
+  }
+  if ( v4 )
+    CloseHandle_0(v4);
+  if ( hHash )
+  {
+    CryptDestroyHash(hHash);
+    hHash = 0;
+  }
+  if ( hKey )
+    CryptDestroyKey(hKey);
+  if ( phProv )
+    CryptReleaseContext(phProv, 0);
+  return v17;
+
+
+
+PAN{93A0A2414CD35A7620A7FD23ECEF187F08FBC5728229614B18EEDEE81ED59393}
+

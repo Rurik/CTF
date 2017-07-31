@@ -1,0 +1,33 @@
+$ rainbow
+YAAAS YOU SOLVED MY RIDDLE! Now here's another challenge, not for
+the faint of heart!
+7z Download    Torrent
+7z Password: eE)JHFFsamFXYk86VP[oGg3Gn8CbywEqUxdZbbbV
+Hint: It's time to open up a can of Matt Broderick!
+Author: BobJ
+
+
+
+.//lib/modules/3.2.0-123-generic/kernel/drivers/scsi/megaraid/ff0000_herring.py
+https://github.com/astrand/pyobfuscate/blob/master/pyobfuscate
+...
+
+--cheat - red herring
+
+19:10:31-bbaskin@~/CTF/Labyrenth/Random/1/squashfs-root$ find ./ -type f -mtime -92 -exec ls -l {} \;
+19:10:50-bbaskin@~/CTF/Labyrenth/Random/1/squashfs-root$ find ./ -type f -mtime -92 -exec ls -l {} \; | grep -v '\.sh$'
+-rw-r--r--@ 1 bbaskin  1069228684  8196 Jun 10 18:31 .//.DS_Store
+-rwxr-xr-x  1 bbaskin  1069228684  1223 Mar 11 12:55 .//etc/menu-methods/blackbox
+-rw-r--r--  1 bbaskin  1069228684  36 Mar 11 01:26 .//etc/skel/.xinitrc
+-rw-r--r--  1 bbaskin  1069228684  1838888 Mar 11 01:11 .//lib/modules/3.2.0-123-generic/kernel/drivers/scsi/megaraid/ff0000_herring.py
+-rw-r--r--@ 1 bbaskin  1069228684  362 Jun 10 18:39 .//parse_sh.py
+-rw-r--r--  1 bbaskin  1069228684  3566837 Mar 11 01:29 .//usr/bin/blackbox.dat
+-rwxr-xr-x  1 bbaskin  1069228684  47 Mar 11 01:31 .//usr/bin/blackboxrc
+
+#!/bin/bash
+tac /usr/bin/blackbox.dat | python
+.//usr/bin/blackbox.dat -- python script
+
+Pull big block out of blackbox.dat. Decode, get PNG:
+
+PAN{WhatAStrang3Gam3-TheOnlyWinningMov3IsToCh3at}

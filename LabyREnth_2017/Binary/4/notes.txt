@@ -1,0 +1,16 @@
+7z Password: labyrenth
+Hint: Send me this identifier together with your $$$$ to decrypt
+your file: da91e949f4c2e814f811fbadb3c195b8
+Author(s): Erye Hernandez, Amro Younes, Zhi Xu
+
+
+1002004D0 = output buffer
+
+
+brute force the hash
+get OUI from parallels.
+
+crack_apple.py to find OUI
+rc4.py to crack RC4
+
+PAN{1_d0n't_4lw@y5_c@tch_4_v1rus_but_wh3n_1_d0_1_cr@ck_1t}

@@ -1,0 +1,35 @@
+7z Download
+7z Password: labyrenth
+Hint: Alice, follow the clockmaker into the rabbit hole ->
+labytime.com
+Author(s): @theenergystory, @apatrid
+
+
+31 37 2D 30 36 2D 31 35  20 31 38 3A 35 32 3A 34  17-06-15 18:52:4
+35 00 3A 35 32 3A 34 35  20 35 30 20 30 20 30 20  5.:52:45 50 0 0
+34 30 39 2E 32 20 55 54  43 28 4E 49 53 54 29 20  409.2 UTC(NIST)
+2A 20 0A 00 00 00 00 00  00 00 00 00 00 00 00 00  * ..............
+
+17-06-15 18:52:45.:52:45 50 0 0 409.2 UTC(NIST) *
+
+PAN{f868a3277eff5c7470697f688032270eb75c106d}
+
+  v12 = "24.56.178.140";
+  v13 = "128.138.140.44";
+  v14 = "128.138.141.172";
+  v15 = "216.228.192.69";
+  v16 = "216.229.0.179";
+  v17 = "198.111.152.100";
+  v18 = "64.113.32.5";
+
+
+  01321C25 | 8D 87 90 61 33 01        | lea eax,dword ptr ds:[edi+1336190]                    | edi+1336190:"PAN{2d10dea4b0a4f6d9f54cf7d61063e2e7bd1236d0}"
+00136184  63 6F 6E 6E 65 63 74 00 00 00 00 00 50 41 4E 7B  connect.....PAN{
+00136194  52 31 43 4B 2F 5C 2F 5C 30 72 74 79 32 64 32 32  R1CK/\/\0rty2d22
+001361A4  34 30 66 63 32 36 35 38 66 62 64 64 61 64 30 31  40fc2658fbddad01
+001361B4  39 64 37 33 33 34 34 61 7D 00 00 00 53 65 6C 65  9d73344a}...Sele
+
+R1CK/\/\0rty2d2240fc2658fbddad019d73344a}
+R1CK/\/\0rtyffd82dd5e3ba7ee72ffe75d3aae8}
+
+PAN{tricky_tricky_better_be_quicky}
