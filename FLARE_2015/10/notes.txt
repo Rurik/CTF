@@ -1,0 +1,91 @@
+      case 0x22E068:
+        ignore_1();  // 009DC760
+      case 0x22E108:
+        ignore_2(); // 00A5D0C0
+      case 0x22E164:
+        ignore_3(); // 00B54340
+        
+debug rundll32 of challenge.dll
+do a direct call to ignore_1 (009DC760)
+
+change memory pages to r/w
+
+Routine writes big memory to EBP, and then one byte here:
+
+00C4D858  A7 00 00 00 00 00 00                             ß......
+
+
+ignore1 > TEA:
+    STACK
+
+    1: Push key bytes:
+0007F2A0  30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46  0123456789ABCDEF
+0007F2B0  CF 7B 8F F0 9C                                   œ{èú
+
+    2: Push size of that: 28h
+    
+    3: Push buffer (nulls???) of 0xC4D890
+    
+    Returns:
+00C4D890  21 9A 35 0B B3 B4 14 F6 21 9A 35 0B B3 B4 14 F6  !ö5≥¥ˆ!ö5≥¥ˆ
+00C4D8A0  21 9A 35 0B B3 B4 14 F6 21 9A 35 0B B3 B4 14 F6  !ö5≥¥ˆ!ö5≥¥ˆ
+00C4D8B0  21 9A 35 0B B3 B4 14 F6                          !ö5≥¥ˆ
+
+ignore2 > TEA
+    STACK
+    
+    1: Push EDX 
+0007F2A0  30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46  0123456789ABCDEF
+0007F2B0  E3                                               „
+
+    2: Push size of something? 0x50 (80)
+
+    Returns:
+00C4D854  0F CA 12 EB AA A0 3D E5 DA 4C D0 FB 1C 16 57 0D   Î™†=Â⁄L–˚W.
+00C4D864  A7 9C 2B DD 0A 4A 19 B4 94 44 06 1D 02 AC 13 2E  ßú+›.J¥îD¨.
+00C4D874  5F FE 60 89 A7 0A 9E 6E 81 31 2A A1 3F A2 9F 2C  _˛`âß.ûnÅ1*°?¢ü,
+00C4D884  7B 3D 3E EB D4 0F 8D 1E 15 63 87 C9 98 B9 D8 46  {=>Î‘çcá…òπÿF
+00C4D894  33 8E 7E 0C A0 81 20 F0 33 8E 7E 0C A0 81 20 F0  3é~.†Å 3é~.†Å 
+00C4D8A4  B3 B4 14 F6 21 9A 35 0B B3 B4 14 F6 21 9A 35 0B  ≥¥ˆ!ö5≥¥ˆ!ö5
+00C4D8B4  B3 B4 14 F6 00                                   ≥¥ˆ.
+
+
+ignore3 > TEA:
+    STACK
+
+    1: Push these bytes:
+0007F2A0  30 31 32 33 34 35 36 37 38 39 41 42 43 44 45 46  0123456789ABCDEF
+0007F2B0  E3                                               „
+
+    2: Push size of something? 0x50 (80)
+    
+    3: Push buffer 0xC4D87C
+    
+    Returns:
+00C4D87C  06 21 75 80 07 A5 9C 61 C6 D5 8B 67 74 A3 E1 59  !uÄ•úa∆’ãgt£·Y
+00C4D88C  65 D8 E5 C8 E7 5D DE 8D 86 ED 0C CB D6 85 FB 0E  eÿÂ»Á]ﬁçÜÌ.À÷Ö˚
+00C4D89C  86 ED 0C CB D6 85 FB 0E 33 8E 7E 0C A0 81 20 F0  ÜÌ.À÷Ö˚3é~.†Å 
+00C4D8AC  33 8E 7E 0C A0 81 20 F0 66 50 7F A0 84 B4 05 67  3é~.†Å fP†Ñ¥g
+00C4D8BC  21 9A 35 0B B3 B4 14 F6 21 9A 35 0B B3 B4 14 F6  !ö5≥¥ˆ!ö5≥¥ˆ
+
+
+Needs data?!?!
+Tons of single-bytes added to area around 0xC4D88F.
+There are 40 bytes written here. Ignore1 has 0x28 (40) buffer size. Must be data.
+
+:C8 8D 2F 82 91 A2 24 DF FA 1C 9B 6F 3A BA C9 FD 9D 49 12 FC 4C 4F C6 FD CE 40 16 0E 19 75 30 2E 65 5B DE 2B BB 37 F0 FC 1A 84 B4 05 67 21 9A 35 0B B3 B4 14 F6 21 9A 35 0B B3 B4 14 F6
+
+
+TEA stacks:
+0007F244   0007F2A0  †Ú.
+00C4D890  8D                                               ç
+
+Byte1 = C8 or B9
+Byte2 = 87h - 25h = 62h
+
+Final key:
+56 7F DC FA AA 27 99 C4 6C 7C FC 92 61 61 47 1A 19 B9 63 FD 0C F2 B6 20 C0 2D 5C FD D9 71 54 96
+4F 43 F7 FF BB 4C 5D 31
+
+unconditional_conditions@flare-on.com
+

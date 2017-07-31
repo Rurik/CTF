@@ -1,0 +1,42 @@
+olevba 0.46 - http://decalage.info/python/oletools
+Flags        Filename                                                         
+-----------  -----------------------------------------------------------------
+OLE:M-S-H--- calc.xls
+===============================================================================
+FILE: calc.xls
+Type: OLE
+-------------------------------------------------------------------------------
+VBA MACRO ThisWorkbook.cls 
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/ThisWorkbook'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Sub excelulate()
+    Application.Quit
+End Sub
+
+-------------------------------------------------------------------------------
+VBA MACRO Sheet1.cls 
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/Sheet1'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+(empty macro)
+-------------------------------------------------------------------------------
+VBA MACRO Sheet2.cls 
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/Sheet2'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+(empty macro)
+-------------------------------------------------------------------------------
+VBA MACRO Sheet3.cls 
+in file: calc.xls - OLE stream: u'_VBA_PROJECT_CUR/VBA/Sheet3'
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+(empty macro)
++------------+----------------------+-----------------------------------------+
+| Type       | Keyword              | Description                             |
++------------+----------------------+-----------------------------------------+
+| Suspicious | Hex Strings          | Hex-encoded strings were detected, may  |
+|            |                      | be used to obfuscate strings (option    |
+|            |                      | --decode to see all)                    |
+| Hex String | '\x00\x02\x08\x19'   | 00020819                                |
+| Hex String | '\x00\x00\x00\x00\x0 | 000000000046                            |
+|            | 0F'                  |                                         |
+| Hex String | '\x00\x02\x08 '      | 00020820                                |
++------------+----------------------+-----------------------------------------+
+

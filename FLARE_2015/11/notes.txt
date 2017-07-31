@@ -1,0 +1,132 @@
+sub_401FE0() returns a 16-byte key:
+ 0012F788  01 23 45 67 89 AB CD EF FE DC BA 98 76 54 32 10  #Eg‰«ÍïþÜº˜vT2
+
+RES 121:
+FLARE-ON... has a 48 byte header, Data starts at 0x30
+
+sub_402040 takes next 40h (64) bytes, copies.
+
+2nd round: E29BDA31
+
+@ 402121, clears 64 bytes, writs 0x80 to first, sends to md5_chunks
+@ 401038 does egg hunt through FLARE-ON res 121 for "2315E865"
+ValidateFLAREPkg() returns: EAX 1C0F0901
+
+0x401631 takes Res121[8:12] and copies into ebx+1582 (638h)
+
+cmdline_arg of "102" = 0x66 at 0x40163A
+cmdline_arg: Takes Base10 in, converts to hex, &0x0F. 681 =  0x2A9 = 0xA9. Placed into Res121[16] to replace null there
+Res121[16:20] ("XX 77 A9 B5") >> xx = cmdline_arg
+Res121[16:20] ("00 77 A9 B5") is OR by cmdline_arg
+
+At 0x401187, cmdline block is copied to 12F6F8 as:
+0012F6F8  *66* 77 A9 B5 28 3A C9 52 0D 07 BA 20 3A DD 58 48  fw©µ(:ÉR.º :ÝXH
+
+At 0x40295F, MD5 function copies those 16 bytes to 0x12F498
+At 0x40296E, does MD5 / byte swap on those 16 bytes. 
+    Output to ECX 0x12F4B0
+    cmdline arg moved to 0x12F4C8
+At 0x40298D this area is wiped into 0x5C's
+!! Do memory search, find key at 0x12F3D0
+At 0x40299E this is wiped out.
+!! Do memory search, find key at 0x12F6F8
+At 0x401235-- Does MMO xor'ing. Puts 0x5C's at 0x12F6B8, then 
+At 0x401250 xor that by 0x36 = 0x6a
+
+At 0x4012C2 does an 8-byte memcpy? Puts 0x80020000 at 0x12F70C = 0x280
+0x280 into ECX. >> 3 = 0x50. & 0x3F = 0x10
+If == 0x38: EAX becomes 0x78, else 0x38
+At 0x401848, makes some loop comparison to 0x12F984 (modified content of Res121[96:100] ([0x60:0x64])
+At 0240295F, copies 16-byte block containing cmdline arg to  XXX
+
+FinalDecrypt has loops to break out of
+Total looping:
+
+Part1_argv:
+Does pre-check looping against Resource 121
+Calls 0x00402BE0 to do 48-round ROR/XORing
+++Counter
+
+Starts the main 32-round loop at 0x401750
+{
+    Calls 0x00401170 (LoopBig) to do major hashing
+        Calls (Math_2) to do MMO XORing
+          0x00402870 returns
+        Runs large XOR rounds until a6 decrements to 1. A6 is increasingly huge (32768, 56100318, 3564020994, ...) 
+        Large round does smaller 4-round MMO XOR, 4-round byteswap, 8-round bitmath, 4-round byteswap, 16-round XOR
+    Calls 0x00402BE0 (Loop1_48)
+        Runs 48 rounds of ROR/XOR
+    Second 4-round loop to position DWORD data. If found (++Counter)
+} while (checks for 32 (20h) rounds)
+
+At 0x401A50 use MMS to XOR
+Take Res120[32:36] (\xAC 91 8D 29) > MM0
+Take Res120[16:20] (\x9A BD 53 6A) > MM1
+At 0x401A6E: move 
+
+BPs:
+0x401296
+0x40120B
+0x402958
+0x402973
+
+WAIT?!
+ARG1 240  60 sec
+ARG1 238  10 sec
+ARG1 230  ???
+ARG1 205  1 sec
+
+
+PART2:
+0x401B97 : Count positive bits in value
+Based on: http://www.hackersdelight.org/hdcodetxt/pop.c.txt
+
+To 401b60, push:
+
+data (modified RES120)
+00165FA8  E9 9F A4 8F 94 97 77 62 34 A9 C5 4B AF CA 68 21  éŸ¤”—wb4©ÅK¯Êh!
+00165FB8  9A BD 53 6A 7D D0 16 14 D2 7B 2E CD 54 21 B7 5F  š½Sj}ÐÒ{.ÍT!·_
+00165FC8  AC 91 8D 29 20 53 86 15 7A 98 04 A0 4E 08 54 A6  ¬‘) S†z˜ NT¦
+
+
+data: 
+0012F91C  80 46 41 00 38 66 16 00 F6 00 F7 00 F8 00 F9 00  €FA.8f.ö.÷.ø.ù.
+0012F92C  FA 00 FB 00 FC 00 FD 00 FE 00 FF 00 2B 9E 40 00  ú.û.ü.ý.þ.ÿ.+ž@.
+0012F93C  00 01 00 00 98 3F 16 00 7F 9F 40 00 00 01 00 00  ...˜?.Ÿ@....
+0012F94C  3F C2 A7 67 00 00 00 00 B5 9F 40 00 7C F9 12 00  ?Â§g....µŸ@.|ù.
+size: 48
+
+At 0x401B9A, takes arg1[4:8] dword into ESI (94 97 77 62)
+OR 0x62779794 by 0x10: unchanged
+At 0x401BA7, takes arg1[8:12] dword into EDX (34 A9 C5 4B)
+OR 0x4BC5A934 by 0x31000C01: 0x7BC5AD35
+put into EAX and compute = 0x06040504
+at 0x401BED, EAX = 2 .. don't exit routine
+
+At 0x401BF5, takes arg1[12:16] dword into EDX (AF CA 68 21)
+put into EAX and compute = 0x02030406
+At 0x401C2D, EBX = 0x25 .. good
+Take ESI value above (0x62779794), DIV by 0x25 = 0x02A94949
+0x02A94949 >> 10 = 0x2A9
+Compare 0x2A9 to COUNT_CARRYOVER
+If match, null, add 1 to EAX, then add 0x2A9 = 0x2AA. & 0x0F = returns as 0x0A
+If null, returns as 0x09
+
+
+Patching:
+0x401B60: replacing with:
+00401B60     C2 5D00        RETN 5D
+5D = XX
+
+
+Try to bypass the Bitcount / SEH procedure (doesn't work)
+00401DAC  |. FF75 C0        PUSH DWORD PTR SS:[EBP-40]
+00401DAF  |. E8 ACFDFFFF    CALL a_patche.00401B60
+00401DB4  |. 8BF0           MOV ESI,EAX
+00401DB6  |. 8B45 DC        MOV EAX,DWORD PTR SS:[EBP-24]
+
+00401DAC  |. FF75 C0        PUSH DWORD PTR SS:[EBP-40]
+00401DAF     90             NOP
+00401DB0     BE 5D000000    MOV ESI,5D
+00401DB5     90             NOP
+00401DB6  |. 8B45 DC        MOV EAX,DWORD PTR SS:[EBP-24]

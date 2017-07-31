@@ -1,0 +1,124 @@
+flare9:
+
+401c27 : cmp eax,29h >> leads to bad
+=======================================================================================
+.text:00401911     byte_401911     db 66h, 0B8h, 0EBh
+
+
+.text:00401A9C mov     al, [eax+ecx]  ==== Load char
+
+.text:00401AA9 movsx   ebx, byte ptr [esp+ebx+58h] 0x0012FE6E
+.text:00401AAE mov     dword ptr [esp-10h], 0AB41CA48h
+.text:00401AB6 rol     dword ptr [esp-10h], 4
+.text:00401ABB mov     dword ptr [esp-0Ch], 0C3000000h
+
+0012FE6E  19 21 0B 28 13 00 26 08  1B 0C 04 27 24 1C 01 22  .!.(..&....'$.."
+0012FE7E  18 20 11 15 05 0E 07 2A  2B 2C AC BE F5 4E 75 BC  . .....*+,¼+)Nu+
+0012FE8E  87 B8 16 67 6B 5C FA F1  F9 93 F2 D4 F8 23 B9 C8  ç+.gk\·±·ô=+°#¦+
+0012FE9E  11 7E CA 56 D6 1B 0A DA  6E B5 01 C1 55 9B B8 61  .~-V+..+n¦.-U¢+a
+0012FEAE  CE 4C 6E BC EE 08 F4 64  15 8C 65 60 E2 1B 8E 40  +Ln+e.(d.îe`G.Ä@
+0012FEBE  4A 34 45 E3 96 4C EB C9  0D EB 8E 67 26 EF 32 46  J4EpûLd+.dÄg&n2F
+
+.text:00401AD4 retn
+Stack[000007B0]:0012FDF4 mov     ah, [esp+ebx+0B4h]  0x0012FECD == 0x00401541
+
+0012FECD  46 B5 BD B2 E6 9F FF F1  74 EF A8 46 C4 60 39 65  F¦+¦µƒ ±tn¿F-`9e
+0012FEDD  31 AB 9F 00 00 00 00 36  17 40 00 36 17 40 00 36  1½ƒ....6.@.6.@.6
+0012FEED  17 40 00 36 17 40 00 36  17 40 00 36 17 40 00 36  .@.6.@.6.@.6.@.6
+0012FEFD  17 40 00 36 17 40 00 36  17 40 00 36 17 40 00 36  .@.6.@.6.@.6.@.6
+0012FF0D  17 40 00 36 17 40 00 36  17 40 00 36 17 40 00 36  .@.6.@.6.@.6.@.6
+
+.text:00401AD return:
+Stack[000007B0]:0012FDF8 xor     al, ah     EAX: 00404641   "F" "A" (F from table, A from input) 
+== 0x07
+
+.text:00401B14 rol     al, cl   AL = 0x07, CL = 0x56  "V" ????  WHERE DOES ECX come from?!
+== 0xC1
+
+.text:00401B37 retn
+Stack[000007B0]:0012FDF8 cmpxchg bl, dl ???  EBX: 064EF4C3  EDX: 00000001
+== EAX = 0xC3
+
+
+
+.text:00401B3D cmovnz  esi, edx
+
+.text:00401B46 mov     ah, al   EAX 004046C3 >> 0040C3C3
+.text:00401B48 xchg    eax, esi  ESI = 0040C3C3
+
+
+.text:00401B69 retn
+Stack[000007B0]:0012FDFC cmpxchg bl, dl   ;;; Check to make sure byte was correct in round?
+.text:00401B6A cmovz   eax, edx
+.text:00401B6D test    eax, eax
+.text:00401B6F jz      short loc_401B7B
+.text:00401B71 jnz     short loc_401B74 ; << for correct
+
+
+
+
+""" Continual check, once for each char processed
+.text:00401BAD mov     bl, [ebx+ecx] == 0x7FFDA068 = 0x70 "p" 
+.text:00401BB0 shr     ebx, 3  (EBX: 0FFFB40E)
+.text:00401BB3 and     ebx, 0Eh  EBX: 0x0E
+.text:00401BB6 shr     ebx, 1   EBX:0x07
+.text:00401BBD cmp     ebx, 7
+
+
+.text:00401A49 xor     esi, esi
+.text:00401A53 inc     edx
+
+
+
+---- scrap
+4017cc
+4018a9
+4019c1
+
+
+encoding key table refs (one per loop), from 401AD4/12FDF4
+0x0012FECD
+0x0012FEBA
+0x0012FEBC
+0x0012FEBD ??
+0x0012FEE3
+0x0012FED7
+
+
+
+CC
+ROR by F5 = 66
+66 ^ 15 = 73
+
+Round 1 ("I")
+XOR: 0x46
+ROL: CL = 0x56
+CMPXCHG: BL: 0xC3 DL: 0x01
+
+Round 2 ("s")
+XOR: 0x15
+ROL: CL = 0xF5
+CMPXCHG: BL: 0xCC
+
+Round 3 ("_")
+XOR: 0xF4
+ROL: AC
+X: BA
+
+4: t
+XOR: BD
+ROL: 1B
+X: 4E
+
+5: h
+X: FF
+R: B5
+X: F2
+
+6: 1
+X: 4C
+R: 93
+X: EB
+
+
+Is_th1s_3v3n_mai_finul_foarm@flare-on.com

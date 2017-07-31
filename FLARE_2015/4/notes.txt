@@ -1,0 +1,32 @@
+Two MD5s:
+12FF44
+35B1E0
+
+00401BAE  |. 2BF9           SUB EDI,ECX
+00401BB0  |> 8D8C04 C000000>/LEA ECX,DWORD PTR SS:[ESP+EAX+C0]
+00401BB7  |. 8A140F         |MOV DL,BYTE PTR DS:[EDI+ECX]
+00401BBA  |. 3A11           |CMP DL,BYTE PTR DS:[ECX]
+00401BBC  |. 0F85 B9080000  |JNZ youPecks.0040247B
+00401BC2  |. 40             |INC EAX
+00401BC3  |. 3BC6           |CMP EAX,ESI
+00401BC5  |.^75 E9          \JNZ SHORT youPecks.00401BB0
+00401BC7  |> BF 20000000    MOV EDI,20
+
+0012FF44  6B AF 10 6D 71 ED 92 D6 51 AC FB 2F 87 1D F4 A7  k¯mqí’ÖQ¬û/‡ô§   << cmdline arg
+0035B1E0  7C 5A 80 94 F0 3A E3 48 43 E6 2C 3B 74 D2 74 1E  |Z€”ð:ãHCæ,;tÒt      << varies by hour
+
+Second hash in 401000
+
+
+7B C2 7F DB 10 9B 9D 6A 0D 68 2F A8 78 3E 92 CE
+
+
+
+if packed, 40145d
+
+
+END:
+Left packed, unpacked in memory. Hour 17
+NOP'd MD5 check
+Spit out the answer
+Uhr1thm3tic@flare-on.com
