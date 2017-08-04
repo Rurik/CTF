@@ -1,19 +1,17 @@
 import os
 import sys
-root = '/Users/bbaskin/CTF/Labyrenth/Random/1/squashfs-root'
-counter = 0
+root = '/Users/bbaskin/CTF/LabyREnth_2017/Random/2/squashfs-root'
 
 def get_path(path):
-    global counter
-    counter += 1
-    print(counter)
     data = open(path, 'r').readlines()
-    print(data)
     p = data[-1].strip()
-    if p[0] == '/':
-        next = root + p
-        #print(next)
-        get_path(next)
-
+    try:
+        if p[0] == '/':
+            print(p)
+            next = root + p
+            get_path(next)
+    except IndexError:
+        print('[!] No more chains')
+        print(data)
 
 get_path(sys.argv[1])
