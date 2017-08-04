@@ -78,6 +78,7 @@ It wouldn't launch on my host, so I went back to the VM. Losing the first game u
 
 Running the "red herring" shows the same Tic-Tac-Toe game, but I still had no luck in beating it. Viewing the code statically, it was obviously run through PyObfuscator based on the variable naming schemes. Poking through it did show an interesting command-line option: --cheat:
 
+```
   if 68 - 68: I1i1iI1i % i1IIi . Oo0ooO0oo0oO . o0OOO
   self . bottom_right_button = III1ii1iII ( self , 2 , 2 )
   self . bottom_right_button . move ( 363 , 260 )
@@ -89,6 +90,7 @@ Running the "red herring" shows the same Tic-Tac-Toe game, but I still had no lu
    self . top_left_button . player_selected ( None )
    self . board . fields [ 0 , 0 ] = Oo . PLAYER_SELECTED
    if 89 - 89: oo000
+```
 
 This option started the game in a very favorable position:
 
