@@ -204,7 +204,7 @@ Running it dropped the flag we needed:
 
 ![flag](./flag.png)
 
-Shortcut:
+## Shortcut:
 
 In the afternoon I put this write-up together I realized there was a bug in the game that would allow for it to be beaten immediately. I don't have the patience to find it exactly, but there's a QT interface issue where it will register multiple clicks as a single click before giving the turn over to the computer. So within the first step you can quickly click your three boxes in a row and receive the flag:
 
