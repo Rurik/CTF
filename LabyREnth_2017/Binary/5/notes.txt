@@ -1,0 +1,227 @@
+7z Password: labyrenth
+Hint: 3.805.184 bytes, 9783 identified and many unidentified
+functions, 5 levels of pure fun with MFC.
+Author(s): @xedi25
+
+Check for calls to GetWindowTextW
+One in sub_461AE6, returns text. Called from:
+PANW:0x44cc43
+PANW:0x44CD8D
+PANW:0x44f280
+PANW:0x4505FA
+PANW:0x0045140E
+sub_4A13F2
+
+44cc43 is unresolved code.
+
+Set BP at sub of 44cc43
+Run, hits isdebuggerpresent, fails.
+Set BP at 44c071 to catch debugger check
+Patch file, jne to jmp (eb 1a) for debugger check 0x44c1bd -- NO
+
+Multiple checks for IsdebuggerPresent -- modify exe to change this name
+@0x44BD70 - check Win32_Thread_Information_Block[0x30] = 1 -- change result BL to 0
+or, patch. 0x44BD7C - from mov bl, byte ptr ds:[edi+2] to mov bl, 0
+
+
+Must be IsDebuggerPresent at 0x44C163 - but patch 0x44C192
+mov ecx, 17h to mov ecx, 0  (B3 00 90)
+
+Check at debugger still hits. Ret 1 at 0x44BDD2 - Change to mv al, 0
+
+0x44BFAC checks isdebugger - change mov edi, 17 to mov edi, 0
+
+0x44FBF0 is Level1 check
+Just follow xrefs to "Wrong Counter" to find each level check
+
+
+Runtime:
+Hide debugger in X32
+
+Level1:
+Basic XOR routine against string:
+In GreeK mytholOGy, the labyREnth was an elAborATe structure desigNED and builT by the LEGENDARY artificer Daedalus for KiNG MiNOS of CrEtE at KnoSSOs.
+
+0044CDD5  | eax:&L"b6da2eb91a02b85bb848178303ab4b7e"
+
+Level2:
+Loads resource image 1002
+Search for a push 3EAh: at
+0x44E7E0
+
+SHA256 - result in d2fea7286d3754f84eb55da4d030d72a4de9ee079a526087619227c2b62aa86f
+Image?
+PAN{NeedsDefinitelyMoreJpegHenhchchcra}
+
+14:57:28-bbaskin@~/CTF/Labyrenth/Binary/5$ zsteg 1002_3079.png
+b1,rgb,lsb,xy       .. text: "55:Did you think that I have used JPEG to store this flag?"
+
+>>> a = 'Did you think that I have used JPEG to store this flag?'
+>>> hashlib.sha256(a).hexdigest()
+'d2fea7286d3754f84eb55da4d030d72a4de9ee079a526087619227c2b62aa86f'
+
+
+Level3()
+Runs Notepad.exe
+
+"Global\REVFEST_O"
+
+Open second debugger and attach to spawned notepad.exe
+Writes "LEVEL3" @ 0x20000
+Writes "Global\REVFEST_NO" @ 0xC0000 (or 0x30000)
+Writes "Global\REVFEST_OK" @ 0x80000
+Writes those address spaces to 0x90000
+Decrypts and writes shellcode to 0xA0000
+
+The memory map output goes 1, 1, 2, 3, 5 -- fibonacci
+check values start 6765, and up. Key byte is sequence in fibonacci sequence.
+http://www.maths.surrey.ac.uk/hosted-sites/R.Knott/Fibonacci/fibtable.html
+
+Thi_i_labnacci
+Used script, but messed up and only got WORD. Two letters were 3-bytes: 2, y. Guessed:
+This_is_labynacci
+
+
+Level4()
+Big XOR against each byte of flag to check against 4-byte hex value. Brute force.
+>>> def test(a):
+...     return (0x100000001B3 * (a ^ 0xCBF29CE484222325)) & 0xFFFFFFFF
+Gives corrupted?
+UEFOREEgUEFOREEgUEFOREEhIEJAU0U2CNAQQU5EQSAGTlY2CNAQQU5EQSAYT1IgUEFOREE=
+b'PANDA PANDA PANDA! B@SE6\x08\xd0\x10ANDA \x06NV6\x08\xd0\x10ANDA \x18OR PANDA'
+
+Brute force from "CNA" forward
+('4\xd0\x10ANDA \x06NV6\x08\xd0\x10ANDA \x18OR PANDA', 'N', 'NNAQQU5EQSAGTlY2CNAQQU5EQSAYT1IgUEFOREE=')
+('4 \x10ANDA \x06NV6\x08\xd0\x10ANDA \x18OR PANDA', 'C', 'NCAQQU5EQSAGTlY2CNAQQU5EQSAYT1IgUEFOREE=')
+('4 PANDA \x06NV6\x08\xd0\x10ANDA \x18OR PANDA', 'B', 'NCBQQU5EQSAGTlY2CNAQQU5EQSAYT1IgUEFOREE=')
+UEFOREEgUEFOREEgUEFOREEhIEJAU0U2CNAQQU5EQSAGTlY2CNAQQU5EQSAYT1IgUEFOREE=
+UEFOREEgUEFOREEgUEFOREEhIEJAU0U2NCBQQU5EQSAGTlY2CNAQQU5EQSAYT1IgUEFOREE=
+
+
+Guess:
+PANDA PANDA PANDA! B@SE64 PANDA PANDA PANDA XOR PANDA
+=
+
+Final:
+UEFOREEgUEFOREEgUEFOREEhIEJAU0U2CNAQQU5EQSAGTlY2CNAQQU5EQSAYT1IgUEFOREE=
+------------------------------------------------------------------------------
+PAN
+UEFO
+
+DA
+REEg
+
+PAN
+UEFO
+
+DA
+REEg
+
+PAN
+UEFO
+
+DA!
+REEh
+
+ BA
+IEJA
+
+SE6
+U0U2
+
+4 P
+NCBQ
+C
+
+AND
+QU5E
+
+A P
+QSBQ
+
+AND
+QU5E
+
+A P
+QSBQ
+
+AND
+QU5E -- good
+
+A X
+QSBY
+QSAY
+
+OR
+T1Ig
+
+PAN
+UEFO
+
+DA
+REE=
+------------------------------------------------------------------------------
+Goddamn I'm an idiot. Custom alphabet, just pull the offset range it's referencing in code:
+
+PANDA PANDA PANDA! BASE64 PANDA FNV64 PANDA XOR PANDA
+
+
+
+
+Level5()
+URL
+https://raw.githubusercontent.com/edix/sedocllehs/master/1.bin
+Laby___________
+xmm0 = 4A564B450C5543500D0D18515256564A
+xmm1 = EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+xmm  ^ A4B8A5ABE2BBADBEE3E3F6BFBCB8B8A4
+
+xmm0 = 4D410C564C47564C4D41504751574057
+xmm2 = EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+xmm  ^ A3AFE2B8A2A9B8A2A3AFBEA9BFB9AEB9
+
+val1 = xmm#1 in reverse
+val2 = xmm#2 in reverse
+
+Prior to end part:
+0018E504  15 09 09 0D 0E 47 52 52 0F 1C 0A 53 1A 14 09 15  .....GRR...S....
+0018E514  08 1F 08 0E 18 0F 1E 12 13 09 18 13 09 53 1E 12  .............S..
+0018E524  10 52 18 19 14 05 52 0E 18 19 12 1E 11 11 18 15  .R....R.........
+0018E534  0E 52 10 1C 0E 09 18 0F 52 4F 53 1F 14 13 00 00  .R......ROS.....
+0018E544  3A 18 89 76 22 18 89 76 00 00 00 00 94 EA 18 00  :..v"..v.....ê..
+0018E554  71 15 45 00 74 E7 18 00 00 00 00 00 30 3C 8B 00  q.E.tç......0<..
+0018E564  01 00 00 00 4C 00 32 00 33 00 34 00 35 00 36 00  ....L.2.3.4.5.6.
+0018E574  37 00 38 00 39 00 30 00 41 00 42 00 43 00 44 00  7.8.9.0.A.B.C.D.
+
+
+bugger that
+just paste https://raw.githubusercontent.com/edix/sedocllehs/master/2.bin into InternetOpenURL
+68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f656469782f7365646f636c6c6568732f6d61737465722f322e62696e
+
+That worked
+
+
+for second to last byte, 0x2750200()
+it's CRC32 ^ 0x4C11DB& === 36 ($)
+Answer:
+
+Labyshellcode$1
+
+
+
+Finale:
+In GreeK mytholOGy, the labyREnth was an elAborATe structure desigNED and builT by the LEGENDARY artificer Daedalus for KiNG MiNOS of CrEtE at KnoSSOs.
+Did you think that I have used JPEG to store this flag?
+This_is_labynacci
+PANDA PANDA PANDA! BASE64 PANDA FNV64 PANDA XOR PANDA
+Labyshellcode$1
+
+
+0018EF3B  50 41 4E 7B 4D 75 4C 54 69 4C 45 56 65 6C 57 69  PAN{MuLTiLEVelWi
+0018EF4B  6E 44 6F 57 73 42 69 4E 61 52 59 43 68 61 4C 6C  nDoWsBiNaRYChaLl
+0018EF5B  45 6E 47 65 4C 61 42 79 52 45 6E 54 68 32 30 31  EnGeLaByREnTh201
+0018EF6B  37 7D 00 43 00 2C F0 18 00 8E E4 5E 00 0A 00 00  7}.C.,ð...ä^....
+
+
+PAN{MuLTiLEVelWinDoWsBiNaRYChaLlEnGeLaByREnTh2017}
+
