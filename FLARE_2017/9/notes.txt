@@ -1,0 +1,429 @@
+One of our computer scientists recently got an Arduino board. He disappeared for two days and then he went crazy. In his notebook he scrawled some insane jibberish that looks like HEX. We transcribed it, can you solve it?
+
+remorse.ino.hex
+AVR. Arduino/Genuino Uno is a microcontroller board based on the ATmega328P
+
+:100000000C9462000C948A000C948A000C948A0070
+:100010000C948A000C948A000C948A000C948A0038
+:100020000C948A000C948A000C948A000C948A0028
+:100030000C948A000C948A000C948A000C948A0018
+:100040000C94F5030C948A000C94C3030C949D0348
+:100050000C948A000C948A000C948A000C948A00F8
+:100060000C948A000C948A000000000024002700F1
+:100070002A0000000000250028002B0000000000DE
+:1000800023002600290004040404040404040202DA
+:100090000202020203030303030301020408102007
+
+
+Seems similar to:
+https://github.com/brucetsao/VirtualWire/blob/master/examples/receiver/applet/receiver.hex
+
+https://github.com/Riscure/RHme-2015
+
+https://thomasw.eu/post/google-ctf-2017-johnnyboy/
+
+hex2bin to remorse.ino.bin
+
+00000000: 0c94 6200 0c94 8a00 0c94 8a00 0c94 8a00  ..b.............
+00000010: 0c94 8a00 0c94 8a00 0c94 8a00 0c94 8a00  ................
+00000020: 0c94 8a00 0c94 8a00 0c94 8a00 0c94 8a00  ................
+00000030: 0c94 8a00 0c94 8a00 0c94 8a00 0c94 8a00  ................
+00000040: 0c94 f503 0c94 8a00 0c94 c303 0c94 9d03  ................
+00000050: 0c94 8a00 0c94 8a00 0c94 8a00 0c94 8a00  ................
+....
+000010f0: 1110 0f0e 1312 0d0c 0b0a 0000 0000 8801  ................
+00001100: 8c00 bb00 cf01 ec00 ca00 de00 0d0a 002d  ...............-
+00001110: 002e 0020 0043 6f72 7265 6374 2050 696e  ... .Correct Pin
+00001120: 2053 7461 7465 3a00 466c 6172 652d 4f6e   State:.Flare-On
+00001130: 2032 3031 3720 4164 7275 696e 6f20 554e   2017 Adruino UN
+00001140: 4f20 4469 6769 7461 6c20 5069 6e20 7374  O Digital Pin st
+00001150: 6174 653a 0000                           ate:..
+
+
+23:17:46-bbaskin@~/CTF/FLARE_2017/9$ brew install avr-libc
+
+23:23:57-bbaskin@~/CTF/FLARE_2017/9$ avr-objdump -D remorse.ino.hex -m avr > remorse.asm
+
+IDA, load as AVR ... atmeta103_L?
+
+ROM:0545 loc_545:                                ; CODE XREF: sub_536+11j
+ROM:0545                 st      X+, r1
+ROM:0546                 cpse    r25, r26
+ROM:0547                 rjmp    loc_545
+ROM:0548                 ldi     r25, 0xB5 ; '¦'
+ROM:0549                 std     Y+1, r25
+ROM:054A                 std     Y+2, r25
+ROM:054B                 ldi     r25, 0x86 ; 'å'
+ROM:054C                 std     Y+3, r25
+ROM:054D                 ldi     r25, 0xB4 ; '¦'
+ROM:054E                 std     Y+4, r25
+ROM:054F                 ldi     r25, 0xF4 ; '('
+ROM:0550                 std     Y+5, r25
+ROM:0551                 ldi     r25, 0xB3
+str1 = (0xB5, 0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xB0, 0xB0, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C)
+
+
+search for movzx, xor, cmp. Only movzx
+http://lyons42.com/AVR/Opcodes/AVRAllOpcodes.html
+
+subi - subtract immediate - like Java
+cpi - compare immediate
+eor = xor
+adiw - ADd Immediate (0..63) to Word (register pair)
+cpse    - ComPare two registers and Skip next instruction if equal
+cp  - ComPare the two registers
+rjmp / rcall - relative jmp/call
+push    - PUSH one register onto the stack
+st  - STore
+sts - STore direct to data Space
+clr - set bits to 0x00
+ser - set all bits in register (set to 0xFF)
+cli - CLear global Interrupt-enable flag in SREG
+ldi - LoaD Immediate value (0..255) into the register (r16..r31)
+std - STore with Displacement
+
+Y - http://www.avr-asm-tutorial.net/avr_en/beginner/REGISTER.html
+Pointer-register
+A very special extra role is defined for the register pairs R26:R27, R28:R29 and R30:R31. The role is so important that these pairs have extra names in assembler: X, Y and Z. These pairs are 16-bit pointer registers, able to point to adresses with max. 16-bit into SRAM locations (X, Y or Z) or into locations in program memory (Z).
+
+
+sub_536 (r28, r29)
+mov r30, r28
+add r30, 1
+mov r26, r30
+mov r25, r30 (ser + add should be same thing as this?)
+load 23-byte string into Y
+mov r26, 0x6c (108)
+mov r27, 5
+mov r18, 0
+Loop_576:
+    mov r25, Z+
+    xor r25, r24 (r24 being ?)
+    add r25, r18
+    sub r18, 1
+    cmp r18, 0x17 (23)
+
+mov r24, unk_200576 15 bytes - (0x80, 0x91, 0x8B, 5, 0x90, 0x91, 0x8C, 5, 0xA0, 0x91, 0x8D, 5, 0xB0, 0x91, 0x8E)
+cmp r24, 0x40
+brne
+
+sub_332(5, 0x8F, 5, 0x2B);
+sub_4F0(5, 0x6C, 0x17)
+
+0xBD, 0xFE, 0xe3, 0x2b, 0xD3, 0xFE, 0xE3
+
+"""str1 = [0xB5,0x86,0xB4,0xF4,0xB3,0xF1,0xED,0x80,0xBB,0x8F,0xBF,0x8D,0xC6,0x85,0x87,0xC0,0x94,0x81,0x8C]
+str2 = [0x80, 0x91, 0x8B, 5, 0x90, 0x91, 0x8C, 5, 0xA0, 0x91, 0x8D, 5, 0xB0, 0x91, 0x8E]
+
+for i in range(len(str2)):
+    print(chr(str1[i] ^ str2[i]))
+
+str2 ^ '@flare-on.com'
+
+
+test by str1 ^ flare-on.com:
+
+ X     X     X     X     X     X     @     f     l     a     r     e     -     o     n     .     c     o     m
+[0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C]
+[0x00, 0x00, 0xAD, 0xE6, 0xd7, 0xEE, 0xCD, 0x]
+... nothing
+
+test by str2 ^ flare-on.com :
+     X     X     @     f     l     a     r     e     -     o     n     .     c     o     m
+fla [0x00, 0x00, 0x40, 0x66, 0x6C, 0x61, 0x74, 0x65, 0x2D, 0x6F, 0x6E, 0x2E, 0x63, 0x6F, 0x6D]
+key [0x80, 0x91, 0x8B, 0x05, 0x90, 0x91, 0x8C, 0x05, 0xA0, 0x91, 0x8D, 0x05, 0xB0, 0x91, 0x8E]
+
+nothing. But there's a pattern. subtracting works?
+
+res = list()
+fla = [0x40, 0x66, 0x6C, 0x61, 0x74, 0x65, 0x2D, 0x6F, 0x6E, 0x2E, 0x63, 0x6F, 0x6D]
+key = [0x8B, 0x05, 0x90, 0x91, 0x8C, 0x05, 0xA0, 0x91, 0x8D, 0x05, 0xB0, 0x91, 0x8E]
+for i in range(len(key)):
+    res.append((key[i] - fla[i]) & 0x7F)
+
+
+no...
+K  $ 0    s "  W M " !
+"""
+
+
+str1 = (0xB5, 0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xB0, 0xB0, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C)
+
+       X     X     X     X     X     X     X     X     X     X     @     f     l     a     r     e     -     o     n     .     c     o     m
+fla = [                                                            0x40, 0x66, 0x6C, 0x61, 0x74, 0x65, 0x2D, 0x6F, 0x6E, 0x2E, 0x63, 0x6F, 0x6D]
+key = [0xB5, 0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xB0, 0xB0, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C]
+res = [                                                            0xAD, 0xE6, 0xD7, 0xEE, 0xCB, 0xE8, 0xEB, 0xE0, 0xE9, 0xEE, 0xF7, 0xEE, 0xE1]
+
+
+Switch to try simavr:
+brew tap osx-cross/avr
+brew install --HEAD simavr
+avr-objcopy  -I ihex -O elf32-avr remorse.ino.hex remorse.elf
+
+File wouldn't reverse ... manual analysis showed reverse endianness
+       Note---objcopy is not able to change the endianness of its input files.
+       If  the  input  format has an endianness (some formats do not), objcopy
+       can only copy the inputs into file formats that have the  same  endian-
+       ness or which have no endianness (e.g., srec).
+
+
+$ avr-objdump -D remorse.ino.hex -m avr > remorse.asm
+$ brew install avr-gdb
+
+
+
+http://grazfather.github.io/ctf/re/2016/11/18/QiwiCTF-RE300_3.html
+
+You cannot set a breakpoint on a specific address. GDB will add 0x800000 (like IDA does) but this is out of the address space and will never hit. You can get around this by setting PC-relative breakpoints e.g. b *($pc + 0x2c).
+For some reason the addresses in GDB are double what you see in IDA. I found this by setting random traps (which do work) and correlating the GDB address with the address in main.
+
+/usr/local/Cellar/simavr/HEAD-f71135f/examples/board_simduino/obj-x86_64-apple-darwin16.7.0/simduino.elf
+/usr/local/Cellar/simavr/HEAD-f71135f/examples/board_simduino/ATmegaBOOT_168_atmega328.ihex
+/Users/bbaskin/Library/Caches/Homebrew/simavr--git/examples/board_simduino/ATmegaBOOT_168_atmega328.ihex
+
+14:36:45-bbaskin@/usr/local/Cellar/simavr/HEAD-f71135f/examples/board_simduino$ ./obj-x86_64-apple-darwin16.7.0/simduino.elf  -d ~/CTF/FLARE_2017/9/remorse.ino.hex
+atmega328p booloader 0x00000: 4438 bytes
+avr_special_init
+avr_gdb_init listening on port 1234
+uart_pty_init bridge on port *** /dev/ttys005 ***
+uart_pty_connect: /tmp/simavr-uart0 now points to /dev/ttys005
+note: export SIMAVR_UART_XTERM=1 and install picocom to get a terminal
+
+14:39:20-bbaskin@~/CTF/FLARE_2017/9$ brew install picocom
+==> Downloading https://homebrew.bintray.com/bottles/picocom-2.2.sierra.bottle.tar.gz
+######################################################################## 100.0%
+==> Pouring picocom-2.2.sierra.bottle.tar.gz
+🍺  /usr/local/Cellar/picocom/2.2: 7 files, 97.1KB
+14:39:27-bbaskin@~/CTF/FLARE_2017/9$ picocom
+No port given
+Run with '--help'.
+14:39:34-bbaskin@~/CTF/FLARE_2017/9$
+
+14:40:25-bbaskin@~/CTF/FLARE_2017/9$ avr-gdb
+GNU gdb (GDB) 7.8.2
+(gdb) target remote localhost:1234
+Remote debugging using localhost:1234
+0x00000000 in ?? ()
+(gdb) break *($pc + 0x536)
+Breakpoint 1 at 0x536
+(gdb) r
+The "remote" target does not support "run".  Try "help target" or "continue".
+(gdb) c
+Continuing.
+Note: automatically using hardware breakpoints for read-only addresses.
+
+Breakpoint 1, 0x00000536 in ?? ()
+(gdb) i r
+r0             0xcf 207
+r1             0x0  0
+r2             0x0  0
+r3             0x0  0
+r4             0x0  0
+r5             0x0  0
+r6             0x0  0
+r7             0x0  0
+r8             0x0  0
+r9             0x0  0
+r10            0x0  0
+r11            0x0  0
+r12            0x0  0
+r13            0x0  0
+r14            0x0  0
+r15            0x0  0
+r16            0x0  0
+r17            0x0  0
+r18            0x1  1
+r19            0x0  0
+r20            0x0  0
+r21            0x0  0
+r22            0x0  0
+r23            0x0  0
+r24            0x8  8
+r25            0xa1 161
+r26            0x2b 43
+r27            0x0  0
+r28            0x2a 42
+r29            0x0  0
+r30            0x7b 123
+r31            0x0  0
+SREG           0x21 33
+SP             0x8008f6 0x8008f6
+PC2            0x536    1334
+pc             0x536    0x536
+
+addresses don't seem to be lined up. layout asm
+   x0x5bc   push   r8                                                                                                                                          x
+   x0x5be   push   r9                                                                                                                                          x
+   x0x5c0   push   r10                                                                                                                                         x
+   x0x5c2   push   r11                                                                                                                                         x
+   x0x5c4   push   r12                                                                                                                                         x
+   x0x5c6   push   r13                                                                                                                                         x
+   x0x5c8   push   r14                                                                                                                                         x
+   x0x5ca   push   r15                                                                                                                                         x
+   x0x5cc   movw   r12, r22                                                                                                                                    x
+   x0x5ce   movw   r14, r24                                                                                                                                    x
+   x0x5d0   call   0x572   ;  0x572
+
+ROM:02DE                 push    r8
+ROM:02DF                 push    r9
+ROM:02E0                 push    r10
+ROM:02E1                 push    r11
+ROM:02E2                 push    r12
+ROM:02E3                 push    r13
+ROM:02E4                 push    r14
+ROM:02E5                 push    r15
+ROM:02E6                 movw    r12, r22
+ROM:02E7                 movw    r14, r24
+ROM:02E8                 call    sub_2B9
+
+I think 0x5bc == 02DE
+5bc / 2 = 2dc. so, decrypt in IDA at 0x536 should be at 0xA6C
+(gdb) break *($pc + 0xA6C)
+Breakpoint 2 at 0xfc8
+(gdb)
+
+14:54:28-bbaskin@~/CTF/FLARE_2017/9$ picocom /tmp/simavr-uart0
+
+
+tracing back from decrypt routine shows it starts at __RESET?
+sub_5FC called from 0x86
+Maybe that's the catalyst
+
+No luck.
+
+Static -- see static val of 0xFC loaded at 0x508, not a good key for pattern
+
+Before decrypt and others is same basic call
+ROM:05B7                 ldi     r22, 0x24 ; '$'
+ROM:05B8                 ldi     r23, 5
+ROM:05B9                 ldi     r24, 0x8F
+ROM:05BA                 ldi     r25, 5
+ROM:05BB                 call    sub_332
+
+last arg is either 0x24 or 0x2b, probably some system call
+
+earlier id'd str. Maybe that is array of commands for that call?
+[0x80, 0x91, 0x8B, 5, 0x90, 0x91, 0x8C, 5, 0xA0, 0x91, 0x8D, 5, 0xB0, 0x91, 0x8E]
+
+Same story with sub_2DE
+ROM:0522                 ldi     r22, 0xE8
+ROM:0523                 ldi     r23, 3
+ROM:0524                 ldi     r24, 0
+ROM:0525                 ldi     r25, 0
+ROM:0526                 call    sub_2DE
+
+no matter what, key is ^ by r24, but can't see r24 loaded anywhere. Tracing back through calls, maybe r24 is global?
+oooh maybe it is
+ROM:05BD                 mov     r24, r28
+ROM:05BE                 call    decrypt_key
+but, no.
+
+
+Try again:
+
+       X     X     X     X     X     X     X     X     X     X     @     f     l     a     r     e     -     o     n     .     c     o     m
+fla = [                                                            0x40, 0x66, 0x6C, 0x61, 0x74, 0x65, 0x2D, 0x6F, 0x6E, 0x2E, 0x63, 0x6F, 0x6D]
+key = [0xB5, 0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xB0, 0xB0, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C]
+res = [                                                            0xAD, 0xE6, 0xD7, 0xEE, 0xCB, 0xE8, 0xEB, 0xE0, 0xE9, 0xEE, 0xF7, 0xEE, 0xE1]
+
+res = ^ flag by key
+
+Everything follows the pattern, except 'r'
+
+values are operating in parallel, subtracting gets close. diff of abs(key - res) (should = flag?)
+
+       X     X     X     X     X     X     X     X     X     X     @     f     l     a     r     e     -     o     n     .     c     o     m
+fla = [                                                            0x40, 0x66, 0x6C, 0x61, 0x74, 0x65, 0x2D, 0x6F, 0x6E, 0x2E, 0x63, 0x6F, 0x6D]
+key = [0xB5, 0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xB0, 0xB0, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C]
+res = [                                                            0xAD, 0xE6, 0xD7, 0xEE, 0xCB, 0xE8, 0xEB, 0xE0, 0xE9, 0xEE, 0xF7, 0xEE, 0xE1]
+diff  [                                                            0x40, 0x80, 0x1C, 0x5F, 0x0c, 0x5b, 0xBE, 0x5B, 0x62]
+
+
+Compile simavr from source, not brew. Try dynamic with run_avr
+
+18:34:47-bbaskin@~/CTF/FLARE_2017/9$ /Users/bbaskin/Development/simavr/simavr/run_avr -m atmega328p --freq 8000000 ./remorse.ino.hex
+Loaded 1 section of ihex
+Load HEX flash 00000000, 4438
+Flare-On 2017 Adruino UNO Digital Pin state:11111111..
+
+Maybe need to get to 00000000?
+Nothing seems to work.... try to dump process mem?
+
+18:45:43-bbaskin@~/CTF/FLARE_2017/9$ lldb --attach-pid `pgrep run_avr`
+(lldb) process attach --pid 60211
+Process 60211 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+    frame #0: 0x000000010ab40894 run_avr`_avr_set_r + 264
+run_avr`_avr_set_r:
+->  0x10ab40894 <+264>: popq   %r14
+    0x10ab40896 <+266>: popq   %r15
+    0x10ab40898 <+268>: popq   %rbp
+    0x10ab40899 <+269>: retq
+
+Executable module set to "/Users/bbaskin/Development/simavr/simavr/run_avr".
+Architecture set to: x86_64h-apple-macosx.
+(lldb) process save-core "core.dmp"
+mach_header: 0xfeedfacf 0x01000007 0x00000008 0x00000004 0x0000003c 0x00001168 0x00000000 0x00000000
+0x00000019 0x00000048 [0x000000010ab3c000 - 0x000000010ab5b000) [0x0000000000002000 0x000000000001f000) 0x00000005 0x00000005 0x00000000 0x00000000]
+0x00000019 0x00000048 [0x000000010ab5b000 - 0x000000010ac0d000) [0x0000000000021000 0x00000000000b2000) 0x00000003 0x00000003 0x00000000 0x00000000]
+0x00000019 0x00000048 [0x000000010ac0d000 - 0x000000010ac0f000) [0x00000000000d3000 0x0000000000002000) 0x00000003 0x00000003 0x00000000 0x00000000]
+
+
+18:47:37-bbaskin@~/CTF/FLARE_2017/9$ xxd core.dmp  | grep flare -C2
+nothing useful
+...
+
+
+
+https://forum.arduino.cc/index.php?topic=115229.0
+DigitalRead() in asm:
+  asm ("CLR   r20");
+  asm ("SBIS  PORTB,2");
+  asm ("LDI   r20,1");
+
+Challenge is using PORTC:
+ROM:02C3                 in      r18, ICR1L      ; Timer/Counter1 Input Capture Register Low
+ROM:02C4                 sbis    PORTC, PORTC0   ; The Port C Data Register
+ROM:02C5                 rjmp    loc_2CB
+ROM:02C6                 cpi     r18, 0xFF
+https://www.arduino.cc/en/Reference/PortManipulation
+OMG analog pins...
+
+
+Wait, stop. goddamn it start over.
+loc_576:                ; load byte from Z into r25
+ld      r25, Z+
+eor     r25, r24        ; xor byte by r24 value
+add     r25, r18        ; r18 = pos
+st      X+, r25         ; store decrypted byte into X
+subi    r18, -1         ; pos +1 (lol)
+cpi     r18, 23         ; cmp to 23 byte str
+brne    loc_576         ; load byte from Z into r25
+
+add r25, r18. After each XOR it add the 0x of position back to it. WTF did I just gloss over this?
+so key[0x17] - 0x17 ^ "m" == flag[-1]
+
+
+       X     X     X     X     X     X     X     X     X     X     @     f     l     a     r     e     -     o     n     .     c     o     m
+fla = [                                                            0x40, 0x66, 0x6C, 0x61, 0x74, 0x65, 0x2D, 0x6F, 0x6E, 0x2E, 0x63, 0x6F, 0x6D]
+key = [0xB5, 0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xB0, 0xB0, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C]
+res = [                                                            0xAD, 0xE6, 0xD7, 0xEE, 0xCB, 0xE8, 0xEB, 0xE0, 0xE9, 0xEE, 0xF7, 0x04, 0x18]
+
+0xDB
+0xDC
+@=  0x40 - 0xA ^ 0xED == 0xDB
+f=  0x66 - 0xB ^ 0x80 == 0xDB
+l=  0x6C - 0xC ^ 0xBB == 0xDB
+
+There we got it . JFC. how did I miss that.
+
+
+key = 0xDB
+str1 = (0xB5, 0xB5, 0x86, 0xB4, 0xF4, 0xB3, 0xF1, 0xB0, 0xB0, 0xF1, 0xED, 0x80, 0xBB, 0x8F, 0xBF, 0x8D, 0xC6, 0x85, 0x87, 0xC0, 0x94, 0x81, 0x8C)
+res = ''
+for i in range(len(str1)):
+    x = str1[i] ^ key
+    res += chr(x+i)
+print(res)
+
+no_r3m0rs3@flare-on.com
