@@ -1,0 +1,403 @@
+6 - payload.dll
+1
+I hope you enjoyed your game. I know I did. We will now return to the topic of cyberspace electronic computer hacking and digital software reverse engineering.
+
+
+
+__int64 __fastcall sub_180005D30(__int64 a1)
+{
+  does_nothing();
+  for ( lpAddress = (v1 & 0xFFFFFFFFFFFFF000ui64); !CheckMZ(lpAddress) || !CheckPE(lpAddress); lpAddress -= 2048 )
+    ;
+  v2 = GetCurrentProcess();
+  VirtualProtectEx(v2, lpAddress, 0x1000ui64, 0x40u, &flOldProtect);
+  v3 = sub_180004760();
+  v4 = GetSysYear_Month();
+  DecodeShellcode(v4);
+  *v3 = (v4 << 9) + qword_180001000 - lpAddress;
+  v3[1] = 512;
+  return a1;
+}
+
+__int64 __fastcall DecodeShellcode(unsigned int a1)
+{
+  srand(a1 + 'RAND');
+  VirtualProtect(&qword_180001000[64 * a1], 0x200ui64, 0x40u, &flOldProtect);
+  for ( i = 0; ; ++i )
+  {
+    result = i;
+    if ( i >= 0x200ui64 )
+      break;
+    *(&qword_180001000[64 * a1] + i) ^= rand();
+  }
+  return result;
+}
+
+Load x64dbg
+rebase during debugging:
+0x180001000
+rebase to 0x7FEF89E0000
+
+Routine "does_nothing()" returns RAX of:
+000007FEF89E5D4D  48 89 44 24 48 48 C7 44 24 50 00 00 00 00 48 8B  H.D$HHÇD$P....H.  
+This is the opcode directly after the 'call does_nothing'
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+http://www.osronline.com/article.cfm?article=469
+Exception Directory and RUNTIME_FUNCTIONs
+Within a PE image there are various directories that contain information about the image. For example, if the image has any exports, there will be an export directory that describes the exports. In the case of an x64 image, there happens to be an exception directory that contains a variable number of RUNTIME_FUNCTION structures, listed below:
+
+
+ typedef struct _RUNTIME_FUNCTION {
+     ULONG BeginAddress;
+     ULONG EndAddress;
+     ULONG UnwindData;
+ } RUNTIME_FUNCTION, *PRUNTIME_FUNCTION;
+
+Note the use of ULONGs for addresses even though we're talking about a 64-bit architecture. This is because the values contained in the structure are offsets from the base of the image and not addresses or pointers. Now let's describe each field in turn.
+
+BeginAddress - This value represents an offset into the image where some bit of code of interest to SEH begins. This is an incredibly vague description that will (hopefully) become clearer as we move along.
+
+EndAddress - This value represents an offset into the image where some bit of code of interest to SEH ends. This is an incredibly vague description that will (hopefully) become clearer as we move along.
+
+UnwindData - This value is an offset from the base of the image to an UNWIND_INFO structure that describes why the bit of code encompassed in the BeginAddress and EndAddress is of interest. The UNWIND_INFO structure is defined in Figure 1.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+debug using win64 remote debugger, debug localhost. 
+offset_near_pehdr
+    return qword_7FEF89FAB78 + 136;
+puts offset near start of PE ... rundll32?
+
+"heresy.dll" "basophileslapsscrapping"? WTF?
+000007FEF89E4000  00 00 00 00 18 33 22 11  00 00 00 00 32 40 00 00  .....3".....2@..
+000007FEF89E4010  01 00 00 00 01 00 00 00  01 00 00 00 28 40 00 00  ............(@..
+000007FEF89E4020  2C 40 00 00 30 40 00 00  50 5A 00 00 3D 40 00 00  ,@..0@..PZ..=@..
+000007FEF89E4030  00 00 68 65 72 65 73 79  2E 64 6C 6C 00 62 61 73  ..heresy.dll.bas
+000007FEF89E4040  6F 70 68 69 6C 65 73 6C  61 70 73 73 63 72 61 70  ophileslapsscrap
+000007FEF89E4050  70 69 6E 67 00 00 00 00  00 00 00 00 00 00 00 00  ping............
+
+ext:000007FEF89E5A6B call    offset_near_pehdr
+.text:000007FEF89E5A70 mov     [rsp+188h+var_128], rax
+.text:000007FEF89E5A75 mov     rax, [rsp+188h+var_128]
+.text:000007FEF89E5A7A mov     eax, [rax]
+.text:000007FEF89E5A7C mov     rcx, cs:qword_7FEF89FAB70
+.text:000007FEF89E5A83 add     rcx, rax
+.text:000007FEF89E5A86 mov     rax, rcx
+
+Loads to that above config heresy.dll data
+
+.text:000007FEF89E5A96 mov     rcx, cs:qword_7FEF89FAB70       ; PE_Start
+.text:000007FEF89E5A9D mov     eax, [rcx+rax]  ; eax was 0x402C, eax now 0x403D
+.text:000007FEF89E5AA0 mov     [rsp+188h+var_150], eax
+
+points to "basophileslapsscrapping"
+
+.text:000007FEF89E5ABF mov     eax, [rax+4]   ; reads EAX to 0x11223318
+.text:000007FEF89E5AC2 and     eax, 0FFh      ; EAX = 0x18
+
+compares byte-by-byte basophileslapsscrapping to "entrypoint"
+
+000000000019B2A0  43 00 3A 00 5C 00 75 00  73 00 65 00 72 00 73 00  C.:.\.u.s.e.r.s.
+000000000019B2B0  5C 00 61 00 64 00 6D 00  69 00 6E 00 5C 00 64 00  \.a.d.m.i.n.\.d.
+000000000019B2C0  65 00 73 00 6B 00 74 00  6F 00 70 00 5C 00 70 00  e.s.k.t.o.p.\.p.
+000000000019B2D0  61 00 79 00 6C 00 6F 00  61 00 64 00 2E 00 64 00  a.y.l.o.a.d...d.
+000000000019B2E0  6C 00 6C 00 00 00 23 00  31 00 00 00 AB AB AB AB  l.l...#.1...½½½½
+000000000019B2F0  AB AB AB AB AB AB AB AB  AB AB AB AB EE FE EE FE  ½½½½½½½½½½½½e¦e¦
+
+EXCEPT: ascii cmp to unicode
+how to get arg in IDA to be Ascii? .. patching it
+
+Virtualprotect. Grabs 0x1000 from:
+000007FEF89E58D0  4E D6 4C D7 64 7E 65 DB  52 0A 7E 2A 5D F2 2B 85  N+L+d~e¦R.~*]=+à
+000007FEF89E58E0  7A 78 6D 34 39 20 F2 40  8B 7A FA 6E CB E5 21 18  zxm49 =@ïz·n-s!.
+000007FEF89E58F0  17 DF 0C B9 8A 45 09 52  B0 37 D1 D2 7B C6 AF 4E  .¯.¦èE.R¦7--{¦»N
+000007FEF89E5900  82 F3 E8 B7 4E E9 68 83  DF C9 7D 29 28 EC F8 2C  é=F+NThâ¯+})(8°,
+000007FEF89E5910  07 CB 9E 15 B1 69 88 FC  E7 7B 66 CF A7 7C 90 17  .-P.¦iênt{f-º|..
+000007FEF89E5920  47 01 8E 01 52 54 AB E2  F3 C0 77 B8 2B C7 57 21  G.Ä.RT½G=+w++¦W!
+000007FEF89E5930  7F DC 25 2E B3 AA 69 55  47 0E 61 BF 93 98 37 65  ._%.¦¬iUG.a+ôÿ7e
+000007FEF89E5940  3C 5F FE E0 11 39 0F 9D  C7 69 9D 90 98 0B 6A B5  <_¦a.9..¦i..ÿ.j¦
+000007FEF89E5950  9B FD BD 56 3B ED 3C B6  6A F1 6A 98 09 34 87 95  ¢²+V;f<¦j±jÿ.4çò
+000007FEF89E5960  30 C4 69 F6 57 47 E5 F4  CF 5A 34 CE AF 6B 02 27  0-i÷WGs(-Z4+»k.'
+000007FEF89E5970  CB 23 DD 0E AC 95 3A 9F  8A 2E 36 9E ED 3A 45 98  -#¦.¼ò:ƒè.6Pf:Eÿ
+000007FEF89E5980  55 C0 0F A3 3B 90 12 35  89 DA B1 2B 98 02 0D B2  U+.ú;..5ë+¦+ÿ..¦
+
+basophiles.... is RC4 key
+
+RCX is decrypted:
+00000000001BF5B0  DC 71 1A D9 F4 A0 51 98  70 EA 47 EB 0C F7 12 E7  _q.+(áQÿpOGd.˜.t
+00000000001BF5C0  8B 5B 92 55 D4 96 DF 37  86 25 93 19 3B 36 84 77  ï[ÆU+û¯7å%ô.;6äw
+00000000001BF5D0  B5 2B 8F AE B4 72 48 B9  DE 2E 0F 1D 35 B1 66 EE  ¦+.«¦rH¦¦...5¦fe
+00000000001BF5E0  CF E3 3C F8 7A 27 AD 5C  ED A3 AB DD 79 CC 9C C6  -p<°z'.\fú½¦y¦£¦
+00000000001BF5F0  2D C2 4F 8E 21 91 1C 40  90 2A C7 97 4C CD E2 AA  --OÄ!æ.@.*¦ùL-G¬
+00000000001BF600  D8 24 D3 A4 04 58 C3 41  80 81 7F 3F F2 59 2F C4  +$+ñ.X+AÇ..?=Y/-
+00000000001BF610  E1 A7 23 03 A1 D1 94 FF  CB 49 B2 83 BA BE CA F3  ßº#.í-ö -I¦â¦+-=
+00000000001BF620  9F F0 99 31 75 61 9A 16  62 EF C8 9B FA 18 E6 DB  ƒ=Ö1uaÜ.bn+¢·.µ¦
+00000000001BF630  B3 28 7D F5 C9 11 E5 B6  C0 0A 1E 95 63 57 02 0E  ¦(})+.s¦+..òcW..
+00000000001BF640  F6 BC 7E 3D 0D D0 00 43  65 08 38 13 42 44 7B C5  ÷+~=.-.Ce.8.BD{+
+00000000001BF650  07 8A D5 B7 6A 73 9D 22  5D BF 09 5E D2 EC 50 9E  .è++js."]+.^-8PP
+00000000001BF660  7C 06 33 5A 8D 32 56 B0  46 A8 69 D7 A5 20 39 4E  |.3Z.2V¦F¿i+Ñ 9N
+00000000001BF670  FB 0B 01 52 3E 14 1B F9  D6 05 60 29 E4 68 26 FD  v..R>..·+.`)Sh&²
+00000000001BF680  45 89 4A 67 17 AF 1F 5F  78 6B 82 C1 BD 3A 76 E8  EëJg.»._xké-+:vF
+00000000001BF690  BB 15 4B 34 E9 53 F1 A9  6E E0 54 A2 87 74 DA FE  +.K4TS±¬naTóçt+¦
+00000000001BF6A0  6D 10 CE 6F 8C AC 64 4D  30 2C 88 85 B8 A6 6C FC  m.+oî¼dM0,êà+ªln
+00000000001BF6B0  C0 4B F9 FF 00 00 00 00  D8 F6 1B 00 00 00 00 00  +K· ....+÷......
+00000000001BF6C0  98 B3 21 00 00 00 00 00  42 2F F9 FF 00 00 00 00  ÿ¦!.....B/· ....
+00000000001BF6D0  00 04 20 00 00 00 00 00  00 00 F9 FF 00 00 00 00  .. .......· ....
+00000000001BF6E0  2C B3 21 00 00 00 00 00  0A 00 00 00 00 00 00 00  ,¦!.............
+00000000001BF6F0  30 F7 1B 00 00 00 00 00  50 F7 1B 00 00 00 00 00  0˜......P˜......
+00000000001BF700  20 F7 1B 00 00 00 00 00  BA 41 D6 FF FE 07 00 00   ˜......¦A+ ¦...
+00000000001BF710  2C B3 21 00 00 00 00 00  E0 B2 21 00 00 00 00 00  ,¦!.....a¦!.....
+00000000001BF720  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000000001BF730  00 00 9E F8 FE 07 00 00  01 00 00 00 E6 75 75 1B  ..P°¦.......µuu.
+00000000001BF740  E8 12 F9 FF 00 00 00 00  26 B3 21 00 00 00 00 00  F.· ....&¦!.....
+00000000001BF750  50 5A 9E F8 FE 07 00 00  00 00 00 00 00 00 00 00  PZP°¦...........
+00000000001BF760  6C 51 F9 FF 00 00 00 00  00 00 00 00 00 00 00 00  lQ· ............
+00000000001BF770  D0 05 4C E7 E8 2B 00 00  47 8E D5 FF FE 07 00 00  -.LtF+..GÄ+ ¦...
+00000000001BF780  10 13 F9 FF 00 00 00 00  00 00 00 00 00 00 00 00  ..· ............
+
+Decrypted:
+000007FEFA0C58D0  44 89 4C 24 20 4C 89 44  24 18 48 89 54 24 10 48  DëL$ LëD$.HëT$.H
+000007FEFA0C58E0  89 4C 24 08 48 83 EC 48  C6 44 24 20 6B C6 44 24  ëL$.Hâ8H¦D$ k¦D$
+000007FEFA0C58F0  21 65 C6 44 24 22 79 C6  44 24 23 20 C6 44 24 24  !e¦D$"y¦D$# ¦D$$
+000007FEFA0C5900  70 C6 44 24 25 61 C6 44  24 26 72 C6 44 24 27 74  p¦D$%a¦D$&r¦D$'t
+000007FEFA0C5910  C6 44 24 28 00 C6 44 24  30 6B C6 44 24 31 65 C6  ¦D$(.¦D$0k¦D$1e¦
+000007FEFA0C5920  44 24 32 79 C6 44 24 33  5B C6 44 24 34 32 C6 44  D$2y¦D$3[¦D$42¦D
+000007FEFA0C5930  24 35 34 C6 44 24 36 5D  C6 44 24 37 20 C6 44 24  $54¦D$6]¦D$7 ¦D$
+000007FEFA0C5940  38 3D C6 44 24 39 20 C6  44 24 3A 30 C6 44 24 3B  8=¦D$9 ¦D$:0¦D$;
+000007FEFA0C5950  78 C6 44 24 3C 36 C6 44  24 3D 66 C6 44 24 3E 3B  x¦D$<6¦D$=f¦D$>;
+000007FEFA0C5960  C6 44 24 3F 00 45 33 C9  4C 8D 44 24 20 48 8D 54  ¦D$?.E3+L.D$ H.T
+000007FEFA0C5970  24 30 33 C9 FF 15 B6 A8  00 00 33 C0 48 83 C4 48  $03+ .¦¿..3+Hâ-H
+000007FEFA0C5980  C3 CC CC CC CC CC CC CC  CC CC CC CC CC CC CC CC  +¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+000007FEFA0C5990  6B 80 2D A8 F3 C9 4B ED  E1 75 BB C3 4F BF B4 B8  kÇ-¿=+Kfßu++O+¦+
+000007FEFA0C59A0  4A 72 58 0D A0 F4 23 1C  2A 98 FE 28 89 2C 8E C0  JrX.á(#.*ÿ¦(ë,Ä+
+000007FEFA0C59B0  B3 23 28 32 E3 F0 AF C1  10 08 00 B8 02 50 F3 51  ¦#(2p=»-...+.P=Q
+000007FEFA0C59C0  94 F3 0D 3D 35 CE 84 BC  D8 E3 F6 7F 3F D6 DC C8  ö=.=5+ä++p÷.?+_+
+000007FEFA0C59D0  A2 54 FB 22 00 31 D3 C6  B2 F5 50 52 E5 44 A9 03  óTv".1+¦¦)PRsD¬.
+000007FEFA0C59E0  AE C0 48 87 DB C8 AB C8  98 58 E5 09 0E 07 19 1E  «+Hç¦+½+ÿXs.....
+000007FEFA0C59F0  20 83 CE 81 35 31 AD 71  D5 60 5F 51 AB 60 D3 7E   â+.51.q+`_Q½`+~
+000007FEFA0C5A00  A8 74 36 27 28 C7 8B 99  3B AD F5 86 6F 03 79 EA  ¿t6'(¦ïÖ;.)åo.yO
+000007FEFA0C5A10  3D 8F 4F 8D 8A DB 87 84  79 62 29 CE 59 37 0E 36  =.O.è¦çäyb)+Y7.6
+000007FEFA0C5A20  64 A4 7B 6A A3 A2 48 BF  14 AF FF B5 96 E6 FA 48  dñ{júóH+.» ¦ûµ·H
+000007FEFA0C5A30  ED 27 3D 97 33 D4 7D 01  FB 62 32 81 43 B9 E4 62  f'=ù3+}.vb2.C¦Sb
+000007FEFA0C5A40  52 30 B1 2D 33 72 E8 04  38 4D E0 AE 50 87 89 8E  R0¦-3rF.8Ma«PçëÄ
+000007FEFA0C5A50  44 89 4C 24 20 4C 89 44  24 18 48 89 54 24 10 48  DëL$ LëD$.HëT$.H
+000007FEFA0C5A60  89 4C 24 08 48 81 EC 88  01 00 00 E8 F0 EC FF FF  ëL$.H.8ê...F=8  
+000007FEFA0C5A70  48 89 44 24 60 48 8B 44  24 60 8B 00 48 8B 0D ED  HëD$`HïD$`ï.Hï.f
+000007FEFA0C5A80  50 01 00 48 03 C8 48 8B  C1 48 89 44 24 48 48 8B  P..H.+Hï-HëD$HHï
+000007FEFA0C5A90  44 24 48 8B 40 20 48 8B  0D D3 50 01 00 8B 04 01  D$Hï@ Hï.+P..ï..
+000007FEFA0C5AA0  89 44 24 38 8B 44 24 38  48 8B 0D C1 50 01 00 48  ëD$8ïD$8Hï.-P..H
+000007FEFA0C5AB0  03 C8 48 8B C1 48 89 44  24 40 48 8B 44 24 48 8B  .+Hï-HëD$@HïD$Hï
+000007FEFA0C5AC0  40 04 25 FF 00 00 00 89  44 24 20 8B 44 24 20 FF  @.% ...ëD$ ïD$  
+000007FEFA0C5AD0  C0 8B C0 48 8D 0D 06 3E  01 00 8B 54 24 20 4C 8D  +ï+H...>..ïT$ L.
+000007FEFA0C5AE0  05 FB 3D 01 00 49 8B 14  D0 48 8B 04 C1 48 2B C2  .v=..Iï.-Hï.-H+-
+000007FEFA0C5AF0  48 89 44 24 50 48 8B 44  24 40 48 8B 8C 24 A0 01  HëD$PHïD$@Hïî$á.
+000007FEFA0C5B00  00 00 48 2B C8 0F B6 10  3A 14 08 75 0B 48 FF C0  ..H++.¦.:..u.H +
+000007FEFA0C5B10  84 D2 75 F1 33 C0 EB 05  1B C0 83 C8 01 85 C0 0F  ä-u±3+d..+â+.à+.
+000007FEFA0C5B20  85 AC 00 00 00 8B 44 24  20 48 8D 0D B0 3D 01 00  à¼...ïD$ H..¦=..
+000007FEFA0C5B30  48 8B 04 C1 48 89 44 24  30 4C 8D 4C 24 58 41 B8  Hï.-HëD$0L.L$XA+
+000007FEFA0C5B40  40 00 00 00 BA 00 10 00  00 48 8B 4C 24 30 FF 15  @...¦....HïL$0 .
+000007FEFA0C5B50  AC A4 00 00 48 8B 44 24  40 48 89 44 24 68 48 C7  ¼ñ..HïD$@HëD$hH¦
+000007FEFA0C5B60  44 24 28 FF FF FF FF 48  FF 44 24 28 48 8B 44 24  D$(    H D$(HïD$
+
+Resulting code:
+loc_7FEF89E58D0:
+.text:000007FEF89E58E8 040 mov     [rsp+40h+Caption], 'k'
+.text:000007FEF89E58ED 040 mov     [rsp+40h+var_1F], 'e'
+.text:000007FEF89E58F2 040 mov     [rsp+40h+var_1E], 'y'
+.text:000007FEF89E58F7 040 mov     [rsp+40h+var_1D], ' '
+.text:000007FEF89E58FC 040 mov     [rsp+40h+var_1C], 'p'
+.text:000007FEF89E5901 040 mov     [rsp+40h+var_1B], 'a'
+.text:000007FEF89E5906 040 mov     [rsp+40h+var_1A], 'r'
+.text:000007FEF89E590B 040 mov     [rsp+40h+var_19], 't'
+.text:000007FEF89E5910 040 mov     [rsp+40h+var_18], 0
+.text:000007FEF89E5915 040 mov     [rsp+40h+Text], 'k'
+.text:000007FEF89E591A 040 mov     [rsp+40h+var_F], 'e'
+.text:000007FEF89E591F 040 mov     [rsp+40h+var_E], 'y'
+.text:000007FEF89E5924 040 mov     [rsp+40h+var_D], '['
+.text:000007FEF89E5929 040 mov     [rsp+40h+var_C], '2'
+.text:000007FEF89E592E 040 mov     [rsp+40h+var_B], '4'
+.text:000007FEF89E5933 040 mov     [rsp+40h+var_A], ']'
+.text:000007FEF89E5938 040 mov     [rsp+40h+var_9], ' '
+.text:000007FEF89E593D 040 mov     [rsp+40h+var_8], '='
+.text:000007FEF89E5942 040 mov     [rsp+40h+var_7], ' '
+.text:000007FEF89E5947 040 mov     [rsp+40h+var_6], '0'
+.text:000007FEF89E594C 040 mov     [rsp+40h+var_5], 'x'
+.text:000007FEF89E5951 040 mov     [rsp+40h+var_4], '6'
+.text:000007FEF89E5956 040 mov     [rsp+40h+var_3], 'f'
+.text:000007FEF89E595B 040 mov     [rsp+40h+var_2], ';'
+.text:000007FEF89E5960 040 mov     [rsp+40h+var_1], 0
+.text:000007FEF89E5965 040 xor     r9d, r9d                        ; uType
+.text:000007FEF89E5968 040 lea     r8, [rsp+40h+Caption]           ; lpCaption
+.text:000007FEF89E596D 040 lea     rdx, [rsp+40h+Text]             ; lpText
+.text:000007FEF89E5972 040 xor     ecx, ecx                        ; hWnd
+.text:000007FEF89E5974 040 call    cs:MessageBoxA
+
+key[24] = 0x6f;
+
+... patch to remove entrypoint check. From:
+000007FEF8935B1F | 0F 85 AC 00 00 00        | jne payload.7FEF8935BD1                 |
+to:
+000007FEF8935B1F | 0F 84 AC 00 00 00        | je payload.7FEF8935BD1                  |
+
+--- stop. if count is wrong, won't proceed. Gets mem issue
+Redo statically.
+Pull hex bytes from exe. If in reverse order from 0x18>1, 
+start 0x4CD0 > 0x5CD0?
+--- stop
+Check SystemTime function:
+Takes Month + Year  (9 + 2017 = 0x7EA = 2026) % 26 == 0x18 (24)
+
+Change to 0
+
+SRAND function. Takes data block:
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
+00000400  F8 2E A6 60 81 15 6C EE 1E 20 2A 4C E7 4F 85 36  ø.¦`..lî. *LçO…6
+00000410  6D DD 7E 2C 20 33 5E 28 9A BA 28 ED 09 E0 72 8D  mÝ~, 3^(šº(í.àr.
+00000420  26 0D 74 2D 44 26 5F 0C 69 5B F0 C2 5C 6A 44 C6  &.t-D&_.i[ðÂ\jDÆ
+00000430  4F 76 9E 5B 68 F4 2A AD F6 71 69 52 1A 8F 21 C0  Ovž[hô*.öqiR..!À
+00000440  95 DD 90 29 C2 D1 23 A9 EB 17 4B 7A 42 F1 5B 55  •Ý.)ÂÑ#©ë.KzBñ[U
+00000450  62 BD 2D BB 06 D2 AB C4 50 C7 6E 27 4A EA 26 8E  b½-».Ò«ÄPÇn'Jê&Ž
+00000460  AF 33 23 4E 8C 82 BA 38 00 D2 0C B9 53 92 DB 5D  ¯3#NŒ‚º8.Ò.¹S’Û]
+00000470  74 4B 9D 92 A6 83 CF AF 76 E1 8C 34 F0 92 5E 53  tK.’¦ƒÏ¯váŒ4ð’^S
+00000480  12 EA 54 B0 81 4F 55 66 7B 53 B3 4A 0D 20 03 73  .êT°.OUf{S³J. .s
+00000490  86 19 2D FA 2B BE BF FE 2C D0 87 EB D7 B6 60 FC  †.-ú+¾¿þ,Ð‡ë×¶`ü
+000004A0  0C 20 4C FF F1 EA C3 59 E6 43 4B 49 BC 0E 49 71  . LÿñêÃYæCKI¼.Iq
+000004B0  21 88 17 92 5F 2C 56 97 47 D4 86 D5 67 20 D4 91  !ˆ.’_,V—GÔ†Õg Ô‘
+000004C0  84 1B 32 C2 44 1C AD 19 2A EB FB 3F C7 25 54 5E  „.2ÂD...*ëû?Ç%T^
+000004D0  2F E2 84 E2 AB 94 3D 81 AD 33 B1 78 09 97 60 18  /â„â«”=..3±x.—`.
+000004E0  61 25 2F 82 E1 AD BB AF 2D 93 EC B3 98 2D CD 42  a%/‚á.»¯-“ì³˜-ÍB
+000004F0  97 6D 9B 73 75 C0 1C C4 48 35 31 5E 23 E2 AF 9B  —m›suÀ.ÄH51^#â¯›
+00000500  8D 84 6B C6 32 65 94 22 D9 83 46 2D 96 EE 5B 25  .„kÆ2e”"ÙƒF-–î[%
+00000510  41 72 85 CC 26 76 9A 69 FE 24 2E 0F 1F CA 67 21  Ar…Ì&všiþ$...Êg!
+00000520  EF 80 0D 16 9E 0C E1 7A 15 02 30 35 29 30 A7 10  ï€..ž.áz..05)0§.
+00000530  15 38 69 75 27 7F 5F 76 B9 46 CF 12 63 17 31 B3  .8iu'._v¹FÏ.c.1³
+00000540  6F 63 3E FA 8D 69 49 BF C8 59 D2 54 B9 BA 59 0A  oc>ú.iI¿ÈYÒT¹ºY.
+00000550  FB 09 70 F7 DF A3 14 F6 60 E5 3D EE 59 91 B4 58  û.p÷ß£.ö`å=îY‘´X
+00000560  F5 73 25 FB 67 45 75 FA DC D1 55 11 AE 55 18 1C  õs%ûgEuúÜÑU.®U..
+00000570  DB 2B C1 D9 B5 A9 61 EE DB 47 A0 2E 67 FF 99 18  Û+ÁÙµ©aîÛG .gÿ™.
+00000580  69 FA EB A0 95 68 0C 33 38 B0 E1 F5 71 C9 8C 4D  iúë •h.38°áõqÉŒM
+00000590  9D E7 86 A3 13 5B ED 68 12 B4 1F 57 F7 2B 87 FB  .ç†£.[íh.´.W÷+‡û
+000005A0  B3 3E B7 72 7D 9A B7 70 C4 3E 9D 87 68 DE 5E A5  ³>·r}š·pÄ>.‡hÞ^¥
+000005B0  29 85 E4 DE 60 7F 61 6B ED 76 E2 F3 70 DB 27 0A  )…äÞ`.akívâópÛ'.
+000005C0  BC 88 B2 F8 88 A3 1E BB 68 C5 B2 4F FC 5B 36 2C  ¼ˆ²øˆ£.»hÅ²Oü[6,
+000005D0  67 4D 05 11 03 DE 64 00 54 D4 12 89 3A D8 21 4C  gM...Þd.TÔ.‰:Ø!L
+000005E0  6A 1F 03 BA 1E 4A E8 1B 0C 8B 48 D5 95 0A BB EB  j..º.Jè..‹HÕ•.»ë
+000005F0  40 87 11 C4 66 40 9F 2E 2F 15 D7 A2 BD EA 1C CA  @‡.Äf@Ÿ./.×¢½ê.Ê
+
+
+Decrypts as:
+000007FEFA061000  00 00 00 00 00 33 22 11  00 00 00 00 32 10 00 00  .....3".....2...
+000007FEFA061010  01 00 00 00 01 00 00 00  01 00 00 00 28 10 00 00  ............(...
+000007FEFA061020  2C 10 00 00 30 10 00 00  50 5A 00 00 43 10 00 00  ,...0...PZ..C...
+000007FEFA061030  00 00 70 68 61 72 6D 61  63 6F 6C 6F 67 79 2E 64  ..pharmacology.d
+000007FEFA061040  6C 6C 00 66 69 6C 69 6E  67 6D 65 74 65 6F 72 73  ll.filingmeteors
+000007FEFA061050  67 65 6D 69 6E 61 74 65  6C 79 00 00 00 00 00 00  geminately......
+000007FEFA061060  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+000007FEFA061070  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+
+
+...
+.text:000007FEFA065DE5 078 call    decrypt_config
+.text:000007FEFA065DEA 078 mov     eax, [rsp+78h+var_40]
+.text:000007FEFA065DEE 078 imul    rax, 200h
+.text:000007FEFA065DF5 078 lea     rcx, qword_7FEFA061000
+.text:000007FEFA065DFC 078 add     rcx, rax
+.text:000007FEFA065DFF 078 mov     rax, rcx
+.text:000007FEFA065E02 078 sub     rax, [rsp+78h+lpAddress]
+.text:000007FEFA065E07 078 mov     [rsp+78h+var_3C], eax
+.text:000007FEFA065E0B 078 mov     rax, [rsp+78h+var_38]
+.text:000007FEFA065E10 078 mov     ecx, [rsp+78h+var_3C]
+.text:000007FEFA065E14 078 mov     [rax], ecx
+
+Puts 0x100 into PE header at 0x000007FEFA060198
+000007FEFA060180  00 00 10 00 00 00 00 00  00 10 00 00 00 00 00 00  ................
+000007FEFA060190  00 00 00 00 10 00 00 00  00 10 00 00 4C 00 00 00  ............L...
+000007FEFA0601A0  4C 80 01 00 3C 00 00 00  00 D0 01 00 E0 01 00 00  LÇ..<....-..a...
+
+
+0x00 = 
+pharmacology.dll
+filingmeteorsgeminately
+key[0] = 0x77
+
+0x01 = 
+hernias.dll
+leggykickedflutters
+key[1] = 0x75
+
+0x02 =
+pelf.dll
+incalculabilitycombustionsolvency
+0x75
+
+0x03 = 
+costal.dll
+crappingrewardsanctity
+0x75
+
+0x04 = 
+octopus.dll
+evolvable pollutant gavial
+0x74
+
+0x5 = 
+challengers.dll
+ammoniatesignifiesshampoo
+0x2d = -
+
+0x6 =
+jeweller.dll
+majesticallyunmarredcoagulate
+0x65 =e
+
+0x07 = 
+bronzing.dll.
+roommatedecapitateavoider
+0x78 = x
+
+0x08 = 
+low.dll
+fiendishlylicentiouslycolouristic
+0x70 = p
+
+0x09
+holidays.dll
+sororityfoxyboatbill
+0x30 = 0
+
+10
+rawhide.dll
+dissimilitudeaggregativewracks
+0x72 = r
+
+11
+..backstretch.dl
+l.allophoneobser
+vesbashfulness..
+0x74 = t
+
+12
+..testability.dl
+l.incuriousfathe
+rlinessmisanthro
+pically.........
+0x73 = s
+ 
+13
+..crossroad.dll.
+screensassonantp
+rofessionalisms.
+................
+0x40
+
+14
+..cocking.dll.re
+ligionistmightpl
+aythings........
+0x66 = f
+
+wuuut-exp0rts@flare-on.com
+
+

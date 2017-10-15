@@ -1,0 +1,164 @@
+
+19:47:29-bbaskin@~/CTF/FLARE_2017/8/APK/assets$ xxd tspe
+00000000: 4135 3141 4241 4245 0000 0144 002d 2e00  A51ABABE...D.-..
+00000010: 426e 0010 6500 5b72 0054 6f00 4e77 005d  Bn..e.[r.To.Nw.]
+00000020: 7300 5366 0029 2000 2172 0046 6500 0620  s.Sf.) .!r.Fe..
+00000030: 003d 6900 0420 0041 6100 2b61 004c 6500  .=i.. .Aa.+a.Le.
+00000040: 0861 004d 2000 2a64 0050 7200 376e 0065  .a.M .*d.Pr.7n.e
+00000050: 7300 2320 0012 6100 3220 0024 6600 6869  s.# ..a.2 .$f.hi
+00000060: 006a 6500 4727 0060 6f00 3a6e 0020 6100  .je.G'.`o.:n. a.
+00000070: 3b20 0030 6500 0c20 003f 6500 0f72 0013  ; .0e.. .?e..r..
+00000080: 6e00 6620 0000 4700 0169 0034 2000 6966  n.f ..G..i.4 .if
+00000090: 005a 2000 3c66 000b 6100 356d 0015 2000  .Z .<f..a.5m.. .
+000000a0: 0e69 002c 7900 1464 0052 2000 2f53 0049  .i.,y..d.R ./S.I
+000000b0: 6c00 1765 0056 2000 6220 0067 6c00 2861  l..e.V .b .gl.(a
+000000c0: 0027 2000 5f20 005e 7400 1668 000a 2000  .' ._ .^t..h.. .
+000000d0: 6469 0057 7400 2672 000d 6600 3361 0038  di.Wt.&r..f.3a.8
+000000e0: 2000 1c62 001b 2000 4364 006b 2e00 256f   ..b.. .Cd.k..%o
+000000f0: 001e 2000 1a6c 0018 2700 1120 0048 6c00  .. ..l..'.. .Hl.
+00000100: 096e 004b 6200 2e20 0040 2000 1f77 0059  .n.Kb.. .@ ..w.Y
+00000110: 6500 1d65 0039 6f00 5572 0005 6100 196c  e..e.9o.Ur..a..l
+00000120: 0002 7600 4a20 0061 6600 5868 0051 6d00  ..v.J .af.Xh.Qm.
+00000130: 5c65 0044 2000 3661 004f 6100 3174 0007  \e.D .6a.Oa.1t..
+00000140: 6d00 0365 0045 6800 3e72 0022 6d00 6368  m..e.Eh.>r."m.ch
+
+19:52:39-bbaskin@~/CTF/FLARE_2017/8/APK$ d2j-dex2jar classes.dex
+dex2jar classes.dex -> ./classes-dex2jar.jar
+19:53:38-bbaskin@~/CTF/FLARE_2017/8/APK$ procyon-decompiler ./classes-dex2jar.jar  > classes.java
+
+
+Go by picture in res/layout/activity*.xml
+
+First: Michael - basic key layout
+Crack with test_michael.java. Just does byte comparisons:
+MYPRSHE__FTW
+
+
+Second: Brian
+
+
+09:17:58-bbaskin@~/CTF/FLARE_2017/8/APK/a/flair/res/layout$ more activity_brian.xml
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout android:label="@string/brian_title" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+
+09:27:09-bbaskin@~/CTF/FLARE_2017/8/APK$ more a/flair/AndroidManifest.xml
+        <meta-data android:name="vdf" android:value="cov"/>
+
+
+Takes input, compares to structure of four values:
+
+        return this.dfysadf(string,
+                            currentTextColor & 0xFFFF,
+                            s,
+                            this.getApplicationContext().getPackageManager().getApplicationInfo(this.getApplicationContext().getPackageName(), 128).metaData.getString("vdf"));
+        }
+
+        return this.dfysadf(imageView.getTag().toString(), // "hashtag"
+                    currentTextColor & 0xFFFF,
+                    textView.getText().toString().split(" ")[4], // "Fajitas"
+                    "cov");
+        }
+
+
+    <TextView android:textColor="@color/colorSecondary" android:id="@id/vcxv" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Shrimp Poppers or Extreme Fajitas" />
+
+    private String dfysadf(final String s, final int n, final String s2, final String s3) {
+        return String.format("%s_%s%x_%s!", s, "cov", n, s2);
+
+        currentTextColor is either colorSecondary or colorAccent
+res/values/colors.xml:    <color name="colorSecondary">#ffc0fefe</color>  // fefe  lol, gotta be
+
+res/values/public.xml:    <public type="color" name="colorSecondary" id="0x7f0a0017" />
+res/values/colors.xml:    <color name="colorAccent">#ffff4043</color>  // @C or C@
+
+hashtag_covfefe_Fajitas!
+
+
+Third: Milton
+Rating "4" to enable submit button
+A rich man is nothing but a poor man with money.
+Take SHA-1 of that.
+10aea594831e0b42b956c578ef9a6d44ee39938d  /Users/bbaskin/CTF/FLARE_2017/8/milton.dat
+
+
+Four: Printer
+                final String string = this.gcbbiO.getText().toString();
+                if (this.cgHbC(string)) {
+                    Util.flairSuccess(this, string);
+                    return;
+                }
+
+
+Appears to read in tspe file as byte code and invoke it
+            final Object wjpBw = this.wJPBw("tspe"));
+            final Class<?> forName = Class.forName("java.util.HashMap"));
+            final int intValue = (int)forName.getMethod("size", (Class<?>[])null).invoke(wjpBw, (Object[])null);
+            final byte[] array = new byte[intValue];
+            final Method method = forName.getMethod("get", Object.class);
+            for (short n = 0; n < intValue; ++n) {
+                array[n] = Byte.class.cast(method.invoke(wjpBw, n));
+
+package com.flare_on.flair;
+
+...
+
+        final String vutfs = vutfs("Zcj30d9jroqAN2mtzayVK0awaVTLnoXVcsjl9ujUAd22JiI9xfhqEW1BbkG3LsgQRoStjh+Eb6wTD4BwD9Kypa5ggXfHLWmFjFgERViV+5IRU4RbUPDUwYTivhsdZnA=", 17, "forfor");
+
+So that Does B64 decode, ^ 17, then RC4 by "for". "for" is too short for Java RC4 (40bit min), so just tagged on extra.
+
+Various strings now fed through that.
+
+(Stapler.iemm("Gv@H")) == tspe
+(Stapler.iemm(",e}e8yGS!8Dev)-e@")) == java.util.HashMap
+(Stapler.iemm("vSBH"); == size
+(Stapler.iemm("LHG") == get
+(Stapler.iemm("H?ye!v") ==
+(Stapler.iemm("e.RP9SR8x9.GH.G8M9.GHkG"));
+(Stapler.iemm("LHG1@@!SxeGS9.M9.GHkG") = getApplicationContext
+(Stapler.iemm("LHG1@@!SxeGS9.u.g9") == getApplicationInfo
+(Stapler.iemm("e.RP9SR8x9.GH.G8@d81@@!SxeGS9.u.g9")) = android.content.pm.ApplicationInfo
+(Stapler.iemm("g!eLv")) = flags
+(Stapler.iemm(",e}e8S98*eGeu.@yG5GPHed")); = java.io.DataInputStream
+(Stapler.iemm(",e}e8S98u.@yG5GPHed"))) = java.io.InputStream
+(Stapler.iemm("e.RP9SR8x9.GH.G8PHv81vvHG-e.eLHP")) = android.content.res.AssetManager
+(Stapler.iemm("9@H.") = open
+(Stapler.iemm("PHeR") = read
+(Stapler.iemm("PHeRu.G") = readInt
+(Stapler.iemm(",e}e8yGS!8Dev)-e@")); = java.util.HashMap
+(Stapler.iemm("@yG") = put
+(Stapler.iemm("PHeR\"(GH") = readByte
+(Stapler.iemm("PHeR5)9PG") = readShort
+
+
+Seems to read hashmap value from tspe. Byte:Short, Byte:Short
+
+    method.invoke(instance, array, 0, 8);
+        == read first 8 bytes
+
+    final int n = readInt(instance) / 3;
+        == read 4-byte int, div 3 to get # items: 0x144 = 324.  324/3 = 108.
+        == Bytes remaining after this header is 324. So 108 records, 3 bytes each.
+        == Byte:Short, Byte:Short,..
+
+parse:
+{' ': 68, "'": 24, '.': 107, 'G': 0, 'S': 47, 'a': 79, 'b': 75, 'e': 3, 'd': 67, 'f': 97, 'i': 100, 'h': 99, 'm': 34, 'l': 25, 'o': 57, 'n': 9, 's': 101, 'r': 62, 't': 49, 'w': 31, 'v': 2, 'y': 44}
+Put into order of [val]=key into array:
+
+
+Give a man a fire and he'll be warm for a day. Set a man on fire and he'll be warm for the rest of his life.
+sha1 = 5f1be3c9b081c40ddfc4a0238156008ee71e24a4
+
+
+
+
+
+MYPRSHE__FTW
+hashtag_covfefe_Fajitas!
+10aea594831e0b42b956c578ef9a6d44ee39938d   (4)
+5f1be3c9b081c40ddfc4a0238156008ee71e24a4
+
+DONE!
+pc_lo4d_l3tt3r_gl1tch@flare-on.com
+
+

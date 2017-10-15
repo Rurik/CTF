@@ -1,0 +1,267 @@
+
+requires:
+tinyurl.com/winmgtfwk4
+https://www.microsoft.com/en-us/download/details.aspx?id=40855
+
+
+Debugging:
+at 0x013C261A .. ebx (0x2EC328) looks like this:
+Big Base64 block saved to base64_1.txt
+
+at 0x013C2646: pushes (last half is Base64 from above):
+002EC320  27 43 D1 55 11 E0 00 1E  53 00 62 00 6F 00 67 00  'C-U.a..S.b.o.g.
+
+...
+In 0x013C6530, inits the routines used by the challenge. 
+    sub_13EA020();
+    v2 = GetCurrentThread();
+    suspend_or_not(v2);
+    sub_13E98C0(&off_141BD88, File);            // Resolve all these APIs
+    sub_13E98C0(&off_141BD38, sub_13C1145);
+    sub_13E98C0(&off_141BD60, sub_13C1082);
+    sub_13E98C0(&off_141BD3C, sub_13C1078);
+    sub_13E98C0(&off_141BD44, sub_13C1032);
+    sub_13E98C0(&off_141BD34, &sub_13C114F);
+    sub_13E98C0(&off_141BD74, &sub_13C10E6);
+    sub_13E98C0(&off_141BD30, &loc_13C104B);
+    sub_13E98C0(&off_141BD64, &sub_13C1023);
+    sub_13E98C0(&off_141BD78, &sub_13C1014);
+    sub_13E98C0(&off_141BD84, sub_13C1005);
+    sub_13E98C0(&off_141BD58, &sub_13C1091);
+    sub_13E98C0(&off_141BD70, &sub_13C109B);
+    sub_13E98C0(&off_141BD7C, &sub_13C111D);
+    sub_13E98C0(&off_141BD48, &sub_13C1055);
+    sub_13E98C0(&off_141BD40, &sub_13C1122);
+    sub_13E98C0(&off_141BD54, &sub_13C102D);
+    sub_13E98C0(&off_141BD68, &sub_13C10D2);
+    sub_13E98C0(&off_141BD6C, &sub_13C112C);
+    sub_13E98C0(&off_141BD5C, &sub_13C10F0);
+    sub_13E98C0(&off_141BD2C, sub_13C100A);
+    sub_13E98C0(&off_141BD50, &sub_13C10FF);
+    sub_13E98C0(&off_141BD80, &sub_13C1037);
+    sub_13E98C0(&off_141BD4C, &sub_13C1087);
+    DecryptValue(0x19A82B6Bu, &v5, &unk_13FF6E8);// msvcrt.dll
+    DecryptValue(0x5245C887u, &v7, &unk_13FF6F8);// srand
+    
+Have to manually follow offsets into kernel32, etc, and rename:
+    v11 = (kernel32_SearchPathA)(0, *(a1 - 45), 0, 127, v4 + 8, a1 - 49);
+    if ( v11 > 0x7F )
+      goto LABEL_16;
+    if ( !v11 )
+    {
+      *(a1 - 44) = 1;
+      v12 = kernelbase_GetFullPathNameA(*(a1 - 45), 127, v4 + 8, a1 - 49);
+      if ( !v12 || v12 > 0x7F )
+    
+Dumped .NET DLL to disk. References at zsud_Process_WTFlareon.dll -- 0x013C7170
+auto file, fname, i, address, size, x;
+address = 0x01418AB0;
+size = 0xFFFF;
+fname = "C:\\dump_mem.bin";
+file = fopen(fname, "wb");
+for (i=0; i<size; i++, address++)
+{
+ x = DbgByte(address);
+ fputc(x, file);
+}
+fclose(file);
+
+flareon.four.Smth(arg):
+					byte[] cipherText = Convert.FromBase64String(arg);
+					string script = four.Decrypt2(cipherText, "soooooo_sorry_zis_is_not_ze_flag");
+					powerShell.AddScript(script);
+					Collection<PSObject> collection = powerShell.Invoke();
+					foreach (PSObject current in collection)
+					{
+						Console.WriteLine(current);
+					}
+				}
+Decrypted big block of Base64 online (http://www.bierkandt.org/encryption/symmetric_encryption.php)
+Rijndael-128 in CBC:
+################################################################..# Welcome to the 2017 FLARE-ON Challenge mega-script. Have fun!..################################################################################..Set-StrictMode -Version 2.0..$logo = @"..--------------------------------------------------------------------..         
+
+Didn't decrypt all the way? Dumped mem and pulled rest from there.
+
+
+At 0x169CB8 is a weird array: 
+3,0,0,2,2,1,1,1,0,2,3,0,2,2,3,3,3,5,4,0,5,4,0,5,4,0,1,4,0,2,4,0,1,2,3,5,4,0,1,2,3,1,2,3,1,2,3,1,2,3,5,4,0
+
+  if ( !dword_16BD28 || !sub_11100F(retaddr) )
+    return rand();
+  result = ArrayOfBytes[dword_16BD24];
+  dword_16BD24 = (dword_16BD24 + 1) % num_53;
+  return result;
+  
+Each call to routine grabs next byte in oreder?
+
+Back to game script:
+
+function Invoke-Say($char, $room, $trailing) {
+	$thing = Get-ThingByKeyword $room $to_whom
+	if ($thing.Name -eq "Kevin Mandia") {
+		$resp = "Kevin says a friendly 'hello' and then looks back down at his computer. He's busy turbo-hacking."
+
+		$key = Get-ThingByKeyword $room 'key'
+
+		foreach ($thing in $char.Wearing) {
+			if ($thing.Keywords -contains "helmet") {
+				$helmet = $thing
+			}
+		}
+
+		if (($key -ne $null) -and ($helmet -ne $null)) {
+			$md5 = New-Object System.Security.Cryptography.MD5CryptoServiceProvider
+			$utf8 = New-Object System.Text.UTF8Encoding
+			$hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($key.Desc)))
+
+
+			$Data = [System.Convert]::FromBase64String("EQ/Mv3f/1XzW4FO8N55+DIOkeWuM70Bzln7Knumospan")
+			$Key = [System.Text.Encoding]::ASCII.GetBytes($hash)
+
+			# Adapated from the gist by harmj0y et al
+			$R={$D,$K=$Args;$H=$I=$J=0;$S=0..255;0..255|%{$J=($J+$S[$_]+$K[$_%$K.Length])%256;$S[$_],$S[$J]=$S[$J],$S[$_]};$D|%{$I=($I+1)%256;$H=($H+$S[$I])%256;$S[$I],$S[$H]=$S[$H],$S[$I];$_-bxor$S[($S[$I]+$S[$H])%256]}}
+			$x = (& $r $data $key | ForEach-Object { "{0:X2}" -f $_ }) -join ' '
+			$resp = "`nKevin says, with a nod and a wink: '$x'."
+			$resp += "`n`nBet you didn't know he could speak hexadecimal! :-)"
+		}
+	}
+
+	return $resp
+}
+
+function Invoke-TransferThing([PSObject][ref]$container_old, [PSObject][ref]$container_new, $thing) {
+		if (($thing.Keywords -Contains "key") -and ($container_new -eq $script:char)){
+			${MsvcRT}::(srand).Invoke(42)
+}
+
+function Invoke-XformKey([String]$keytext, [String]$desc) {
+		if ($decoded.ToLower() -NotContains "whale") {
+			$newdesc = "$text $decoded"
+}
+
+
+Lobby:
+look desk
+look drawers
+get key drawer
+
+oh come on. The key needs to be in the room ($key = Get-ThingByKeyword $room 'key') not on self. Drop it like its hot. 
+
+n,get key drawer,w,n,n,e,e,n,get helmet,wear helmet,drop key, say kevin hello
+
+Kevin says, with a nod and a wink: '6E 14 EF 47 5B F9 37 67 1B CF 74 60 D0 BE 70 88 D4 53 1B FF 54 12 4E F2 07 EA 1D 20 69 2D E3 29 35'.
+Bet you didn't know he could speak hexadecimal! :-)
+
+400
+
+Flip back to zsud.exe
+web server listening. Checks bytes:
+    if ( pRequestBuffer[9] == 4 )
+    {
+      if ( j_parse_chars_percent_e(pRequestBuffer[18], &Memory) )
+      {
+        v11 = 0;
+        v12 = Maybe_Hash(lpWideCharStr[0], lpWideCharStr[1]);
+        v13 = v12;
+        if ( v12 )
+        {
+          v9 = WebDisplay(a1, pRequestBuffer, 200, "OK", (v12 + 16));
+          v11 = 1;
+          free(v13);
+        }
+        if ( Memory )
+          free(Memory);
+        v1 = 0;
+        lpWideCharStr[0] = 0;
+        lpWideCharStr[1] = 0;
+        if ( v11 )
+          goto LABEL_19;
+      }
+      else
+      {
+        v1 = Memory;
+      }
+      v10 = WebDisplay(a1, pRequestBuffer, 403, "OK", a_FailWhale);
+    }
+    else
+    {
+      v10 = WebDisplay(a1, pRequestBuffer, 503, "Not Implemented", 0);
+    }
+    
+Key rand not tracking - have to do it live?
+
+
+n,get key drawer,w,n,n,e,e,s,s,s,n,e,w,n,e,e,w,w,w,d,u,n,d,u,n,d,u,n,s,u,n,e,u,n,s,e,w,d,u,n,s,e,e,s,e,w,s,e,w,s,e,w,d,u,n,w,n,n,e,e,s,s,s,n,e,w,n,e,n,w,w,w,d,u,n,d,u,n,d,u,n,s,s,n,e,u,n,s,e,w,d,u,n,s,e,w,s,e,w,s,e,w,s,e,w
+
+n,get key drawer,w,n,n,e,e,s,s,s,n,e,w,n,e,e,w,w,w,d,u,n,d,u,n,d,u,n,s,u,n,e,u,n,s,e,w,d,u,n,s,e,w,s,e,w,s,e,w,s,e,w,d,u,n,
+wnneesssnewneewwwdundundunsuneunsewdunsewsewsewsewdun
+
+
+
+goddamn that's going forever
+oh goddamn
+there was one 'e' off where it should've been a w
+
+BP at 01397DCA to catch key-based web submission
+HttpReceiveHttpRequest receives HTTP_REQUEST_INFO  structure
+04E66630  02 00 00 00 00 00 00 00  CC 01 00 60 00 00 00 FC  ........¦..`...n
+04E66640  CD 01 00 80 00 00 00 FC  00 00 00 00 00 00 00 00  -..Ç...n........
+04E66650  01 00 01 00 04 00 00 00  00 00 F2 1F 00 00 00 00  ..........=.....
+04E66660  58 A8 E6 04 0E 40 1C 00  1E 00 C6 3F 48 68 E6 04  X¿µ..@....¦?Hhµ.
+04E66670  56 68 E6 04 72 68 E6 04  90 68 E6 04 28 68 E6 04  Vhµ.rhµ..hµ.(hµ.
+04E66680  08 68 E6 04 00 00 00 00  00 00 00 00 00 00 00 00  .hµ.............
+04E66690  00 00 00 00 00 00 00 00  00 00 00 00 0A 00 00 00  ................
+04E666A0  A0 C8 E6 04 00 00 00 00  00 00 00 00 00 00 00 00  á+µ.............
+04E666B0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+
+It checks that  04E66654 == 0x04 (it is)
+Dumped URI to web_checkin.txt
+j_parse_chars_percent_e grabs &e= var
+Sends to Maybe_Hash:
+0xB8B11CE9 (0xE91cb1b8)
+and "BANK" string
+
+Maybe_Hash returns with big block, starts with:
+04E728A0  04 03 4A 6C 43 F1 BA 46  5F 3F 61 22 90 5F 23 37  ..JlC±¦F_?a"._#7
+04E728B0  63 61 6E 20 4A 2B 41 45  66 54 77 58 77 63 72 45  can J+AEfTwXwcrE
+04E728C0  70 4D 30 69 31 4D 45 49  64 35 6D 51 53 56 67 7A  pM0i1MEId5mQSVgz
+04E728D0  6D 6E 46 62 6D 61 6A 31  43 5A 77 4B 52 57 65 6A  mnFbmaj1CZwKRWej
+Checks first 8 bytes. Then takes from +10h (can J+) down
+
+After all paths, traced various memory paths. Found:
+
+09C9DAC0  52 49 47 48 54 5F 50 41  54 48 21 40 36 36 36 39  RIGHT_PATH!@6669
+09C9DAD0  36 65 36 34 36 62 36 35  37 36 36 39 36 65 36 64  6e646b6576696e6d
+09C9DAE0  36 31 36 65 36 34 36 39  36 31 30 64 30 61 00 02  616e6469610d0a..
+09C9DAF0  00 AB AB AB AB AB AB AB  AB FE EE FE EE FE EE FE  .½½½½½½½½¦e¦e¦e¦
+
+= findkevinmandia
+
+http://127.0.0.1:9999/some/thing.asp?k=wnneesssnewneewwwdundundunsuneunsewdunsewsewsewsewdun&e=ZipRg2-UxcDPJ8TiemKk7Z9bUOfPf7VOOalFAepISztHQNEpU4kza-IMPAh84PlNxwYEQ1IODlkrwNXbGXcx_Q%3D%3D
+RIGHT_PATH!@66696e646b6576696e6d616e6469610d0a
+
+
+
+End of script has block:
+[STring]::joIN( '', ('35h88w112_119}81r74r77h100J94<57J57%73%108Z106U77r43Z35r36U36%35r47}35r43Z35w43Z50Z51<51w50h51h51w35%47h50Z50J50Z50U51}50r50}47h50h51r51Z50r50r51r50_35%47Z35_50J50U50h51r51h50%50h35%47%35J50Z50r50J51r50}50Z51w35_47w35h50}50h51U51J51}51h51}35<47_50r51%51r51U51U50_50h35}47U50w50r51r51h51U51%51J35<47h50r51r50<51U51_50w51_47r50r50%50J51J50%51}51}47}35<50U50_50J50_50h51w50h35_47<35U50%51%51U51Z51J51U47h50<50J50Z50<51h50Z35w47_50}51Z51w51w51<51Z47U50r51_51r50}50<51Z35r47w50w51%50%51h51h51r47r35%50U51Z51U51h50h51<47r50w50Z50h50J51w50}50U47_35h50}50%51%51U50_50U35h47h50<50h50%50<50<51Z50}47Z35_50J50<50}50Z51U50U50w47<50_50Z51}51U51r51_35}47%35r50r50}50%50Z50U51%50Z35Z47_50r50r50U50r51w50_50J35%47J50%50_51h51_51<50r35J47%50%50r50U50U50<51w50U47<50<50r50%50%51w50r50%47J50<50<51r51U50w51_47_50<50<50U50<50_51Z50h47}50h51r51_51%50%51_35h47U35Z50U51J50}50Z51Z50%35r47w50U50<51_51_50<50}51r47_50w51w51J51r51Z51Z47<50r51%51_50r50w50w35<47h35}50}50h50r51r50_51r51h47w50w51J50r50h51U50h35h47h50<51U51%50w50_50w35<47_50%51U50J50h51h51Z47_35%50w51<51U50r50J50U47J35h50%50U51w50%50Z51<50h47w35U50U50%50U51<51%50<50w35r47}50h50_50<51w50<50h51r47}50_51%51h50J50J50h47%35_50U51_50U50r51<51J47_35%50U51_51}50%50r50Z47w35Z50r50%51<51w51U50_50h35}47<50_50h50<51<51U50%51r35w47U35Z50<50Z50}51<50_51}51w35<47Z35w50U51}51J50U50<50J35%47w35Z50h51w50%50w51Z51r35<47%50%51h51w50Z50%50_35U47U50<51r51h51r50}50Z50%35w47w35}50Z50r51U51Z50h51%50r47w35w50_51U51%50J50_50%47Z50}51}50%51<51_50Z42w35h127U101}76Z81<70<66r64U107}120U35h43h35_88r96%108r77r117J102J81w119r94J57Z57h119r76w74Z109_119U50h53w43Z43_88h80J87r113r74%109}68U94w39w92h35r42h35J47h35%49w35J42w46<98%80U88r96}107J66J81r94h42<35_126U42}35Z42J35J127<35%74_102_123'.split( '<Uh}Z%w_Jr')|%{[CHAR]($_ -BXoR  0x03  ) } ) )|.( $ShelliD[1]+$SheLLID[13]+'X')
+
+
+Ran through PS: $result = <that block minus ShelliD part>
+
+
+PS C:\Users\Admin\Desktop\payload> $result
+ [stRINg]::JoiN( '' , ( (100100 ,1111011,1001101 , 1110011 , 1110110 , 1100000 ,1000011 ,1100000 ,1010010,1110100, 1111101 ,100000,111101 ,100000,100110 ,101000, 100010,1111011, 110011 ,1111101, 1111011,110000 , 1111101 ,1111011 ,110001,1111101,1111011,110010,1111101,100010 , 101101 ,1100110,100000,100111 , 1110100,101101 ,100111 ,101100, 100111, 1101101, 1110011 ,1110110,100111, 101100, 100111, 1100011 ,1110010 , 1110100 , 100111 , 101100 ,100111 ,1000111 , 1100101, 100111,101001) |fOREACh{ ( [coNveRt]::tOInt16(([STrInG]$_ ) , 2 )-aS[chAR]) }) ) | Iex
+ 
+ PS C:\Users\Admin\Desktop\payload> $result2
+${Msv`C`Rt} = &("{3}{0}{1}{2}"-f 't-','msv','crt','Ge')
+= ${MsvCRt} = &(Get-msvcrt -f)
+
+
+> say kevin hello
+
+Kevin says, with a nod and a wink: '6D 75 64 64 31 6E 67 5F 62 79 5F 79 30 75 72 35 33 6C 70 68 40 66 6C 61 72 65 2D 6F 6E 2E 63 6F 6D'.
+
+
+oh god he didn't say that the first time. Sigh.
+
+mudd1ng_by_y0ur53lph@flare-on.com
