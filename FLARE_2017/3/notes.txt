@@ -1,0 +1,88 @@
+3.
+
+Now that we see you have some skill in reverse engineering computer software, the FLARE team has decided that you should be tested to determine the extent of your abilities. You will most likely not finish, but take pride in the few points you may manage to earn yourself along the way.
+
+sub_4011E6()?
+http://130.37.198.243/functions/15677
+and     ecx, 0FF00h
+add     ecx, eax
+mov     eax, ebx
+shr     eax, 8
+shl     ecx, 8
+and     eax, 0FF00h
+add     eax, ecx
+
+swap hi and low byte order?
+https://www.experts-exchange.com/questions/20839175/C-Assembler-swap-high-low-byte-order.html
+
+
+00401036 | 8A 55 F8                 | mov dl,byte ptr ss:[ebp-8]              |
+00401039 | 8A 18                    | mov bl,byte ptr ds:[eax]                |
+0040103B | 32 DA                    | xor bl,dl                               |
+0040103D | 80 C3 22                 | add bl,22                               |
+
+Takes 4 bytes from socket buffer.
+First byte is used to XOR bytecode from 40107C + 121
+
+Sub 4011E6 checks that chunk of 121 bytes in some algo to read 0xFB5E
+    sub_4011E6(&loc_40107C, 121u) == 0xFB5E
+
+rm `grep ^sbb *.asm | awk -F\: '{print $1}' | uniq`
+rm `grep ^sti * | awk -F\: '{print $1}' | uniq`
+rm `grep ^scasd * | awk -F\: '{print $1}' | uniq`
+rm `grep ^sahf * | awk -F\: '{print $1}' | uniq`
+rm `grep ^lahf * | awk -F\: '{print $1}' | uniq`
+rm `grep ^xchg * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^aad * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^cbw * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^adc * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^fsubp * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^salc * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^fild * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^fiadd * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^flds * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^lds * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^les * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^psrld * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^rcr * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^iret * | awk -F\: '{print $1}' | sort | uniq`
+rm `grep ^retf * | awk -F\: '{print $1}' | sort | uniq`
+
+
+09:46:43-bbaskin@~/CTF/FLARE_2017/3/test$ more asm_162.asm
+mov bl,0x65
+mov [ebp-0x2b],bl
+mov byte [ebp-0x2a],0x74
+mov dl,0x5f
+mov [ebp-0x29],dl
+mov byte [ebp-0x28],0x74
+mov byte [ebp-0x27],0x75
+mov [ebp-0x26],dl
+mov byte [ebp-0x25],0x62
+mov byte [ebp-0x24],0x72
+mov byte [ebp-0x23],0x75
+mov byte [ebp-0x22],0x74
+mov [ebp-0x21],bl
+mov [ebp-0x20],dl
+mov byte [ebp-0x1f],0x66
+mov byte [ebp-0x1e],0x6f
+mov byte [ebp-0x1d],0x72
+mov byte [ebp-0x1c],0x63
+mov [ebp-0x1b],bl
+mov byte [ebp-0x1a],0x40
+mov byte [ebp-0x19],0x66
+mov byte [ebp-0x18],0x6c
+mov byte [ebp-0x17],0x61
+mov byte [ebp-0x16],0x72
+mov [ebp-0x15],bl
+mov byte [ebp-0x14],0x2d
+mov byte [ebp-0x13],0x6f
+mov byte [ebp-0x12],0x6e
+mov byte [ebp-0x11],0x2e
+mov byte [ebp-0x10],0x63
+mov byte [ebp-0xf],0x6f
+mov byte [ebp-0xe],0x6d
+mov byte [ebp-0xd],0x0
+
+
+et_tu_brute_force@flare-on.com

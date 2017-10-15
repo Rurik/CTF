@@ -1,0 +1,56 @@
+4 - notepad.exe
+
+You're using a VM to run these right?
+
+0x100750C - jumps into notepad main
+
+
+Various checks:
+01014B57 | 81 78 08 87 52 02 48     | cmp dword ptr ds:[eax+8],48025287       |
+(0x10000E8 time stamp?)
+0x48025287
+GMT: Sunday, April 13, 2008 6:35:51 PM
+
+01014B60 | 8B 4D 0C                 | mov ecx,dword ptr ss:[ebp+C]            | [ebp+C]:"PE"
+01014B63 | 81 79 08 A2 B2 D1 57     | cmp dword ptr ds:[ecx+8],57D1B2A2       |
+(0x1700F8 time stamp?)
+0x57D1B2A2
+GMT: Thursday, September 8, 2016 6:49:06 PM
+
+0x57D2B0F8
+GMT: Friday, September 9, 2016 12:54:16 PM
+
+0x49180192
+GMT: Monday, November 10, 2008 9:40:34 AM
+
+0x579E9100
+GMT: Monday, August 1, 2016 12:00:00 AM
+
+
+0x48025287 - 17\4\notepad.exe
+0x57D1B2A2 - 16\1\challenge1.exe
+0x57D2B0F8 - 16\2\dudelocker.exe
+0x49180192 - 16\6\khaki.exe
+0x579E9100 - 16\3\unknown
+
+Bytes read:
+0x57D1B2A2 - 16\1\challenge1.exe
+000CF648  55 8B EC 8B 4D 0C 56 57 08 
+
+challenge1.exe - 1024
+00001024   55 8B EC 8B 4D 0C 56 57                            U‹ì‹M VW
+
+dudelocker - 1040
+00001040   8B 55 08 52 FF 15 30 20                            ‹U Rÿ 0 
+
+khaki - 1056
+00001056   C0 40 50 FF D6 83 C4 08                            À@PÿÖƒÄ 
+
+unknown - 1072
+00001072   00 83 C4 08 5D C3 CC CC                             ƒÄ ]ÃÌÌ
+
+XOR it all
+
+000CF6E8  62 6C 34 35 37 5F 66 72 30 6D 5F 74 68 33 5F 70  bl457_fr0m_th3_p  
+000CF6F8  34 35 37 40 66 6C 61 72 65 2D 6F 6E 2E 63 6F 6D  457@flare-on.com  
+bl457_fr0m_th3_p457@flare-on.com  

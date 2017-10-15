@@ -1,0 +1,12 @@
+You solved that last one really quickly! Have you ever tried to reverse engineer a compiled x86 binary? Let's see if you are still as quick.
+
+39 bytes -- 26 are flag, 13 are flare-on
+12345678901234567890123456@flare-on.com
+
+R_y0u_H0t_3n0ugH_t0_1gn1t3@flare-on.com
+
+
+Goes in reverse order, XOR by start (0x04), then chain XOR. Saw this before, but only the end result, not the encoder.
+
+Same as reddit thread
+https://www.reddit.com/r/AskNetsec/comments/6eh8ep/how_to_find_out_how_a_string_was_encoded/
