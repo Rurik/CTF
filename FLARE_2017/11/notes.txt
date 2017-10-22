@@ -1,0 +1,1163 @@
+Appears to be a VM environment like last year. But, no big set of operations. Almost like a Minecraft red stone logic gate computer.
+
+So, an 8-bit computer OS?
+
+Breaks up instruction set into DWORDs
+
+Starts with srand(time()) and rand(). Not sure what for, maybe just to give the random error message? There's a lot of them.
+
+Instruction set starts at 0xA00 (0x403000). Code suggests it's 0x1100 long (4352). That's not true.
+
+Maybe that's individual instructions? So each as DWORD, size= 0x4400? 17,408. That looks correct
+
+So a total of 4352 instructions, although that includes asm `db`s.
+
+sub_401070(InstructionBlock, 4352, 1123);
+4352 = total size of InstructionBlock
+1123 = number of instructions (sizeof(block) / 4)
+
+
+  while ( cur_instruction + 3 <= size_data )
+  {
+    if ( sub_401000(
+           InstructionBlock,
+           InstructionBlock[cur_instruction],
+           InstructionBlock[cur_instruction + 1],
+           InstructionBlock[cur_instruction + 2]) )
+    {
+      if ( InstructionBlock[cur_instruction + 2] == -1 )
+        return 1;
+      cur_instruction = InstructionBlock[cur_instruction + 2];
+    }
+    else
+    {
+      cur_instruction += 3;
+    }
+    if ( InstructionBlock[4] == 1 )
+    {
+      printf(Format, InstructionBlock[2]);
+      InstructionBlock[4] = 0;
+      InstructionBlock[2] = 0;
+    }
+    if ( InstructionBlock[3] == 1 )
+    {
+      scanf(aC, &v5);
+      InstructionBlock[1] = v5;
+      InstructionBlock[3] = 0;
+    }
+  }
+  return 1;
+}
+
+
+
+00401091 | 8B 4C 90 08              | mov ecx,dword ptr ds:[eax+edx*4+8]      |
+EAX = data (0x403008)
+EDX = current position (0x463 == 1123)
+0x463*4+8 = 0x1194
+0x1194 = 0x467:
+0040419C  67 04 00 00 00 00 00 00 66 04 00 00 66 04 00 00  g.......f...f...
+push 0x467
+
+           InstructionBlock,
+           InstructionBlock[cur_instruction],
+           InstructionBlock[cur_instruction + 1],
+           InstructionBlock[cur_instruction + 2]) )
+Shows 0, +1, +2, but technically is of dwords, so *4.
++2 = 00401091 | 8B 4C 90 08              | mov ecx,dword ptr ds:[eax+edx*4+8]      |
++1 = 0040109C | 8B 4C 90 04              | mov ecx,dword ptr ds:[eax+edx*4+4]      |
+ 0 = 004010A7 | 8B 0C 90                 | mov ecx,dword ptr ds:[eax+edx*4]        |
+
+Loop0:
++2 = 0x40419C (0x1194) = 0x0467
++1 = 0x404198 (0x1190) = 0x0000
+ 0 = 0x404194 (0x118C) = 0x0000
+
+Move 12 bytes at a time
+
+sub_401000(data 0x403008, 0x0000, 0x0000, 0x467)
+
+26 ops b/w each printf
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(1, ('0x0', '0x0', '0x467'))
+x1: 0   x0: 0   diff: 0 diff2: 0
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(2, ('0x0', '0x466', '0x466'))
+x1: 0   x0: 0   diff: 0 diff2: 0
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(3, ('0x0', '0x476', '0x0'))
+x1: 5   x0: 0   diff: 5 diff2: 5
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(4, ('0x0', '0x0', '0x466'))
+x1: 0   x0: 0   diff: 0 diff2: 0
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(5, ('0x0', '0x0', '0x0'))
+x1: 0   x0: 0   diff: 0 diff2: 0
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(6, ('0x0', '0x0', '0x0'))
+x1: 0   x0: 0   diff: 0 diff2: 0
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(7, ('0x477', '0x5', '0x49b'))
+x1: 87  x0: 1179        diff: -1092     diff2: 64444
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(8, ('0x49b', '0x0', '0xa1'))
+x1: 0   x0: 0   diff: 0 diff2: 0
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+(9, ('0x0', '0x0', '0x0'))
+x1: 0   x0: 0   diff: 0 diff2: 0
+00000000000000000000000000000000
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+10 ops in and isn't writing to stack at offset 0x0. Something wrong.
+
+Debug in IDA
+apparently can't single step? Gives 4000001E WOW64 single step exception. Never seen that before.
+Added to exception to log and pass to app
+
+
+to start:
+0x463
+sub_401000(data, 0, 0, 0x467) -- jmp to 0x467
+returns 1
+
+0x467
+sub_401000(data, 0x466, 0x466, 0) returns 0
+
+--- okay, my script is broken
+
+
+
+
+Debug, break at scanf
+byte[0] going to data[4]
+
+0x1029 offset
+sub_401000(data, 0, 0, 0) (clear stack to 0)
+
+0x102c offset
+sub_401000(data, 0, 0, 0x1030) returns 1
+moves 0x1030 to offset to replace 0x102C
+
+0x1030 offset                                  ----- Start new branch
+sub_401000(data, 0x1000, 0x1000, 0) returns 0
+
+0x1033
+sub_401000(data, 1, 0, 0) returns 0xFFFFFF00
+
+0x1036
+sub_401000(data, 0, 0x1000, 0) returns 0
+
+0x1039
+sub_401000(data, 0, 0, 0) returns 0
+
+0x103C
+sub_401000(data, 0x105A, 0x105A, 0) returns 0
+
+0x103F
+sub_401000(data, 0x1000, 0, 0) returns 0xFFFFFF00
+
+0x1042
+sub_401000(data, 0, 0x105A, 0) returns 0
+data0 = 0xFFFFFFBF
+
+0x1045
+sub_401000(data, 0, 0, 0) returns 0
+data0 = 0x00000000
+
+0x1048
+sub_401000(data, 0xFFC, 0x105A, 0) returns 0
+
+0x104B
+sub_401000(data, 0, 0x105A, 0x1051) returns 0
+
+0x1051
+sub_401000(data, 0, 0x105A, 0) returns 1
+/// I think I mistyped this one above
+data0 = 0xFFFFFFC9
+
+0x1051 --- again?
+sub_401000(data, 0, 0, 0) returns 0
+data0 = 0x00000000
+
+0x1054
+sub_401000(data, 0, 0x105A, 0x105B) returns 0x1000
+
+0x1057
+sub_401000(data, 0, 0, 0x1091) returns 1
+
+0x1091  (it jumped)                                  ----- Start new branch
+sub_401000(data, 0x10B5, 0x10B5, 0) returns 0
+
+0x1094
+sub_401000(data, 0xF86, 0, 0) returns 0xFFFFFF00
+data0 = 0xFFFFFFB3
+
+0x1097
+sub_401000(data, 0, 0x10B5, 0) returns 0
+
+0x109A
+sub_401000(data, 0, 0, 0) returns 0
+data0 = 0x00000000
+
+0x109D
+sub_401000(data, 0x10B6, 0x10B6, 0) returns 0
+
+0x10A0
+sub_401000(data, 0xF86, 0, 0) returns 0xFFFFFF00
+data0 = 0xFFFFFFB3
+
+0x10A3
+sub_401000(data, 0, 0x10B6, 0) returns 0
+
+0x10A6
+sub_401000(data, 0, 0, 0) returns 0
+data0 = 0x00000000
+
+0x10A9
+sub_401000(data, 0x10BC, 0x10BC, 0) returns 0
+
+0x10AC
+sub_401000(data, 0xF86, 0, 0) returns 0xFFFFFF00
+data0 = 0xFFFFFFB3
+
+0x10AF
+sub_401000(data, 0, 0x10BC, 0) returns 0
+
+0x10B2
+sub_401000(data, 0, 0, 0) returns 0
+data0 = 0x00000000
+
+0x10B5
+sub_401000(data, 0x4D, 0x4D, 0) returns 0  ///// M
+
+0x10B8
+sub_401000(data, 0x1000, 0, 0) returns 0
+data0 = 0xFFFFFFBF
+
+0x10BB
+sub_401000(data, 0, 0x4D, 0) returns 0
+
+0x10BE
+sub_401000(data, 0, 0, 0) returns 0
+data0 = 0x00000000
+
+0x10C1
+sub_401000(data, 0, 0, 0x10C5) returns 1
+
+0x10C5                                  ----- Start new branch
+sub_401000(data, 0x10C4, 0, 0) returns 0xFFFFFF00
+
+0x10C8
+sub_401000(data, 0, 0xF86, 0) returns 0
+
+0x10CB
+sub_401000(data, 0, 0, 0) returns 0
+data0 = 0x00000000
+
+0x10CE
+sub_401000(data, 0, 0, 0x10D2) returns 1
+
+0x10D2
+sub_401000(data, x10D1, 0, 0) returns 0xFFFFFF00
+
+0x10D5
+sub_401000(data, 0, 0xFF8, 0) returns 0
+
+0x10D8
+sub_401000(data, 0, 0, 0) returns 0
+
+0x10DB
+sub_401000(data, 0, 0, 0x1001) returns 1
+
+
+0x1001                                  ----- Start new branch
+sub_401000(data, 0, 0, 0x1004) returns 1
+
+
+0x1004                                  ----- Start new branch
+sub_401000(data, 0x101F, 0x101F, 0) returns 0
+
+0x1007
+sub_401000(data, 0xFF8, 0, 0) returns 0xFFFFFF00
+
+0x100A
+sub_401000(data, 0, 0x101F, 0) returns 0
+
+0x100D
+sub_401000(data, 0, 0, 0) returns 0
+
+0x1010
+sub_401000(data, 0xFBF, 0x101F, 0) returns 0xFFFFFF00
+
+0x1013
+sub_401000(data, 0x101F, 0, 0x1019) returns 0
+
+0x1016
+sub_401000(data, 0, 0, 0x1020) returns 1
+
+0x1020                                  ----- Start new branch
+sub_401000(data, 3, 3, 0) returns 0
+
+0x1023
+sub_401000(data, 0x102F, 0, 0) returns 0
+
+0x1026
+sub_401000(data, 0, 3, 0) returns 0
+
+>> Goes to scanf
+
+0x1029 --- starts all over - B
+
+0x1051
+sub_401000(data, 0, 0x105A, 0) returns 1
+data0 = 0xFFFFFFC8
+
+0x10AC
+sub_401000(data, 0xF86, 0, 0) returns 0xFFFFFF00
+data0 = 0xFFFFFFB2
+
+0x10B8
+sub_401000(data, 0x1000, 0, 0) returns 0
+data0 = 0xFFFFFFBE
+
+0x10BB
+sub_401000(data, 0, 0x4E, 0) returns 0
+
+--- starts all over - -- do wiht one letter: M
+
+--- after chars are over:
+1029
+102C
+1030
+1033
+1036
+1039
+103C
+103F
+1042
+1045
+1048
+104B
+1051
+..... breaks off here
+1054
+105B
+105E
+1061
+1064
+1067
+106A
+106D
+1070
+1073
+1076
+1079
+107C
+107F
+1082
+1085
+1088
+108B
+108E
+10DE -- jump
+10E2
+10E5
+10E8
+10EB
+10EE
+10F1
+10F4
+10F7
+10FA
+10FD
+...
+5F5
+5F8
+5FC
+600
+603
+606
+609
+60C
+610
+613
+616
+619
+61C
+61F
+622
+625
+628
+62B
+62E
+631
+
+Loop around
+A79
+A7C - 0xFFFFFFB3
+A8E - 0x00000000
+A9B - 0xFFFFFFF1
+AA1 - 0x00000000
+AA8 - 0xFFFFFFFF
+AAE - 0x00000000
+AB1 - loop
+
+
+
+soooooo
+(0, 0, X) - jmp to X opcode?
+(0, 0, 0) - clears data[0:4] stack
+
+Block at end of op code seems to be important. Looks like a table of jmps?
+Offset(h) 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
+00004300  00 00 00 00 00 00 00 00 00 00 00 00 C5 10 00 00  ............Å...
+00004310  01 00 00 00 C4 10 00 00 00 00 00 00 00 00 00 00  ....Ä...........
+00004320  00 00 00 00 86 0F 00 00 00 00 00 00 00 00 00 00  ....†...........
+00004330  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00004340  D2 10 00 00 01 00 00 00 D1 10 00 00 00 00 00 00  Ò.......Ñ.......
+00004350  00 00 00 00 00 00 00 00 F8 0F 00 00 00 00 00 00  ........ø.......
+00004360  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00004370  00 00 00 00 01 10 00 00 00 00 00 00 00 00 00 00  ................
+00004380  E2 10 00 00 01 00 00 00 E1 10 00 00 A1 00 00 00  â.......á...¡...
+00004390  00 00 00 00 F4 10 00 00 F4 10 00 00 00 00 00 00  ....ô...ô.......
+000043A0  A1 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ¡...............
+000043B0  F4 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ô...............
+000043C0  00 00 00 00 FF 10 00 00 FF 10 00 00 00 00 00 00  ....ÿ...ÿ.......
+000043D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+000043E0  FF 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ÿ...............
+000043F0  00 00 00 00 00 00 00 00                          ........
+
+Looks like 31 chars
+
+I don't have time for this...
+
+few days later.
+Let's try a trace
+IDA instruction trace of A, vs B. See what's diff? Obviously error message will make one longer. Maybe can edit and shorten all errors? Meh
+'A' is 633,605 instructions ugh
+'B' is 644,347 -- less of a diff than I expected
+09/25/2017  05:36 PM         3,544,450 run_A.trc
+09/25/2017  05:37 PM       275,259,872 run_A.txt
+09/25/2017  05:40 PM         3,201,934 run_B.trc
+09/25/2017  05:41 PM        72,134,476 run_B.txt
+wtf, run A is 4* size of run B?? oh god Run A did a full register output for each instruction.
+Don't need that, just each push ecx
+
+'A' is 656,207
+'B' is 644,347
+
+C:\Users\Admin\Desktop\11>head -10 run_*.txt
+==> run_A.txt <==
+Thread          Address                         Instruction                             Result
+00000BB0        .text:start+43                  Memory layout changed: 80 segments      Memory layout changed: 80 segments
+00000BB0                                                                                ST0=FFFFFFFFFFFFFFFF ST1=FFFFFFFFFFFFFFFF ST2=FFFFFFFFFFFFFFFF
+ ST3=FFFFFFFFFFFFFFFF ST4=FFFFFFFFFFFFFFFF ST5=FFFFFFFFFFFFFFFF ST6=FFFFFFFFFFFFFFFF ST7=FFFFFFFFFFFFFFFF CTRL=FFFF CS=0023 DS=002B ES=002B FS=0053 GS
+=002B SS=002B EAX=00000004 EBX=7EFDE000 ECX=00000444 EDX=00000007 ESI=00000000 EDI=00000000 EBP=0018FF88 ESP=0018FF84 EFL=00000206 XMM0= XMM1= XMM2= X
+MM3= XMM4= XMM5= XMM6= XMM7= MXCSR=FFFFFFFF MM0= MM1= MM2= MM3=
+00000BB0        .text:start+43                  push    1100h                           ESP=0018FF80
+00000BB0        .text:start+48                  push    offset ComputerInstructions     ESP=0018FF7C
+00000BB0        .text:start+4D                  call    sub_401070                      ESP=0018FF78
+00000BB0        .text:sub_401070                push    ebp                             ESP=0018FF74
+00000BB0        .text:sub_401070+1              mov     ebp, esp                        EBP=0018FF74
+00000BB0        .text:sub_401070+3              sub     esp, 0Ch                        ESP=0018FF68 PF=0 AF=1
+00000BB0        .text:sub_401070+6              mov     eax, [ebp+cur_instruction]      EAX=00000463
+
+==> run_B.txt <==
+Thread          Address                         Instruction                             Result
+00000D70        .text:start+43                  Memory layout changed: 80 segments      Memory layout changed: 80 segments
+00000D70                                                                                ST0=FFFFFFFFFFFFFFFF ST1=FFFFFFFFFFFFFFFF ST2=FFFFFFFFFFFFFFFF
+ ST3=FFFFFFFFFFFFFFFF ST4=FFFFFFFFFFFFFFFF ST5=FFFFFFFFFFFFFFFF ST6=FFFFFFFFFFFFFFFF ST7=FFFFFFFFFFFFFFFF CTRL=FFFF CS=0023 DS=002B ES=002B FS=0053 GS
+=002B SS=002B EAX=00000004 EBX=7EFDE000 ECX=00000444 EDX=00000002 ESI=00000000 EDI=00000000 EBP=0018FF88 ESP=0018FF84 EFL=00000206 XMM0= XMM1= XMM2= X
+MM3= XMM4= XMM5= XMM6= XMM7= MXCSR=FFFFFFFF MM0= MM1= MM2= MM3=
+00000D70        .text:start+43                  push    1100h                           ESP=0018FF80
+00000D70        .text:start+48                  push    offset ComputerInstructions     ESP=0018FF7C
+00000D70        .text:start+4D                  call    sub_401070                      ESP=0018FF78
+00000D70        .text:sub_401070                push    ebp                             ESP=0018FF74
+00000D70        .text:sub_401070+1              mov     ebp, esp                        EBP=0018FF74
+00000D70        .text:sub_401070+3              sub     esp, 0Ch                        ESP=0018FF68 PF=0 AF=1
+00000D70        .text:sub_401070+6              mov     eax, [ebp+cur_instruction]      EAX=00000463
+
+Awesome except for the Thread ID. Replaced all in B with same as A
+C:\Users\Admin\Desktop\11>diff run_A.txt run_b.txt | wc -l
+35077
+
+diffs are 1:1, awesome. But most seem to differ just by P flag. Idea: remove all PF=x from each and diff wow thats ghetto
+
+C:\Users\Admin\Desktop\11>type run_A.txt | grep -E "mov.*ecx,|call" | grep -Ev "\:sub_401000|Block" | wc -l
+57849
+
+00000BB0        .text:sub_401070:loc_40107C     mov     ecx, [ebp-8]; pos               ECX=00000463
+00000BB0        .text:sub_401070+21             mov     ecx, [eax+edx*4+8]; data[current*4+8] as WORD   ECX=00000467
+00000BB0        .text:sub_401070+2C             mov     ecx, [eax+edx*4+4]              ECX=00000000
+00000BB0        .text:sub_401070+37             mov     ecx, [eax+edx*4]
+00000BB0        .text:sub_401070+3F             call    sub_401000                      ESP=0018FF54
+00000BB0        .text:sub_401070+4E             mov     ecx, [ebp+  ]; offset        ECX=00000463
+00000BB0        .text:sub_401070:loc_4010D8     mov     ecx, [ebp+var_C]                ECX=00000467
+00000BB0        .text:sub_401070:loc_40107C     mov     ecx, [ebp-8]; pos               ECX=00000467
+00000BB0        .text:sub_401070+21             mov     ecx, [eax+edx*4+8]; data[current*4+8] as WORD   ECX=00000000
+00000BB0        .text:sub_401070+2C             mov     ecx, [eax+edx*4+4]              ECX=00000466
+00000BB0        .text:sub_401070+37             mov     ecx, [eax+edx*4]
+00000BB0        .text:sub_401070+3F             call    sub_401000                      ESP=0018FF54
+
+Let's go back to the script
+
+It's starting clean after fixing:
+C:\Users\Admin\Desktop\11>python parse.py
+offset: 0x463   sub_401000(data, 0x000, 0x000, 0x467) = True    (0000 :: 0000)
+offset: 0x467   sub_401000(data, 0x466, 0x466, 0x000) = False   (0000 :: 0000)
+offset: 0x46a   sub_401000(data, 0x476, 0x000, 0x000) = False   (fffb :: 0000)
+offset: 0x46d   sub_401000(data, 0x000, 0x466, 0x000) = False   (fffb :: 0000)
+offset: 0x470   sub_401000(data, 0x000, 0x000, 0x000) = False   (0000 :: 0000)
+offset: 0x473   sub_401000(data, 0x000, 0x000, 0x477) = True    (0000 :: 0000)
+offset: 0x477   sub_401000(data, 0x49b, 0x49b, 0x000) = False   (0000 :: 0000)
+offset: 0x47a   sub_401000(data, 0x0a1, 0x000, 0x000) = False   (ff63 :: 0000)
+offset: 0x47d   sub_401000(data, 0x000, 0x49b, 0x000) = False   (ff63 :: 0000)
+offset: 0x480   sub_401000(data, 0x000, 0x000, 0x000) = False   (0000 :: 0000)
+offset: 0x483   sub_401000(data, 0x49c, 0x49c, 0x000) = False   (0000 :: 0000)
+offset: 0x486   sub_401000(data, 0x0a1, 0x000, 0x000) = False   (ff63 :: 0000)
+offset: 0x489   sub_401000(data, 0x000, 0x49c, 0x000) = False   (ff63 :: 0000)
+offset: 0x48c   sub_401000(data, 0x000, 0x000, 0x000) = False   (0000 :: 0000)
+offset: 0x48f   sub_401000(data, 0x4a2, 0x4a2, 0x000) = False   (0000 :: 0000)
+offset: 0x492   sub_401000(data, 0x0a1, 0x000, 0x000) = False   (ff63 :: 0000)
+offset: 0x495   sub_401000(data, 0x000, 0x4a2, 0x000) = False   (ff63 :: 0000)
+offset: 0x498   sub_401000(data, 0x000, 0x000, 0x000) = False   (0000 :: 0000)
+offset: 0x49b   sub_401000(data, 0x09d, 0x09d, 0x000) = False   (0000 :: 0000)
+offset: 0x49e   sub_401000(data, 0x466, 0x000, 0x000) = False   (fffb :: 0000)
+offset: 0x4a1   sub_401000(data, 0x000, 0x09d, 0x000) = False   (fffb :: 0000)
+offset: 0x4a4   sub_401000(data, 0x000, 0x000, 0x000) = False   (0000 :: 0000)
+offset: 0x4a7   sub_401000(data, 0x000, 0x000, 0x4ab) = True    (0000 :: 0000)
+
+
+But it doesn't input or output
+alright. So what offset gets you to the first print? BP and trace
+5806 instructions later
+
+0xF2E
+sub_401000(data, ???, ???, 0)
+0xF31
+sub_401000(data, ???, 0x04, 0)
+0xF34
+sub_401000(data, 0xF40, ???, 0) = False -- tracing doesn't show arg1??
+0xF37
+sub_401000(data, 0, 0x4, 0) = False
+
+I'm not seeing this in my script. Back to full trace logs. Can I just get offsets?
+
+C:\Users\Admin\Desktop\11>grep "pos.*EDX" run_A.txt | gawk -F\=0000 "{print $(NF)}" > offset_order.txt
+
+0xF2E is 93 ops in.
+
+It forks at 88 ops in:
+covfefe goes from 0xF19 > 0xF1C > 0xF1F
+python  goes from 0xF19 > 0xF1C > 0xF22
+
+So, what went wrong?
+
+
+Python
+offset: 0xf13 sub_401000(data, 0xefa, 0x000, 0xf19) = True  (ffa9 :: 0000)
+offset: 0xf19 sub_401000(data, 0x000, 0x000, 0x000) = False (0000 :: 0000)
+offset: 0xf1c sub_401000(data, 0x000, 0xefa, 0xf22) = True  (0000 :: 0000)
+offset: 0xf22 sub_401000(data, 0x000, 0x000, 0xf51) = True  (0000 :: 0000)
+offset: 0xf51 sub_401000(data, 0x000, 0x000, 0xf55) = True  (0000 :: 0000)
+
+IDA:
+0xF13 sub_401000(data, 0xefa, 0x000, 0xf19)  good
+0xF19 sub_401000(data, 0x000, 0x000, 0x000)  good
+0xF1C sub_401000(data, 0x000, 0xefa, 0xf22)  good
+0xF1F sub_401000(data, 0x000, 0x000, 0xf25)  bad
+
+so sub_401000(data, 0x000, 0xefa, 0xf22) I'm seeing as a jmp, and it shouldn't be.
+
+hex editor:
+data[0xefa*4] = data[0x3BE8] = 0x0000
+data[0xf22*4] = data[0x3C88] = 0x0000 ?????
+IDA:
+data[0xefa*4] = data[0x3BE8] = 0x0057 = W
+data[0xf22*4] = data[0x3C88] = 0x????
+
+ok, map out each Welcome and see arg before:
+0xEFA
+0xEFA
+
+(0, 0, X) - jmp to X opcode?
+(0, 0, 0) - clears data[0:4] stack
+(0, 0xefa, X) = Printf() char?  Or is it (0xefa, 0, X)?
+
+
+offset: 0xf13 sub_401000(data, 0xefa, 0x000, 0xf19) = True  (ffa9 :: 0000)
+offset: 0xf19 sub_401000(data, 0x000, 0x000, 0x000) = False (0000 :: 0000)
+offset: 0xf1c sub_401000(data, 0x000, 0xefa, 0xf22) = True  (0000 :: 0000)
+
+I need something to scrape those values from debugger... never tried x64dbg trace, will try now
+
+C:\Users\Admin\Desktop\11>grep -E "; arg|call" run_A.txt
+
+00000D80        .text:sub_401070+21             mov     ecx, [eax+edx*4+8]; arg2        ECX=00000467
+00000D80        .text:sub_401070+2C             mov     ecx, [eax+edx*4+4]; arg1        ECX=00000000
+00000D80        .text:sub_401070+37             mov     ecx, [eax+edx*4]; arg0
+00000D80        .text:sub_401070+3F             call    sub_401000                      ESP=0018FF54
+00000D80        .text:sub_401070+21             mov     ecx, [eax+edx*4+8]; arg2        ECX=00000000
+00000D80        .text:sub_401070+2C             mov     ecx, [eax+edx*4+4]; arg1        ECX=00000466
+00000D80        .text:sub_401070+37             mov     ecx, [eax+edx*4]; arg0
+00000D80        .text:sub_401070+3F             call    sub_401000                      ESP=0018FF54
+00000D80        .text:sub_401070+21             mov     ecx, [eax+edx*4+8]; arg2        ECX=00000000
+00000D80        .text:sub_401070+2C             mov     ecx, [eax+edx*4+4]; arg1
+00000D80        .text:sub_401070+37             mov     ecx, [eax+edx*4]; arg0          ECX=00000476
+00000D80        .text:sub_401070+3F             call    sub_401000                      ESP=0018FF54
+00000D80        .text:sub_401070+21             mov     ecx, [eax+edx*4+8]; arg2        ECX=00000000
+00000D80        .text:sub_401070+2C             mov     ecx, [eax+edx*4+4]; arg1        ECX=00000466
+00000D80        .text:sub_401070+37             mov     ecx, [eax+edx*4]; arg0          ECX=00000000
+00000D80        .text:sub_401070+3F             call    sub_401000                      ESP=0018FF54
+00000D80        .text:sub_401070+21             mov     ecx, [eax+edx*4+8]; arg2        ECX=00000000
+00000D80        .text:sub_401070+2C             mov     ecx, [eax+edx*4+4]; arg1
+00000D80        .text:sub_401070+37             mov     ecx, [eax+edx*4]; arg0
+00000D80        .text:sub_401070+3F             call    sub_401000                      ESP=0018FF54
+
+OK, that I can script.
+
+
+C:\Users\Admin\Desktop\11>grep -E "; arg|call|ecx, \[ebp\-8\]; pos" run_A.txt > run_A_args.txt
+
+each trace begins with a line you have to delete:
+00000C24  .text:start+4D            call    sub_401070                ESP=0018FF78
+
+
+C:\Users\Admin\Desktop\11>python parse_run.py  > run_A_args_clean.txt
+
+0x1091 is the start of code input. Do SCANF and jmp back there until no more input
+
+scanf:
+  Line 1464: 0x1004 sub_401000(0000, 101F, 0000)
+  Line 1466: 0x100A sub_401000(0000, 101F, 0000)
+  Line 1468: 0x1010 sub_401000(0FBF, 101F, 0000)
+  Line 1469: 0x1013 sub_401000(101F, 0000, 1019)
+
+printf:
+  Line 82: 0x0F07 sub_401000(0000, 0EFA, 0000)
+  Line 84: 0x0F0D sub_401000(0000, 0EFA, 0000)
+  Line 86: 0x0F13 sub_401000(0EFA, 0000, 0F19)
+  Line 88: 0x0F1C sub_401000(0000, 0EFA, 0F22)
+
+
+
+(0, 0, X) - jmp to X opcode?
+(0, 0, 0) - clears data[0:4] stack
+(0, 0xefa, X) = Printf() char?  Or is it (0xefa, 0, X)?
+(0, 0x101f, X) = scanf()?
+
+scanf starts at 0x1001
+that's convenient
+
+printf starts at 0xEFB
+
+
+Line diffs to find logic?
+last Scanf ends at line 1526
+first printf of error is at line 7457
+FML, that won't work
+
+rewrite parser, this time show data from each dword on output?
+
+0x0463  sub_401000(0000, 0000, 0467)  [00000000 : 00000000 : 66040000]
+0x0467  sub_401000(0000, 0466, 0000)  [00000000 : 00000000 : 00000000]
+0x046A  sub_401000(0476, 0000, 0000)  [05000000 : 00000000 : 00000000]
+0x046D  sub_401000(0000, 0466, 0000)  [00000000 : 00000000 : 00000000]
+0x0470  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]
+0x0473  sub_401000(0000, 0000, 0477)  [00000000 : 00000000 : 9b040000]
+0x0477  sub_401000(0000, 049b, 0000)  [00000000 : 00000000 : 00000000]
+0x047A  sub_401000(00a1, 0000, 0000)  [9d000000 : 00000000 : 00000000]
+0x047D  sub_401000(0000, 049b, 0000)  [00000000 : 00000000 : 00000000]
+0x0480  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]
+0x0483  sub_401000(0000, 049c, 0000)  [00000000 : 00000000 : 00000000]
+0x0486  sub_401000(00a1, 0000, 0000)  [9d000000 : 00000000 : 00000000]
+
+OK, that's better
+
+or, not. 0x41 isn't anywhere in there... maybe I need to dump the VM register [0]
+Have to grab that from here:
+00000D80  .text:sub_401000+16       sub     eax, [esi+edx*4]          EAX=00000057 CF=1 PF=0
+00000D80  .text:sub_401000+16       sub     eax, [esi+edx*4]          EAX=FFFFFF9B CF=1 PF=0 SF=1
+
+
+C:\Users\Admin\Desktop\11>grep -E "; arg|call|ecx, \[ebp\-8\]; pos|eax,\ \[esi\+edx\*4" run_A.txt > run_A_args.txt
+
+0x0463  sub_401000(0000, 0000, 0467)    [00000000 : 00000000 : 66040000]        Reg:
+0x0467  sub_401000(0000, 0466, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+0x046A  sub_401000(0476, 0000, 0000)    [05000000 : 00000000 : 00000000]        Reg:
+0x046D  sub_401000(0000, 0466, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFFB
+0x0470  sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000005
+0x0473  sub_401000(0000, 0000, 0477)    [00000000 : 00000000 : 9b040000]        Reg: 00000000
+0x0477  sub_401000(0000, 049b, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+0x047A  sub_401000(00a1, 0000, 0000)    [9d000000 : 00000000 : 00000000]        Reg:
+0x047D  sub_401000(0000, 049b, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFF63
+0x0480  sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 0000009D
+0x0483  sub_401000(0000, 049c, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+0x0486  sub_401000(00a1, 0000, 0000)    [9d000000 : 00000000 : 00000000]        Reg:
+0x0489  sub_401000(0000, 049c, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFF63
+0x048C  sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 0000009D
+0x048F  sub_401000(0000, 04a2, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+0x0492  sub_401000(00a1, 0000, 0000)    [9d000000 : 00000000 : 00000000]        Reg:
+0x0495  sub_401000(0000, 04a2, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFF63
+0x0498  sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 0000009D
+0x049B  sub_401000(0000, 009d, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+0x049E  sub_401000(0466, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+0x04A1  sub_401000(0000, 009d, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFFB
+...
+0x1036  sub_401000(0000, 1000, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFBF
+0x1039  sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000041
+0x103C  sub_401000(0000, 105a, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+0x103F  sub_401000(1000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+
+ok, basic running of numbers: 'A' (0x41) input
+
+0xFFFFFFBF (-0x40)
+0x41
+0x37
+0xFFFFFFC9 (-0x36)
+....
+0xFFFFFFB3 (-0x4C)
+0x4D
+0xFFFFFFB3
+0x4D
+
+wait ... @6LN
+C:\Users\Admin\Desktop\11>grep "FFFFFF..$" run_A_args_clean.txt | gawk -F"Reg\:\ FFFFFF" "{print $2}"
+no ... there's nothing there.
+
+OK. that's usable.
+god I'm tired
+my kids can't remember what I look like
+
+so it'll take your first # (0x41) and increment upwards/downwards, two separate counters.
+Last use of 0x41 ends at line 2793
+So if I use 0x42 (B) there should be just an extra few lines of instructions
+
+ok, sure enough, diff starts at byte comparison:
+1479,1480c1479,1480
+< 0x1036        sub_401000(0000, 1000, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFBF
+< 0x1039        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000041
+---
+> 0x1036        sub_401000(0000, 1000, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFBE
+> 0x1039        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000042
+1483,1484c1483,1484
+< 0x1042        sub_401000(0000, 105a, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFBF
+< 0x1045        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000041
+---
+> 0x1042        sub_401000(0000, 105a, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFBE
+> 0x1045        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000042
+---
+
+ok, so each negative value is the subtraction of the positive counter
+> 0x0A88        sub_401000(0a9a, 0000, 0a8e)    [00000000 : 00000000 : 00000000]        Reg: 00000033
+> 0x0A8E        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFFCD
+
+well, hell. I'm grabbing the register value of the previous op and attaching it to current. So, need to loop back. Right now I'm doing sub() as last instruction, but register should be
+Should be:
+0x0486  sub_401000(00a1, 0000, 0000)    [9d000000 : 00000000 : 00000000]        Reg: FFFFFF63
+0x0489  sub_401000(0000, 049c, 0000)    [00000000 : 00000000 : 00000000]        Reg: 0000009D
+
+and 0x0000009D is beginning of an error message.
+
+(0, 0, X) - jmp to X opcode
+(0, X, 0) = pulls byte from X*4 offset and puts into register
+(X, 0, 0) = Subtracts value at X from register
+(0, 0, 0) - clears register
+(0, 0xefa, X) = Printf() char?  Or is it (0xefa, 0, X)?
+(0, 0x101f, X) = scanf()?
+
+Subtraction is key to this. Other examples:
+ int intcmp(struct node *e1, struct node *e2)
+ {
+  return (e1->i - e2->i);
+ }
+
+ This is basically that, but in diff positions. I can't get return values from an IDA debug trace. But it's arg1 = arg1 - arg0
+So should I also be grabbing ZF value for each? No clean place.
+
+So it's basically subtraction comparison. Checking various sites shows it's almost definitely subleq.
+
+
+
+Check byte-by-byte, not after whole set.
+0x1097  sub_401000(0000, 10b5, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0000004D
+0x109A  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x109D  sub_401000(0000, 10b6, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x10A0  sub_401000(0f86, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFB3
+0x10A3  sub_401000(0000, 10b6, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0000004D
+0x10A6  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x10A9  sub_401000(0000, 10bc, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x10AC  sub_401000(0f86, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFB3
+0x10AF  sub_401000(0000, 10bc, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0000004D
+0x10B2  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x10B5  sub_401000(0000, 004d, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x10B8  sub_401000(1000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFBE
+0x10BB  sub_401000(0000, 004d, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000042
+0x10BE  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x10C1  sub_401000(0000, 0000, 10c5)  [00000000 : 00000000 : c4100000]  Reg:
+0x10C5  sub_401000(10c4, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x10C8  sub_401000(0000, 0f86, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0000004E
+0x10CB  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+
+
+Let's start simple. 0x4D (M) at 0x10A3?
+run_M is significantly larger...
+09/25/2017  09:40 PM        61,574,960 run_A.txt
+09/26/2017  08:12 AM        61,692,222 run_B.txt
+09/26/2017  09:37 AM        73,919,323 run_M.txt
+
+so, A shows up as 0x37 after scan, B shows up as 0x38, M as 0x43. Each is 0x0A less.
+
+separation of A and M:
+2798,2818c2798,3022
+< 0x0A97        sub_401000(0000, 0000, 0ae3)    [00000000 : 00000000 : 980e0000]        Reg:
+< 0x0AE3        sub_401000(0000, 0e98, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+< 0x0AE6        sub_401000(0a78, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFC31
+< 0x0AE9        sub_401000(0000, 0e98, 0000)    [00000000 : 00000000 : 00000000]        Reg: 000003CF
+< 0x0AEC        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+< 0x0AEF        sub_401000(0000, 0000, 0af3)    [00000000 : 00000000 : f20a0000]        Reg:
+< 0x0AF3        sub_401000(0000, 0af2, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+< 0x0AF6        sub_401000(0000, 0000, 0afa)    [00000000 : 00000000 : 150b0000]        Reg:
+< 0x0AFA        sub_401000(0000, 0b15, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+< 0x0AFD        sub_401000(0af2, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+< 0x0B00        sub_401000(0000, 0b15, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+< 0x0B03        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg:
+< 0x0B06        sub_401000(0af9, 0b15, 0000)    [07000000 : 00000000 : 00000000]        Reg: FFFFFFF9
+< 0x0B09        sub_401000(0b15, 0000, 0b0f)    [00000000 : 00000000 : 00000000]        Reg: 00000007
+< 0x0B0C        sub_401000(0000, 0000, 0b16)    [00000000 : 00000000 : 980e0000]        Reg: 00000000
+< 0x0B16        sub_401000(0e98, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFFC31
+< 0x0B19        sub_401000(0e98, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: FFFFF862
+< 0x0B1C        sub_401000(0000, 0e98, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+< 0x0B1F        sub_401000(0000, 0e98, 0000)    [00000000 : 00000000 : 00000000]        Reg: 0000079E
+< 0x0B22        sub_401000(0000, 0000, 0000)    [00000000 : 00000000 : 00000000]        Reg: 00000000
+< 0x0B25        sub_401000(0000, 0000, 0b29)    [00000000 : 00000000 : 280b0000]        Reg:
+
+
+ ok, let's go ghetto. Diffs from M to A but only on AL values?
+ diff run_A_args_clean.txt run_M_args_clean.txt | grep "Reg\:\ 000000" | grep -v "00$" | grep "^>"
+
+C:\Users\Admin\Desktop\11>diff run_A_args_clean.txt run_M_args_clean.txt | grep "Reg\:\ 000000" | grep -v "00$" | grep "^>" | gawk "{print $(NF)}" | sort | uniq -c > M_uniq.txt
+
+Nothing useful...
+
+ok, after lunch, re-reading notes (finally)
+
+
+
+Try the check table at end?
+Try to patch out the srand so that I get the same error every time? That would make things easier to trace, can then focus on just math comparisons.
+
+set srand to 0: "This is not the password. You did not ... " way too long
+ok, now I feel they made the errors so excessively long to screw with trace logs
+
+9  - Incorrect password. Your account should probably be deleted.
+Patch that in?
+
+Wow, and just getting under the trace limit (1,000,000) in IDA with that. Again, feels purposeful.
+
+
+Working in triplets, it looks like it's shifting them.
+
+00000041
+
+scanf byte input loops between
+0x1001
+0x10DB
+
+0x104B  sub_401000(105a, 0000, 1051)  [00000000 : 00000000 : 00000000]  Reg:
+0x1051  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x1054  sub_401000(0000, 105a, 105b)  [00000000 : 00000000 : 00100000]  Reg:
+0x1057  sub_401000(0000, 0000, 1091)  [00000000 : 00000000 : b5100000]  Reg:
+
+0x1048  sub_401000(0ffc, 105a, 0000)  [0a000000 : 00000000 : 00000000]  Reg: 00000058
+0x104B  sub_401000(105a, 0000, 1051)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFA8
+0x1051  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x105B  sub_401000(0000, 1000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+
+
+There's the end of a byte-by-byte input loop
+If not end, go to 0x105b
+
+so a jmpne looks like:
+0x1054  sub_401000(0000, 105a, 105b)  [00000000 : 00000000 : 00100000]  Reg:
+if reg has byte entry, continue, otherwise jmp to 0x105b to assume all done
+
+Last op before going into loop:
+0x0A6B  sub_401000(0e98, 0000, 0a71)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF8D
+0x0A71  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0A74  sub_401000(0000, 0000, 0a79)  [00000000 : 00000000 : 9a0a0000]  Reg:
+
+Loops from
+0x0A79  sub_401000(0000, 0a9a, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0A7C  sub_401000(0e98, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF8D
+0x0A7F  sub_401000(0000, 0a9a, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000073
+0x0A82  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0A85  sub_401000(0a77, 0a9a, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0A88  sub_401000(0a9a, 0000, 0a8e)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF8D
+0x0A8E  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0A91  sub_401000(0000, 0a9a, 0a97)  [00000000 : 00000000 : 00000000]  Reg:
+0x0A94  sub_401000(0000, 0000, 0a9b)  [00000000 : 00000000 : 9a0e0000]  Reg:
+0x0A9B  sub_401000(0e9a, 0000, 0000)  [0f000000 : 00000000 : 00000000]  Reg: FFFFFFF1
+0x0A9E  sub_401000(0000, 0a78, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0000000F
+0x0AA1  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0AA4  sub_401000(0000, 0000, 0aa8)  [00000000 : 00000000 : a70a0000]  Reg:
+0x0AA8  sub_401000(0aa7, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0AAB  sub_401000(0000, 0a77, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000001
+0x0AAE  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0AB1  sub_401000(0000, 0000, 0a79)  [00000000 : 00000000 : 9a0a0000]  Reg:
+
+This loops 66 times (and 251 for 3 chars)
+Logic check to end that loop:
+0x0A88  sub_401000(0a9a, 0000, 0a8e)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0A8E  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0A91  sub_401000(0000, 0a9a, 0a97)  [00000000 : 00000000 : 00000000]  Reg:
+When done, jumps to 0xa97
+
+Is it done? Nope, one more loop sequence
+Goes from 0x0A97 to 0xAF6, then loops:
+
+0x0AF6  sub_401000(0000, 0000, 0afa)  [00000000 : 00000000 : 150b0000]  Reg:
+0x0AFA  sub_401000(0000, 0b15, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0AFD  sub_401000(0af2, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B00  sub_401000(0000, 0b15, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B03  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B06  sub_401000(0af9, 0b15, 0000)  [07000000 : 00000000 : 00000000]  Reg: FFFFFFF9
+0x0B09  sub_401000(0b15, 0000, 0b0f)  [00000000 : 00000000 : 00000000]  Reg: 00000007
+0x0B0C  sub_401000(0000, 0000, 0b16)  [00000000 : 00000000 : 980e0000]  Reg: 00000000
+0x0B16  sub_401000(0e98, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFA42
+0x0B19  sub_401000(0e98, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFF484
+0x0B1C  sub_401000(0000, 0e98, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0B1F  sub_401000(0000, 0e98, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000B7C
+0x0B22  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0B25  sub_401000(0000, 0000, 0b29)  [00000000 : 00000000 : 280b0000]  Reg:
+0x0B29  sub_401000(0b28, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0B2C  sub_401000(0000, 0af2, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000001
+0x0B2F  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0B32  sub_401000(0000, 0000, 0af6)  [00000000 : 00000000 : 00000000]  Reg:
+
+Loops 8 times (for 3 chars: 16 times)
+0xB09 is the last check to leave the loop. When done, jumps to 0x0B0F
+
+Enters a larger loop, 33 times (66 times for 3 chars):
+0x0B50  sub_401000(0000, 0000, 0b54)  [00000000 : 00000000 : 6f0b0000]  Reg:
+0x0B54  sub_401000(0000, 0b6f, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B57  sub_401000(0bf5, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B5A  sub_401000(0000, 0b6f, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B5D  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B60  sub_401000(0b53, 0b6f, 0000)  [20000000 : 00000000 : 00000000]  Reg: FFFFFFE0
+0x0B63  sub_401000(0b6f, 0000, 0b69)  [00000000 : 00000000 : 00000000]  Reg: 00000020
+0x0B66  sub_401000(0000, 0000, 0b70)  [00000000 : 00000000 : ee0b0000]  Reg: 00000000
+0x0B70  sub_401000(0bee, 0000, 0b76)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF81
+0x0B76  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0B79  sub_401000(0000, 0bf0, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B7C  sub_401000(0b92, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B7F  sub_401000(0000, 0bf0, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B82  sub_401000(0000, 0000, 0b93)  [00000000 : 00000000 : ef0b0000]  Reg:
+0x0B93  sub_401000(0bef, 0000, 0b99)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF8B
+0x0B99  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0B9C  sub_401000(0000, 0bf1, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0B9F  sub_401000(0bb5, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BA2  sub_401000(0000, 0bf1, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BA5  sub_401000(0000, 0000, 0bb6)  [00000000 : 00000000 : ed0b0000]  Reg:
+0x0BB6  sub_401000(0000, 0bed, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BB9  sub_401000(0bf0, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BBC  sub_401000(0000, 0bed, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BBF  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BC2  sub_401000(0bf1, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BC5  sub_401000(0000, 0bed, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BC8  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BCB  sub_401000(0bed, 0000, 0bd1)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BD1  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BD4  sub_401000(0000, 0bed, 0bf6)  [00000000 : 00000000 : f00b0000]  Reg:
+0x0BF6  sub_401000(0000, 0bf0, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BF9  sub_401000(0bf3, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BFC  sub_401000(0000, 0bf0, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0BFF  sub_401000(0000, 0000, 0c1a)  [00000000 : 00000000 : f20b0000]  Reg:
+0x0C1A  sub_401000(0bf2, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C1D  sub_401000(0bf2, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C20  sub_401000(0000, 0bf2, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C23  sub_401000(0000, 0bf2, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C26  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C29  sub_401000(0bf0, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C2C  sub_401000(0000, 0bf2, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C2F  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0C32  sub_401000(0bee, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF81
+0x0C35  sub_401000(0bee, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF02
+0x0C38  sub_401000(0000, 0bee, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0C3B  sub_401000(0000, 0bee, 0000)  [00000000 : 00000000 : 00000000]  Reg: 000000FE
+0x0C3E  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0C41  sub_401000(0000, 0000, 0c45)  [00000000 : 00000000 : 440c0000]  Reg:
+0x0C45  sub_401000(0c44, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0C48  sub_401000(0000, 0bee, 0000)  [00000000 : 00000000 : 00000000]  Reg: 000000FF
+0x0C4B  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0C4E  sub_401000(0bef, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF8B
+0x0C51  sub_401000(0bef, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF16
+0x0C54  sub_401000(0000, 0bef, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0C57  sub_401000(0000, 0bef, 0000)  [00000000 : 00000000 : 00000000]  Reg: 000000EA
+0x0C5A  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0C5D  sub_401000(0000, 0000, 0c61)  [00000000 : 00000000 : 600c0000]  Reg:
+0x0C61  sub_401000(0c60, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0C64  sub_401000(0000, 0bef, 0000)  [00000000 : 00000000 : 00000000]  Reg: 000000EB
+0x0C67  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0C6A  sub_401000(0000, 0000, 0c6e)  [00000000 : 00000000 : 6d0c0000]  Reg:
+0x0C6E  sub_401000(0c6d, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0C71  sub_401000(0000, 0bf5, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000001
+0x0C74  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0C77  sub_401000(0000, 0000, 0b50)  [00000000 : 00000000 : 00000000]  Reg:
+
+When done, goes to 0x0B54 Start another loop at 0xCA1, does it 66 times. A big one:
+0x0CA1  sub_401000(0000, 0000, 0ca5)  [00000000 : 00000000 : c00c0000]  Reg:
+0x0CA5  sub_401000(0000, 0cc0, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CA8  sub_401000(0d46, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CAB  sub_401000(0000, 0cc0, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CAE  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CB1  sub_401000(0ca4, 0cc0, 0000)  [20000000 : 00000000 : 00000000]  Reg: FFFFFFE0
+0x0CB4  sub_401000(0cc0, 0000, 0cba)  [00000000 : 00000000 : 00000000]  Reg: 00000020
+0x0CB7  sub_401000(0000, 0000, 0cc1)  [00000000 : 00000000 : 3f0d0000]  Reg: 00000000
+0x0CC1  sub_401000(0d3f, 0000, 0cc7)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFB2
+0x0CC7  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0CCA  sub_401000(0000, 0d41, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CCD  sub_401000(0ce3, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CD0  sub_401000(0000, 0d41, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CD3  sub_401000(0000, 0000, 0ce4)  [00000000 : 00000000 : 400d0000]  Reg:
+0x0CE4  sub_401000(0d40, 0000, 0cea)  [00000000 : 00000000 : 00000000]  Reg: FFFD2100
+0x0CEA  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0CED  sub_401000(0000, 0d42, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CF0  sub_401000(0d06, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CF3  sub_401000(0000, 0d42, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0CF6  sub_401000(0000, 0000, 0d07)  [00000000 : 00000000 : 3e0d0000]  Reg:
+0x0D07  sub_401000(0000, 0d3e, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D0A  sub_401000(0d41, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D0D  sub_401000(0000, 0d3e, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D10  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D13  sub_401000(0d42, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D16  sub_401000(0000, 0d3e, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D19  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D1C  sub_401000(0d3e, 0000, 0d22)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D22  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D25  sub_401000(0000, 0d3e, 0d47)  [00000000 : 00000000 : 410d0000]  Reg:
+0x0D47  sub_401000(0000, 0d41, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D4A  sub_401000(0d44, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D4D  sub_401000(0000, 0d41, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D50  sub_401000(0000, 0000, 0d6b)  [00000000 : 00000000 : 430d0000]  Reg:
+0x0D6B  sub_401000(0d43, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFCA176
+0x0D6E  sub_401000(0d43, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFF942EC
+0x0D71  sub_401000(0000, 0d43, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0D74  sub_401000(0000, 0d43, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0006BD14
+0x0D77  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0D7A  sub_401000(0d41, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D7D  sub_401000(0000, 0d43, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D80  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0D83  sub_401000(0d3f, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFB2
+0x0D86  sub_401000(0d3f, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFF64
+0x0D89  sub_401000(0000, 0d3f, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0D8C  sub_401000(0000, 0d3f, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0000009C
+0x0D8F  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0D92  sub_401000(0000, 0000, 0d96)  [00000000 : 00000000 : 950d0000]  Reg:
+0x0D96  sub_401000(0d95, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0D99  sub_401000(0000, 0d3f, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0000009D
+0x0D9C  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0D9F  sub_401000(0d40, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFD2100
+0x0DA2  sub_401000(0d40, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFA4200
+0x0DA5  sub_401000(0000, 0d40, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0DA8  sub_401000(0000, 0d40, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0005BE00
+0x0DAB  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0DAE  sub_401000(0000, 0000, 0db2)  [00000000 : 00000000 : b10d0000]  Reg:
+0x0DB2  sub_401000(0db1, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0DB5  sub_401000(0000, 0d40, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0005BE01
+0x0DB8  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0DBB  sub_401000(0000, 0000, 0dbf)  [00000000 : 00000000 : be0d0000]  Reg:
+0x0DBF  sub_401000(0dbe, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0DC2  sub_401000(0000, 0d46, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000001
+0x0DC5  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0DC8  sub_401000(0000, 0000, 0ca1)  [00000000 : 00000000 : 00000000]  Reg:
+
+
+Then goes to printing.
+So three loops: 251, 16, 66 times. This is for a three-byte
+
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+s - 0x73
+
+line 1109-1118:
+0x0F0A  sub_401000(002b, 0000, 0000)  [73000000 : 00000000 : 00000000]  Reg: FFFFFF8D
+0x0F0D  sub_401000(0000, 0efa, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000073
+>> line 3746 it's done with 0x73
+
+>> lines 14893
+picks up again
+
+char 2 - 0x75
+lines 4935 - shifts?
+0x0C61  sub_401000(0c60, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0C64  sub_401000(0000, 0bef, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0075FFFF
+
+~line 5200 - all the checks
+
+
+subleq_
+subleq_and_edu
+sub leq _an d_ edu
+
+
+loop between 0x463 and 0x1100??
+
+
+
+final check:
+good:
+0x0DEF  sub_401000(0e98, 0e99, 0000)  [00000000 : 00000000 : 00000000]  Reg: 00000000
+0x0DF2  sub_401000(0e99, 0000, 0df8)  [00000000 : 00000000 : 00000000]  Reg:
+0x0DF8  sub_401000(0000, 0000, 0000)  [00000000 : 00000000 : 00000000]  Reg:
+0x0DFB  sub_401000(0000, 0e99, 0e04)  [00000000 : 00000000 : 00000000]  Reg:
+0x0E04  sub_401000(0000, 0000, 0e08)  [00000000 : 00000000 : 070e0000]  Reg:
+
+Bad:
+0x0DEF  sub_401000(0e98, 0e99, 0000)  [00000000 : 00000000 : 00000000]  Reg: FFFFFFFF
+0x0DF2  sub_401000(0e99, 0000, 0df8)  [00000000 : 00000000 : 00000000]  Reg: 00000001
+0x0DF5  sub_401000(0000, 0000, 0dfe)  [00000000 : 00000000 : ad0e0000]  Reg: 00000000
+0x0DFE  sub_401000(0000, 0ead, 0000)  [00000000 : 01000000 : 00000000]  Reg: 00000000
+
+so going to 0x0DFB is a positive check?
+
+Reimplement code.
+
+Check for (X, X, Y) where X==X at 0xDFB?
+
+That seems to work, brute force two chars at a time:
+
+su
+subl
+subleq
+
+subleq_and_reductio_ad_absur
+subleq_and_reductio_ad_absurdu
+
+Is it dropping n's?
+
+subleq_and_reduction_and_absulm
+subleq_and_reduction_and_absurdu
+
+No ...
+
+subleq_and_reductio_ad_absurdu
+
+oh goddamn there was a non ascii at end?
+
+subleq_and_reductio_ad_absurdum\n
+
+subleq_and_reductio_ad_absurdum@flare-on.com.

@@ -892,6 +892,8 @@ Replace NOP\x0032 with PE\x00\x00L\x01:
 >>> pe = pefile.PE('dll1.dat')
 Boom! It works
 
+Clean up finally with
+
 
 Dll1.dat:
 

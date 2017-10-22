@@ -1,0 +1,757 @@
+43a141570e0c926e0e3673216a4dd73d == what it wants
+
+eb55bc23d54332e691f50e0bad1f7b99 == when run
+
+
+$data_block = base64_decode('....');
+$guess = isset($_POST['guess']) ? $_POST['guess'] : '';
+$guess = md5($guess).substr(md5(strrev($guess)), 0, strlen($guess));
+for ($pos = 0; $pos < 2268; ++$pos) {
+    $data_block[$pos] = chr((ord($data_block[$pos]) ^ ord($guess[$pos])) % 256);
+    $guess .= $data_block[$pos];
+} if (md5($data_block) == '43a141570e0c926e0e3673216a4dd73d') {
+    if (isset($_POST['guess'])) {
+        @setcookie('guess', $_POST['guess']);
+    }
+    $code = create_function('', $data_block);
+    unset($guess, $data_block);
+    $code();
+
+So, take POST field 'guess', md5 it.
+Decoded data block is 2268 bytes. Iterate:
+    xor in-place by same byte of guess.
+    append onto guess the resulting byte
+    use only first 256 bytes of guess
+
+MD5 the resulting data. If == <hash> then execute it.
+
+Guess could be anything? No length requirements. expensive as hell to brute force
+don't see any other way.
+
+wait
+md5($guess).substr(md5(strrev($guess)), 0, strlen($guess))
+
+guess = 'testing'
+md5(guess) = 'abcdef1234567890'
+'abcdef1234567890'.substr(md5('gnitset'))
+
+So guess can only be hexadecimal. lower case
+
+guess = 'dcba'
+md5(guess) = 'abcdef1234567890'
+'abcdef1234567890'.substr(md5('abcd')), 0, len(guess))
+'abcdef1234567890'.substr('badcef23894619', 0, len(guess))
+substr just seems to get enough of the revhash up to the length of the guess
+
+
+
+Was able to trace back to this malware:
+https://rdot.org/forum/archive/index.php/t-117.html
+https://gist.github.com/ninnypants/6920574#file-connector-php
+https://forum.exploit.in/pda/index.php/t89147.html
+http://cert-ua.livejournal.com/11199.html
+http://wiki.yobi.be/wiki/Forensics_on_Incident_3
+https://stackoverflow.com/questions/34602887/deobfuscating-malicious-code-whats-the-purpose-of-this-code
+https://www.reddit.com/r/Wordpress/comments/34axg3/so_wordpress_was_hacked_for_some_time_how_to/
+https://stackoverflow.com/questions/34563460/encrypted-php-code
+http://amanda.secured.org/just-a-php-web-shell-sold-in-dark-forums/
+http://blog.oneiroi.co.uk/security/php/webshell/compromise/ioc/wordpress/highly-obfusticated-php-webshell/
+
+
+
+Using that example, pw was: huypizdaprovoda
+ $wp_wp=md5($wp_wp).substr(md5(strrev($wp_wp)),0,strlen($wp_wp));
+
+<?php
+$wp_wp = "huypizdaprovoda";
+echo "Guess is         : " . $wp_wp . "\r\n";
+echo "Hash of guess is : " . md5($wp_wp) . "\r\n";
+echo "Guess rev is     : " . strrev($wp_wp) . "\r\n";
+echo "Hash of guess rev: " . md5(strrev($wp_wp)) . "\r\n";
+echo "Substr is        : " . substr(md5(strrev($wp_wp)),0,strlen($wp_wp)) . "\r\n";
+echo "Substr result is : " . ($wp_wp).substr(md5(strrev($wp_wp)),0,strlen($wp_wp)) . "\r\n";
+$wp_wp=md5($wp_wp).substr(md5(strrev($wp_wp)),0,strlen($wp_wp));
+echo "Final result is  : " . $wp_wp . "\r\n";
+?>
+
+
+15:01:44-bbaskin@~/CTF/FLARE_2017/10$ php a.php
+Guess is         : huypizdaprovoda
+Hash of guess is : b65f65e0aa6c5d648cad2befa14daeb1
+Guess rev is     : adovorpadzipyuh
+Hash of guess rev: 9646799a2390bfa17cd873f74cec7713
+Substr is        : 9646799a2390bfa
+Substr result is : huypizdaprovoda9646799a2390bfa
+Final result is  : b65f65e0aa6c5d648cad2befa14daeb19646799a2390bfa
+
+ok, that makes sense.
+
+$guess = md5($guess).substr(md5(strrev($guess)), 0, strlen($guess));
+for ($pos = 0; $pos < 2268; ++$pos) {
+    $data_block[$pos] = chr((ord($data_block[$pos]) ^ ord($guess[$pos])) % 256);
+    $guess .= $data_block[$pos];
+}
+
+The check is the hash of the entire dataset. That's too much, since we don't know initial guess size. No checks on size, final hash is from string 2x size of guess
+Let's start with guess as same len as MD5, 32 bytes:
+
+12345678901234567890123456789012
+                   @flare-on.com
+
+if final guess was at least the guess first we could attack for '<php' or gzip. Can't predict hash?
+
+Guess is         : xxxxxxxxxxxxxxxxxxx@flare-on.com
+Hash of guess is : fae880b371d9a04ed39fe6ce58efe804
+Guess rev is     : moc.no-eralf@xxxxxxxxxxxxxxxxxxx
+Hash of guess rev: 9075e371918b19405280d25bfe0a4bf6
+Substr is        : 9075e371918b19405280d25bfe0a4bf6
+Substr result is : xxxxxxxxxxxxxxxxxxx@flare-on.com9075e371918b19405280d25bfe0a4bf6
+Final result is  : fae880b371d9a04ed39fe6ce58efe8049075e371918b19405280d25bfe0a4bf6
+
+So our decryption key is going to be md5(guess) + md5(guess in reverse, truncated). We can still attack by gaming the first md5 ...
+so just attack first 32 bytes, byte by byte. brute force one byte at a time? It should repeat every 64 bytes.
+So check to make sure byte 0, 64, 128, etc are all ASCII printable upon decryption? If so, take those, then add on second-byte for all same....
+
+
+
+Try to attack that:
+guess char: (hex of data there, pos, decoded val)
+
+17:39:50-bbaskin@~/CTF/FLARE_2017/10$ python3 bruteforce.py
+1 [('0x40', 0, 'q'), ('0x4b', 64, 'z'), ('0x1c', 128, '-'), ('0x45', 192, 't')]
+
+# print(decrypt(data_block, '|9{vb'))  # <?php
+# print(decrypt(data_block, '%pjr:'))  # eval
+
+Nope, that doesn't work
+
+<<<< deleted like 500 lines here >>>>>
+
+old routine was just straight alphanum. Need to take account of $, etc
+
+
+Try something new: Do a full brute overnight? How long could that actually take? attacking an md5 is a tiny keyspace compared to a regular string.
+bruteforce3.py
+
+
+20:47:04-bbaskin@~/CTF/FLARE_2017/10$ xxd data.dat  | head
+00000000: 4006 0b1e 1209 6f32 100a 5140 4204 1316  @.....o2..Q@B...
+00000010: 4358 6f3e 5a50 1419 5112 175c 1011 173b  CXo>ZP..Q..\...;
+00000020: 627c 6430 3d17 5a68 591e 3c4f 4a3a 3316  b|d0=.ZhY.<OJ:3.
+00000030: 4414 5d52 1b43 5e42 1768 6929 6137 3a44  D.]R.C^B.hi)a7:D
+00000040: 4b3b 5200 7a00 0000 4d0d 4551 494e 5347  K;R.z...M.EQINSG
+00000050: 5613 2955 3929 737c 3254 1b0c 1a5c 0302  V.)U9)s|2T...\..
+00000060: 7966 5e5e 7b07 4b3b 4f1a 7d0b 5e7a 7d0e  yf^^{.K;O.}.^z}.
+00000070: 5014 5a4b 1652 5a02 1f52 5a26 3574 734e  P.ZK.RZ..RZ&5tsN
+00000080: 1c2c 0a53 751f 525a 2635 7473 4e07 5438  .,.Su.RZ&5tsN.T8
+00000090: 5d01 0424 5d45 7374 3241 4841 4a2b 7712  ]..$]Est2AHAJ+w.
+
+21:11:42-bbaskin@~/CTF/FLARE_2017/10$ php shell.clean.php
+Guess is         : xxxxxxxxxxxxxxxxxxx@flare-on.com
+Hash of guess is : fae880b371d9a04ed39fe6ce58efe804
+Guess rev is     : moc.no-eralf@xxxxxxxxxxxxxxxxxxx
+Hash of guess rev: 9075e371918b19405280d25bfe0a4bf6
+Substr is        : 9075e371918b19405280d25bfe0a4bf6
+Substr result is : xxxxxxxxxxxxxxxxxxx@flare-on.com9075e371918b19405280d25bfe0a4bf6
+Final result is  : fae880b371d9a04ed39fe6ce58efe8049075e371918b19405280d25bfe0a4bf6
+Data: @ Guess: f    Result: 38
+Data:   Guess: a    Result: 103
+Data:
+        Guess: e    Result: 110
+Data:   Guess: 8    Result: 38
+Data:   Guess: 8    Result: 42
+Data:       Guess: 0    Result: 57
+Data: o Guess: b    Result: 13
+Data: 2 Guess: 3    Result: 1
+Data:   Guess: 7    Result: 39
+Data:
+    Guess: 1    Result: 59
+aa228edc95f8d27033003e6db48ab121
+&gn&*
+
+21:11:49-bbaskin@~/CTF/FLARE_2017/10$ python3 bruteforce2.py
+&
+&g
+&gn
+&gn&
+
+ok, code is matching up with Python.
+
+ok. not hitting eval, or <? or php.
+if it's create_function(), likely first is '$'? That matches up with 'd' as first char. Let's go with that.
+
+Dump all the dXXX output:
+$ rm `grep "(" * | awk -F\: '{print $1}'`
+$ rm `grep ")" * | awk -F\: '{print $1}'`
+$ rm `grep "\*" * | awk -F\: '{print $1}'`
+$ rm `grep "{" * | awk -F\: '{print $1}'`
+$ rm `grep "}" * | awk -F\: '{print $1}'`
+rm `grep "," * | awk -F\: '{print $1}'`
+rm `grep "\+" * | awk -F\: '{print $1}'`
+rm `grep "&" * | awk -F\: '{print $1}'`
+rm `grep "'" * | awk -F\: '{print $1}'`
+rm `grep "-" * | awk -F\: '{print $1}'`
+rm `grep "." * | awk -F\: '{print $1}'`
+
+shit that last one just removed them all
+
+
+d020 d0ad d0ef d190 d1dd d23f d2c0 d32d d3af d3f0 d49d d4df d580 d5cd d62f d6b0 d6fd d79f d7e0 da8d dacf db30 dbbd dbff dca0 dced dd8f ddd0 de3d debf
+d02d d0af d0f0 d19d d1df d280 d2cd d32f d3b0 d3fd d49f d4e0 d58d d5cf d630 d6bd d6ff d7a0 d7ed da8f dad0 db3d dbbf dc20 dcad dcef dd90 dddd de3f dec0
+d02f d0b0 d0fd d19f d1e0 d28d d2cf d330 d3bd d3ff d4a0 d4ed d58f d5d0 d63d d6bf d720 d7ad d7ef da90 dadd db3f dbc0 dc2d dcaf dcf0 dd9d dddf de80 decd
+d030 d0bd d0ff d1a0 d1ed d28f d2d0 d33d d3bf d420 d4ad d4ef d590 d5dd d63f d6c0 d72d d7af d7f0 da9d dadf db80 dbcd dc2f dcb0 dcfd dd9f dde0 de8d decf
+d03d d0bf d120 d1ad d1ef d290 d2dd d33f d3c0 d42d d4af d4f0 d59d d5df d680 d6cd d72f d7b0 d7fd da9f dae0 db8d dbcf dc30 dcbd dcff dda0 dded de8f ded0
+d03f d0c0 d12d d1af d1f0 d29d d2df d380 d3cd d42f d4b0 d4fd d59f d5e0 d68d d6cf d730 d7bd d7ff daa0 daed db8f dbd0 dc3d dcbf dd20 ddad ddef de90 dedd
+d080 d0cd d12f d1b0 d1fd d29f d2e0 d38d d3cf d430 d4bd d4ff d5a0 d5ed d68f d6d0 d73d d7bf da20 daad daef db90 dbdd dc3f dcc0 dd2d ddaf ddf0 de9d dedf
+d08d d0cf d130 d1bd d1ff d2a0 d2ed d38f d3d0 d43d d4bf d520 d5ad d5ef d690 d6dd d73f d7c0 da2d daaf daf0 db9d dbdf dc80 dccd dd2f ddb0 ddfd de9f dee0
+d08f d0d0 d13d d1bf d220 d2ad d2ef d390 d3dd d43f d4c0 d52d d5af d5f0 d69d d6df d780 d7cd da2f dab0 dafd db9f dbe0 dc8d dccf dd30 ddbd ddff dea0 deed
+d090 d0dd d13f d1c0 d22d d2af d2f0 d39d d3df d480 d4cd d52f d5b0 d5fd d69f d6e0 d78d d7cf da30 dabd daff dba0 dbed dc8f dcd0 dd3d ddbf de20 dead deef
+d09d d0df d180 d1cd d22f d2b0 d2fd d39f d3e0 d48d d4cf d530 d5bd d5ff d6a0 d6ed d78f d7d0 da3d dabf db20 dbad dbef dc90 dcdd dd3f ddc0 de2d deaf def0
+d09f d0e0 d18d d1cf d230 d2bd d2ff d3a0 d3ed d48f d4d0 d53d d5bf d620 d6ad d6ef d790 d7dd da3f dac0 db2d dbaf dbf0 dc9d dcdf dd80 ddcd de2f deb0 defd
+d0a0 d0ed d18f d1d0 d23d d2bf d320 d3ad d3ef d490 d4dd d53f d5c0 d62d d6af d6f0 d79d d7df da80 dacd db2f dbb0 dbfd dc9f dce0 dd8d ddcf de30 debd deff
+
+
+>>> decrypt('d', data_block[0])
+'$'
+>>> decrypt('d', data_block[64])
+'/'
+>>> decrypt('d', data_block[128])
+'x'
+>>> decrypt('d', data_block[192])
+'!'
+
+OK. Test one with data[0:64]
+## 0 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 0 = ['d']
+# 1 = ['0', '1', '2', '3', '4', '5', '6', '7', 'a', 'b', 'c', 'd', 'e']
+# 2 = ['0', '1', '2', '3', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 3 = ['0', '2', '3', '4', '5', '6', '7', '8', '9', 'c', 'd', 'e', 'f']
+# 4 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 5 = ['0', '1', '2', '3', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 6 = ['5', '6', '7', '8', '9']
+# 7 = ['a', 'b', 'c', 'd', 'e', 'f']
+# 8 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 9 = ['0', '1', '2', '3', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 10 = ['0', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 11 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 12 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 13 = ['0', '1', '2', '3', '4', '5', '6', '7', 'a', 'b', 'c', 'e', 'f']
+# 14 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 15 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'a', 'b', 'c', 'd', 'e', 'f']
+# 16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 17 = ['0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c']
+# 18 = ['5', '6', '7', '8', '9']
+# 19 = ['d', 'f']
+# 20 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c']
+# 21 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 22 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 23 = ['0', '1', '2', '3', '4', '5', '7', '8', '9', 'a', 'b', 'c', 'd']
+# 24 = ['0', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 25 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 26 = ['0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 27 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'd', 'e', 'f']
+# 28 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 29 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 30 = ['0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 31 = ['a', 'b', 'c']
+# 32 = ['0', '1', '2', '3', '4', '5', '6', '7', '8']
+# 33 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+# 34 = ['0', '1', '2', '3', '4', '5', '6', '7']
+# 35 = ['a', 'b', 'c', 'd', 'e', 'f']
+# 36 = ['d', 'e']
+# 37 = ['0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 38 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c']
+# 39 = ['0', '1', '2', '8', '9']
+# 40 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'a', 'b', 'c']
+# 41 = ['0', '2', '3', '4', '5', '6', '7', '8', '9', 'c', 'd', 'e', 'f']
+# 42 = ['d', 'e', 'f']
+# 43 = ['2', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 44 = ['0', '1', '2', '3', '7', '8', '9', 'a', 'b', 'c', 'd', 'f']
+# 45 = ['b', 'c']
+# 46 = ['a', 'b', 'c', 'd', 'e', 'f']
+# 47 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'a', 'b', 'c', 'd', 'e', 'f']
+# 48 = ['0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 49 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 50 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'd', 'e', 'f']
+# 51 = ['0', '1', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 52 = ['0', '1', '2', '3', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'f']
+# 53 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 54 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'd', 'e', 'f']
+# 55 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 56 = ['0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+# 57 = ['0', '1', '2', '8', '9']
+# 58 = ['0', '1', '3', '8', '9']
+# 59 = ['a', 'b', 'c', 'd', 'e', 'f']
+# 60 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+# 61 = ['a', 'b', 'c', 'd', 'e', 'f']
+# 62 = ['b', 'c']
+# 63 = ['0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+
+Checking 0:64, 64:128, 128:196:
+
+# 0 = [ '0', '6', '8', '9', 'a', 'e', 'f', ]
+# 1 = [ 'a', 'b', 'c', ]
+# 2 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 3 = [ 'c', 'd', 'e', 'f', ]
+# 4 = [ ]
+# 5 = [ '1', '2', '3', '8', '9', ]
+# 6 = [ '5', '6', '7', '8', '9', ]
+# 7 = [ 'a', 'b', 'c', ]
+# 8 = [ ]
+# 9 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 10 = [ '0', '2', '3', '5', '6', '7', '8', ]
+# 11 = [ '0', '2', '4', '5', '6', '7', '8', '9', ]
+# 12 = [ '3', '4', '8', '9', 'b', 'c', 'd', 'e', ]
+# 13 = [ '3', '4', '5', '6', 'b', 'c', 'e', ]
+# 14 = [ '0', '1', '2', '5', '6', '7', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 15 = [ ]
+# 16 = [ '0', '1', '2', '3', '4', '5', '7', '8', '9', ]
+# 17 = [ '0', '1', '2', '3', '4', '5', '6', '7', '9', ]
+# 18 = [ ]
+# 19 = [ ]
+# 20 = [ ]
+# 21 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 22 = [ '0', '1', '2', '4', '5', '6', '7', '8', '9', ]
+# 23 = [ '5', '8', '9', ]
+# 24 = [ 'd', 'e', 'f', ]
+# 25 = [ '0', '1', '2', '3', '5', '7', '8', '9', 'a', 'b', 'c', 'd', ]
+# 26 = [ 'a', 'b', ]
+# 27 = [ '4', '5', '6', '7', 'd', 'e', ]
+# 28 = [ '0', '1', '2', '3', '7', '8', '9', 'a', 'b', 'c', ]
+# 29 = [ 'd', 'e', 'f', ]
+# 30 = [ '0', '1', '2', '3', '4', '5', '6', '9', ]
+# 31 = [ ]
+# 32 = [ ]
+# 33 = [ '0', '1', '2', '3', '4', '5', '6', '7', ]
+# 34 = [ '0', '1', '2', '3', '4', '5', '7', ]
+# 35 = [ ]
+# 36 = [ ]
+# 37 = [ '1', '2', '3', '4', '5', '6', '7', ]
+# 38 = [ '0', '1', '2', '3', '6', '8', ]
+# 39 = [ ]
+# 40 = [ '4', '6', '7', '8', ]
+# 41 = [ '0', '2', '3', '4', '6', '7', ]
+# 42 = [ ]
+# 43 = [ ]
+# 44 = [ '0', '1', '2', '3', '7', '8', '9', 'd', 'f', ]
+# 45 = [ ]
+# 46 = [ ]
+# 47 = [ '4', '5', '6', '7', '8', ]
+# 48 = [ '1', '2', '3', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 49 = [ 'd', 'e', ]
+# 50 = [ ]
+# 51 = [ '8', '9', ]
+# 52 = [ 'a', 'b', 'c', 'f', ]
+# 53 = [ '0', '1', '3', '4', '5', '6', '7', '8', ]
+# 54 = [ '0', '1', '2', '3', '4', '5', '6', '7', ]
+# 55 = [ '0', '1', '2', '3', '4', '5', '6', '7', ]
+# 56 = [ 'd', 'e', 'f', ]
+# 57 = [ ]
+# 58 = [ ]
+# 59 = [ 'a', 'b', 'c', 'e', ]
+# 60 = [ ]
+# 61 = [ ]
+# 62 = [ ]
+# 63 = [ 'b', 'c', 'd', 'e', 'f', ]
+
+Thats kinda bullshit that 0 isn't d... ... expanding valid key chars, doh. try again
+22:17:11-bbaskin@~/CTF/FLARE_2017/10$ python bruteforce3.py
+# 0 = [ '0', '6', '8', '9', 'a', 'd', 'e', 'f', ]
+# 1 = [ 'a', 'b', 'c', 'd', 'e', ]
+# 2 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 3 = [ 'c', 'd', 'e', 'f', ]
+# 4 = [ ]
+# 5 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ]
+# 6 = [ '0', '1', '5', '6', '7', '8', '9', ]
+# 7 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 8 = [ ]
+# 9 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 10 = [ '0', '1', '2', '3', '5', '6', '7', '8', ]
+# 11 = [ '0', '1', '2', '4', '5', '6', '7', '8', '9', ]
+# 12 = [ '3', '4', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 13 = [ '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'e', ]
+# 14 = [ '0', '1', '2', '3', '4', '5', '6', '7', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 15 = [ 'd', 'f', ]
+# 16 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 17 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 18 = [ ]
+# 19 = [ ]
+# 20 = [ 'a', 'c', 'e', 'f', ]
+# 21 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 22 = [ '0', '1', '2', '4', '5', '6', '7', '8', '9', ]
+# 23 = [ '0', '2', '3', '5', '6', '8', '9', ]
+# 24 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 25 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', ]
+# 26 = [ 'a', 'b', 'f', ]
+# 27 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 28 = [ '0', '1', '2', '3', '7', '8', '9', 'a', 'b', 'c', ]
+# 29 = [ 'd', 'e', 'f', ]
+# 30 = [ '0', '1', '2', '3', '4', '5', '6', '8', '9', ]
+# 31 = [ ]
+# 32 = [ ]
+# 33 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ]
+# 34 = [ '0', '1', '2', '3', '4', '5', '7', '8', ]
+# 35 = [ ]
+# 36 = [ ]
+# 37 = [ '1', '2', '3', '4', '5', '6', '7', '8', '9', ]
+# 38 = [ '0', '1', '2', '3', '6', '8', ]
+# 39 = [ ]
+# 40 = [ '2', '4', '5', '6', '7', '8', '9', ]
+# 41 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ]
+# 42 = [ ]
+# 43 = [ '5', '6', '7', '8', '9', ]
+# 44 = [ '0', '1', '2', '3', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 45 = [ ]
+# 46 = [ ]
+# 47 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ]
+# 48 = [ '0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 49 = [ 'a', 'b', 'c', 'd', 'e', ]
+# 50 = [ ]
+# 51 = [ '0', '1', '2', '6', '8', '9', ]
+# 52 = [ 'a', 'b', 'c', 'f', ]
+# 53 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', ]
+# 54 = [ '0', '1', '2', '3', '4', '5', '6', '7', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 55 = [ '0', '1', '2', '3', '4', '5', '6', '7', '9', ]
+# 56 = [ 'b', 'd', 'e', 'f', ]
+# 57 = [ ]
+# 58 = [ ]
+# 59 = [ 'a', 'b', 'c', 'e', ]
+# 60 = [ ]
+# 61 = [ ]
+# 62 = [ ]
+# 63 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+
+
+That's better.
+
+So, first key should be?
+c0aac000a0a00330d0000aa00a0a00d0000000100200500000a00a000b00a000a
+
+That's a massive key space still. Too many nulls, which mean nothing was in valid_chars for that byte. Trying string.printable?
+
+
+lol, someone just posted their code on Pastebin to brute force it. Nothing interesting, but looks like they had a similar starting point. All their ranges are much tighter... maybe I'm too loose?
+c0aac000a0a00330d0000aa00a0a00d0  << mine
+ca0820b80400b800aab225008aa0d80e  << theirs
+
+ok, let's step back. Don't worry about the full 64. Get the first 32, crack that hash to get what can be used for second 32.
+
+stop, redo bruteforce3. Still way too many hashes to run.
+This time go 0-320: I accidentally did 196 instead of 192 above, so results were wrong :/
+
+20:23:16-bbaskin@~/CTF/FLARE_2017/10$ python bruteforce3.py
+# 0 = [ '0', '1', '3', '6', '8', ]
+# 1 = [ ]
+# 2 = [ 'b', 'c', 'd', 'e', 'f', ]
+# 3 = [ 'c', 'd', 'e', 'f', ]
+# 4 = [ ]
+# 5 = [ '0', '1', '2', '3', '4', '5', '6', '7', 'b', 'f', ]
+# 6 = [ ]
+# 7 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 8 = [ 'a', 'b', 'c', 'd', 'e', ]
+# 9 = [ ]
+# 10 = [ '0', '1', '2', '5', '6', '7', '8', ]
+# 11 = [ '0', '1', '2', '4', '5', '6', '7', '8', '9', ]
+# 12 = [ '3', '4', '9', ]
+# 13 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 14 = [ ]
+# 15 = [ 'a', 'b', 'd', 'f', ]
+# 16 = [ '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 17 = [ '1', '2', '3', '4', '5', '6', '7', '8', '9', ]
+# 18 = [ ]
+# 19 = [ 'f', ]
+# 20 = [ 'a', 'c', 'e', 'f', ]
+# 21 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 22 = [ '0', '1', '5', '6', '7', '8', '9', ]
+# 23 = [ '0', '1', '2', '3', '5', '6', '7', '9', ]
+# 24 = [ 'a', 'b', 'd', 'f', ]
+# 25 = [ 'a', 'b', 'd', 'f', ]
+# 26 = [ '0', '1', '2', '3', '5', '8', '9', 'a', 'b', 'c', 'f', ]
+# 27 = [ '0', '2', '3', '4', '5', '6', '8', '9', ]
+# 28 = [ 'a', 'b', ]
+# 29 = [ 'a', 'c', 'd', ]
+# 30 = [ ]
+# 31 = [ 'd', 'e', ]
+# 32 = [ ]
+# 33 = [ ]
+# 34 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', ]
+# 35 = [ ]
+# 36 = [ ]
+# 37 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ]
+# 38 = [ '0', '1', '2', '3', '8', ]
+# 39 = [ ]
+# 40 = [ 'd', 'e', 'f', ]
+# 41 = [ ]
+# 42 = [ ]
+# 43 = [ '2', '4', '5', '6', '7', '8', '9', ]
+# 44 = [ 'a', 'b', 'c', ]
+# 45 = [ ]
+# 46 = [ ]
+# 47 = [ '0', '1', '3', '5', '6', '7', '8', '9', ]
+# 48 = [ '0', '1', '2', '3', '4', '5', '6', '7', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 49 = [ ]
+# 50 = [ 'a', 'b', 'c', 'd', 'e', ]
+# 51 = [ '0', '1', '2', '3', '6', '8', '9', ]
+# 52 = [ 'a', 'b', 'c', 'f', ]
+# 53 = [ '0', '1', '2', '4', '6', '7', '8', '9', ]
+# 54 = [ '0', '1', '2', '3', '4', '5', '7', ]
+# 55 = [ '0', '1', '2', '4', '6', '7', '8', '9', ]
+# 56 = [ 'b', 'd', 'e', 'f', ]
+# 57 = [ ]
+# 58 = [ ]
+# 59 = [ ]
+# 60 = [ ]
+# 61 = [ ]
+# 62 = [ ]
+# 63 = [ 'a', 'b', 'c', 'e', 'f', ]
+
+real talk. is it really 64byte key? That's just a guess.
+2268 total / 64 = 35.x
+2268 / 42 = 54
+2268 / 54 = 42
+2268 / 84 = 27
+
+It doesn't have to be a clean block, that's just the size of code, and rotating mod window doesn't necessitate it.
+Try this. Instead of 64, increment through blocks with the strictest character set until each byte hits on something
+
+also... the password doesn't have to have @flare-on.com in it? That's just an assumption. It could be MUCH smaller w/o it
+
+42 frame is close:
+20:50:06-bbaskin@~/CTF/FLARE_2017/10$ python bruteforce3.py | head -32
+# 0 = [ ]
+# 1 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 2 = [ '0', '1', '2', '7', '8', '9', ]
+# 3 = [ ]
+# 4 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 5 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 6 = [ '0', '1', '3', '6', '7', '9', ]
+# 7 = [ 'b', 'd', 'e', 'f', ]
+# 8 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', ]
+# 9 = [ 'a', 'b', 'c', 'd', 'e', ]
+# 10 = [ 'a', 'b', 'c', ]
+# 11 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 12 = [ '2', '5', '6', '7', '8', ]
+# 13 = [ '0', '1', '2', '4', '5', '6', '7', '8', '9', ]
+# 14 = [ '3', '4', '5', '6', '7', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 15 = [ '0', '1', '2', '4', '6', '7', '8', '9', ]
+# 16 = [ '0', '1', '3', '5', '6', '7', '8', '9', ]
+# 17 = [ 'a', 'b', 'd', 'f', ]
+# 18 = [ ]
+# 19 = [ 'a', 'b', 'd', ]
+# 20 = [ 'b', 'c', 'd', 'e', 'f', ]
+# 21 = [ 'a', 'b', 'c', ]
+# 22 = [ '0', '1', '2', '3', '6', '8', '9', ]
+# 23 = [ 'a', 'b', 'c', 'd', ]
+# 24 = [ '0', '1', '2', '4', '5', '6', '7', '8', ]
+# 25 = [ '0', '1', '2', '3', '5', '6', '7', ]
+# 26 = [ ]
+# 27 = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 28 = [ '0', '5', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 29 = [ '0', '1', '2', '3', '4', '5', '6', '7', 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 30 = [ 'a', 'b', 'c', 'd', 'e', 'f', ]
+# 31 = [ 'a', 'b', 'c', 'd', 'e', ]
+
+goddam, '=' wasn't in my valid chars list
+restarting
+wait ... carriage returns.
+Add those in
+idiot
+
+alright, assumed $d=
+test valid code and see if it resolves to hex value. Swap back and forth between manual guessing from code and brute forcing from hex
+
+
+$_='';
+d_6952
+
+$_='';rn$key
+d_6952b84a49f
+
+$_='';rn$key = "";
+d_6952b84a49b934ac
+
+$_='';rn$key = "";rn
+d_6952b84a49b934acb4
+
+$_='';rn$key= " ";rnif (isset
+d_6952b84a49b934acb436418ad9d
+
+$_='';rn$key = "";rnif (isset($_POST['o_o']))
+d_6952b84a49b934acb436418ad9d93d237df05769afc
+
+
+$_='';rn$key = "";rnif (isset($_POST['o_o']))rn  " << sneaky sneaky?
+d_6952b84a49b934acb436418ad9d93d237df05769afc796d
+
+$_='';rn$key = "";rnif (isset($_POST['o_o']))rn  $key = $"
+d_6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb3
+
+
+"$_='';\r\n$key = \"\";\r\nif (isset($_POST['o_o']))\r\n  $key = $")
+$_='';rn$key = "";rnif (isset($_POST['o_o']))rn  $key = $_POST["
+d_6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb379f2cac
+
+c = '
+f = "
+
+db6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb379f2cac
+
+
+11:19:25-bbaskin@~/CTF/FLARE_2017/10$ cat bf2out/db6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb379f2cac
+$d='';
+$key = "";
+if (isset($_POST['o_o']))
+  $key = $_POST['/Yd9O2b8ylqh+w`s7pKa
+GM
+55~e0fKUi:7~
+
+
+
+
+"$d='';\r\n$key = \"\";\r\nif (isset($_POST['o_o']))\r\n  $key = $_POST['o_o'];\r\nif (isset($_POST['hint']))")
+
+
+>>> decrypt(data_block, "$d='';\r\n$key = \"\";\r\nif (isset($_POST['o_o']))\r\n  $key = $_POST['o_o'];\r\nif (isset($_POST['hint']))")
+'db6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb379f2cac$d=\'\';\r\n$key = "";\r\nif (isset($_POz:F l\x00B\x10Y`;\x03]3p6xp\x1bX3d?z3UF\x11\x07f8sZ\x1c&K\t}Ij\x1bT\x13.}5W!$
+ db6952b84a49b934acb436418ad9d93d237df05769afc792
+
+
+"db6952b84a49b934acb436418ad9d93d237df05769afc792 )zu NTf|\r\x10\t\\\x17\x18fp6Xi\x1c (i>~ %aj\x0c\x17\x19@}\x0e\x1eF,\x13\x15\t2%\x17V'fDAye"
+>>> decrypt(data_block[0:100], "$d=\'\';\r\n$key = \"\";\r\nif (isset($_POST[\'o_o\']))\r\n")
+
+
+OK, finally. I rewrote the decrypt routine wrong. Returned to original.
+db6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb379f2cac is correct
+
+Outputs second php
+(oh come on!)
+
+if (isset($_POST['o_o']))
+  $key = $_POST['o_o'];
+if (isset($_POST['hint']))
+  $d = "www.p01.org";
+if (isset($_POST['t'])) {
+  if ($_POST['t'] == 'c') {
+    $d = base64_decode('SDcGHg1feVUIEhsbDxFhIBIYFQY+VwMWTyAcOhEYAw4VLVBaXRsKADMXTWxrSH4ZS1IiAgA3GxYUQVMvBFdVTysRMQAaQUxZYTlsTg0MECZSGgVcNn9AAwobXgcxHQRBAxMcWwodHV5EfxQfAAYrMlsCQlJBAAAAAAAAAAAAAAAAAFZhf3ldEQY6FBIbGw8RYlAxGEE5PkAOGwoWVHgCQ1BGVBdRCAAGQVQ2Fk4RX0gsVxQbHxdKMU8ABBU9MUADABkCGHdQFQ4TXDEfW0VDCkk0XiNcRjJxaDocSFgdck9CTgpPDx9bIjQKUW1NWwhERnVeSxhEDVs0LBlIR0VlBjtbBV4fcBtIEU8dMVoDACc3ORNPI08SGDZXA1pbSlZzGU5XVV1jGxURHQoEK0x+a11bPVsCC1FufmNdGxUMGGE=');
+    $key = preg_replace('/(.)../', '$1', $key);
+  }
+  if ($_POST['t'] == 's') {
+    $d = base64_decode('VBArMg1HYn1XGAwaAw1GDCsACwkeDgABUkAcESszBEdifVdNSENPJRkrNwgcGldMHFVfSEgwOjETEE9aRlJoZFMKFzsmQRALSilMEQsXHEUrPg9ZDRAoAwkBHVVIfzkNGAgaBAhUU00AAAAAAAAAAAAAAAAASkZSVV0KDAUCHBFQHA0MFjEVHB0BCgBNTAJVX3hkAkQiFh8ESw0AG0M5MBNRGkpdWV4bVEEVdGJGRR9XGBgcAgpVCDAsCA0GGAVWBAwcBxQqKwRCGxgbVkJFR11IdHcbRFxOUkNNV0RAVXIKSgxCWk1aVkdGQVI8dxRTVl5CR0JLVAQdOStbXkRfXlxOFEULUCp2SFJIUlVGQlUtRhExMQQLJyMmIFgDTUQtYmZIRUAECB4MHhtWRHA9Dh0WSWZmWUEHHBUzYQ==');
+    $key = preg_replace('/.(.)./', '$1', $key);
+  }
+  if ($_POST['t'] == 'w') {
+    $d = base64_decode('DycdGg1hYjl8FURaAVZxPhgNOQpdMxVIRwNKc0YDCCsDVn5sJxJMHmJJOgArB1olFA0JHQN+TlcpOgFBKUEAA1M+RVUVDjsWEy8PQUEMV3IsSgJxCFY0IkJAGVY3HV9DbQsRaU1eSxl6IR0SEykOX2gnEAwZGHJHRU0OUn4hFUUADlw8UhRPNwpaJwlZE14Df1IRDi1HS30JFlZAHnRAEQ4tR0p9CRZXQB50LFkHNgNfEgROWkVLZV1bGHVbHyJMSRFZCQtGRU0bQAFpSEtBHxsLVEdaeEEUfCd2akdKYAFaJXBdT3BeHBRFV3IdXCV1PhsUXFUBBR5hXFwwdxsab1kECFoaM0FET2pEd2owBXpAC2ZAS11sMhVmJREWVlFyDV4ldFIdcUMBWlBbcl5CSGFTUCEPW08eEyYNSgJhYjl8Tk9BCUpvDxsAODBeLwUfE08AAAAAAAAAAAAAAAAAEXFkfV1wB0ctDRM=');
+    $key = preg_replace('/..(.)/', '$1', $key);
+  }
+  while(strlen($key) < strlen($d))
+    $key = $key.$key;
+  $d = $d ^ $key;
+}
+
+OK, so whatever the key is, it's repeated over and over until it hits len of data.
+len('c') = 320
+len('s') = 316
+len('w') = 362
+
+Sounds like key has to be equally divisible? LCD is 2 ... wtf. ok, so brute force 2 bytes?
+
+for c:
+>>> d
+'H7\x06\x1e\r_yU\x08\x12\x1b\x1b\x0f\x11a \x12\x18\x15\x06>W\x03\x16O \x1c:\x11\x18\x03\x0e\x15-PZ]\x1b\n\x003\x17MlkH~\x19KR"\x02\x007\x1b\x16\x14AS/\x04WUO+\x111\x00\x1aALYa9lN\r\x0c\x10&R\x1a\x05\\6\x7f@\x03\n\x1b^\x071\x1d\x04A\x03\x13\x1c[\n\x1d\x1d^D\x7f\x14\x1f\x00\x06+2[\x02BRA\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Va\x7fy]\x11\x06:\x14\x12\x1b\x1b\x0f\x11bP1\x18A9>@\x0e\x1b\n\x16Tx\x02CPFT\x17Q\x08\x00\x06AT6\x16N\x11_H,W\x14\x1b\x1f\x17J1O\x00\x04\x15=1@\x03\x00\x19\x02\x18wP\x15\x0e\x13\\1\x1f[EC\nI4^#\\F2qh:\x1cHX\x1drOBN\nO\x0f\x1f["4\nQmM[\x08DFu^K\x18D\r[4,\x19HGEe\x06;[\x05^\x1fp\x1bH\x11O\x1d1Z\x03\x00\'79\x13O#O\x12\x186W\x03Z[JVs\x19NWU]c\x1b\x15\x11\x1d\n\x04+L~k][=[\x02\x0bQn~c]\x1b\x15\x0c\x18a'
+
+>>> d[0]
+'H'
+>>> chr(ord('H') ^ ord('$'))
+'l'
+
+There's also a big block of nulls in there... wtf is that about
+
+References "Raytraced Checkerboard" from p01.org
+    echo '<form action="shell.php" method="post"><input type="hidden" name="o_o" value="'.$key.'"><input type="radio" name="t" value="c"> Raytraced Checkboard<br> <input type="radio" name="t" value="s"> p01 256b Starfield<br> <input type="radio" name="t" value="w"> Wolfensteiny<br><input type="submit" value="Show"/></form>';
+
+http://www.p01.org/128b_raytraced_checkboard/
+
+Has the famous sunset etc .js
+
+Whatever the decrypted value is, it's simply echo'd and not executed ... so likely HTML? Or just raw text. Weighing on HTML since it's referencing a website and JS
+
+>>> multibyte_xor(d, '<html>\r\n ')
+"t_rsaat_(.sob}_-\x188)nJ:o(B*<\x06ylnb+ Zzas~m_)@fKt\x16m&>\x1c\x ...
+
+t_rsaat_?
+>>> multibyte_xor(d, 't_rsaat_')
+'<html>\r\n|Mihnp\x15\x7ffGgu_6wI;\x7fnIpywQar")<z~_GH?\x1f\n)\nF?\rPqaVoI`\x1e!\\e6!\x10_NCs{ 8\x06\x15f\x1e=lmdy&Ew/W\x1e4\\~D,tP|p\x1ewLn(k|i\x010 flag_m/]0! at_t_rsaat_t_$\x12\x1e\x18)Nrefazz{N\x16\x0fCk XJ\x1fzDxe5\x19v\x1c$\x19&d0itY5\x0bDe/p+\x17X\x08fh~v>n;_vf\\P4\\tFpk\x161aQg\x03Cl:$7U=k,P=\'F.\x1cen;9|\x06\x106\x11x<n~/}@U#\x1e,:|\x1b2*,8y%y\x04@sk;&$\x11YO\x04w-~\x11o\x17e\x10oB;btxCfa<B.fGB\x08q):+",m\x11%&<\x02oJeBxwJ-\n4)\x04O(cj%1\n</html>'
+
+oh snap, I got beginning html and end html. Now to find key len. adding spaces to each to see where text lies
+
+>>> multibyte_xor(d, 't_rsaat_     ')
+'<html>\r\n(2;;/e>Raytraw#6o\x00heckboarpz};*tle>\r\n<!9kr\x02"thieu \'p$wuo\x0benri -->\x19Ln-,dy id=B `#*;~snow bgC{*==~0 flag_m{"brat_rsaat_     ">\r\n<pre42;;/e="By Ma`.;*6 \'p01\' Hq( &a id=p><sw4;?7>n=setIn`# 9"l("for(n?{ec*=k,P=\'F.H\x1a<hxi-=1/k;P?{\x02\x14*%2?(i%2*~k8d-/k^j)&1:&\x1b{%~k/i;p.inz# \x07\x17ML=P.sliw#z{j",k=64)<;51=*pt>\r\n</b{"+qN\n</html>'
+
+Boom.
+
+<html>rn.......
+Raytra.....
+heckboar.....
+tle>\r\n<
+thieu \'p$wuo\x0b
+enri -->\x19Ln-
+ flag_m{"brat_rsaat_     ">  <<<<< my null segment. Wuut
+ \r\n<pre42;;/
+ e="By Ma`.;*6 \'p01\' Hq( &a id=p><sw4;?7>n=setIn`# 9"l("for(n?{ec*=k,P=\'F.H\x1a<hxi-=1/k;P?{\x02\x14*%2?(i%2*~k8d-/k^j)&1:&\x1b{%~k/i;p.inz# \x07\x17ML=P.sliw#z{j",k=64)<;51=*pt>\r\n</b{"+qN\n</html>'
+
+Wait, is null segment going to show correct flag when done? So that should key size as well
+
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 == 13, same as my guess above
+
+>>> multibyte_xor(d, 't_rsaat_\x00\x00\x00\x00\x00')
+'<html>\r\n\x08\x12\x1b\x1b\x0fe>RaytraW\x03\x16O heckboarPZ]\x1b\ntle>\r\n<!\x19KR"\x02thieu \'p\x04WUO+enri -->9lN\r\x0cdy id=B @\x03\n\x1b^snow bgC[\n\x1d\x1d^0 flag_m[\x02BRAt_rsaat_\x00\x00\x00\x00\x00">\r\n<pre\x14\x12\x1b\x1b\x0fe="By Ma@\x0e\x1b\n\x16 \'p01\' HQ\x08\x00\x06A id=p><sW\x14\x1b\x1f\x17>n=setIn@\x03\x00\x19\x02l("for(n\x1f[EC\n=k,P=\'F.h:\x1cHXi-=1/k;P\x1f["4\n%2?(i%2*^K\x18D\r/k^j)&1:\x06;[\x05^k/i;p.inZ\x03\x00\'7ML=P.sliW\x03Z[J",k=64)<\x1b\x15\x11\x1d\npt>\r\n</b[\x02\x0bQn\n</html>'
+>>>
+RaytraW
+W ^ c = 4
+\x03 ^ e = f
+\x16 ^ d = r
+
+>>> multibyte_xor(d, 't_rsaat_4fr\x00\x00')
+'<html>\r\n<ti\x1b\x0fe>RaytracedO heckboard</\x1b\ntle>\r\n<!-- "\x02thieu \'p01\'O+enri -->\r\n<\r\x0cdy id=B tex\x1b^snow bgColo\x1d^0 flag_mod0RAt_rsaat_4fr\x00\x00">\r\n<pre ti\x1b\x0fe="By Mathi\n\x16 \'p01\' Henr\x06A id=p><scri\x1f\x17>n=setInter\x19\x02l("for(n+=7C\n=k,P=\'F.\\\\nHXi-=1/k;P+=P4\n%2?(i%2*j-jD\r/k^j)&1:2])\x05^k/i;p.inner\'7ML=P.slice([J",k=64)</sc\x1d\npt>\r\n</bodyQn\n</html>'
+
+<ti
+\x1b ^ t = o
+\x0f ^ l = c
+
+t_rsaat_4froc ??
+
+>>> multibyte_xor(d, 't_rsaat_4froc')
+'<html>\r\n<title>Raytraced Checkboard</title>\r\n<!-- Mathieu \'p01\' Henri -->\r\n<body id=B text=snow bgColor=0 flag_mod0="t_rsaat_4froc">\r\n<pre title="By Mathieu \'p01\' Henri" id=p><script>n=setInterval("for(n+=7,i=k,P=\'F.\\\\n\';i-=1/k;P+=P[i%2?(i%2*j-j+n/k^j)&1:2])j=k/i;p.innerHTML=P.slice(4)",k=64)</script>\r\n</body>\r\n</html>'
+
+
+ok, what about the other two?
+
+'s' has 13-byte key...
+Same technique:
+>>> multibyte_xor(d, 'hx__ayowkleno')
+'<html>\r\n<title>Starfield</title>\r\n<!-- Mathieu \'p01\' Henri -->\r\n<body id=B text=tan bgColor=0 flagmod1="hx__ayowkleno">\r\n<script>setInterval("m=\'\';c=Math.cos;for(u=65;u;)m+=\'<p style=position:absolute;top:\'+(50+(z=399/(9+(--U+u--&63)))*c(u*9))+\'%;left:\'+(50+z*c(u))+\'%>*\';B.innerHTML=m",U=9)</script></body>\r\n</html>'
+>>>
+
+Last one, 'w':
+>>> multibyte_xor(d, '3Oiwa_o3     ')
+'<html>\r\n\\5dz!e>Wolfen\x135hg#y</title^L\x072l-- Mathi\x054-)=01\' Henr\ta #s\r\n<body \x0f/aa,d=E=c.ge\x14\x02b`9ext("2d"Im~k9IntervalH\x070,9+=.2,Q=M\x015e .os;c.hei\x07)y3~00;for(x])6v`-;)for(y])6w`-;E.fill2$nzex*4,y*4,\x02li1y:D/2,D/2Ihka?(D=0;\'.\'\\\x07VJgy/h-D/2|P~<4ed=t+D*Q(4|u!%-.5+Q(t)Oy$(z)|(3.5+DJ\x10%Z`8))<<3]&F\x0516vb=d)D+=.Qc!zph=75)><c\x01/{o> id=c>\r\n\\noa)y flag_m\x0f%?3o3Oiwa_o3     ">\r\n</ht\r-3'
+
+>>> multibyte_xor(d, '3Oiwa_o3@a-.m')
+'<html>\r\n<title>Wolfensteiny</title>\r\n<!-- Mathieu \'p01\' Henri -->\r\n<body onload=E=c.getContext("2d"),setInterval(F="t+=.2,Q=Math.cos;c.height=300;for(x=h;x--;)for(y=h;y--;E.fillRect(x*4,y*4,b-d?4:D/2,D/2))for(D=0;\'.\'<F[D*y/h-D/2|0?1:(d=t+D*Q(T=x/h-.5+Q(t)/8)&7)|(3.5+D*Q(T-8))<<3]&&D<8;b=d)D+=.1",t=h=75)><canvas id=c>\r\n</body flag_mod2="3Oiwa_o3@a-.m">\r\n</html>'
+heh, flag_mod2 ... almost got me going there.
+
+oh, still no flag.
+flag_mod1 and mod2, that's what we need.
+
+flag_mod0="t_rsaat_4froc"
+flagmod1= "hx__ayowkleno"
+flag_mod2="3Oiwa_o3@a-.m"
+
+hahaha
+ok, line them up vertically on top each other
+t_rsaat_4froc
+hx__ayowkleno
+3Oiwa_o3@a-.m
+
+th3_xOr_is_waaaay_too_w34k@flare-on.com
+
