@@ -1,16 +1,15 @@
+# Rust Tickler 2
 
 ```
-⚙️ Rust Tickler 2
 Category    Author
 ⚙️ Reverse Engineering  @Nordgaren
-Challenge Prompt
+
 You all looked like you were having so much fun reverse engineering Rust code... why not do it again!?
 ```
 
-
 Let's skip straight to Claude doing markup. Because it finds rust_main_entry pretty easily but also does some of our analysis for us (by accident in a write up :)) 
 
-![Clade markup and hints](img/2_1.png)
+![Claude markup and hints](img/2_1.png)
 
 ```
   The main function (main_decrypt_and_validate at 0x140001350) now has inline comments explaining:
@@ -28,7 +27,7 @@ Let's skip straight to Claude doing markup. Because it finds rust_main_entry pre
   5. Executes "pause" command if correct
 ```
 
-Oof. That ... did a lot. But I didn't actually do that when I looked at the file. And maybe I should have, as it would've saved me a lot of time :) So, instead I'll revert that and walk through some of how I actually did it, and assumptions made along the way.
+Oof. That ... did a lot. But I didn't actually do that when I looked at the file. And maybe I should have, as it would've saved me a lot of time :) However, as you may see later, there are some outright errors in Claude's output. So, instead I'll revert that and walk through some of how I actually did it, and assumptions made along the way.
 
 Let's dance!
 
@@ -49,11 +48,11 @@ I try to find good breakpoints to begin analysis. Going to Binary Ninja symbol v
 
 ![Refs to memcmp](img/2_4.png)
 
-Oops. It never got there and somehow terminated here. B
+Oops. It never got there and somehow terminated here. But we'll use TTD to help here. 
 
 ![It's a trap!](img/2_5.png)
 
-ut we'll use TTD to help here. First, Shift-G to get our current timestamp "2F2:0". So we have some measurement in time to compare against, to at least know if something we'll review earlier may be halfway through, etc.
+First, Shift-G to get our current timestamp "2F2:0". So we have some measurement in time to compare against, to at least know if something we'll review earlier may be halfway through, etc.
 
 ![Getting a timestamp](img/2_6.png)
 
@@ -178,9 +177,9 @@ get_string(&var_f8, &var_128, 0xaaaaaaaa)
 ```
 
 I see var_f8 SHOULD be that table, but in xmm0 it's set to: 0x27a8a3702c00000000000000010
-That first DWORD is the same as an address without our mapped space, but it is not referenced in the calls? Coincendence?
+That first DWORD is the same as an address without our mapped space, but it is not referenced in the calls? Coincidence?
 
-Knowing we're dealing with a lot of FPU, I watch the xmm values as I step over the get_string() sub:
+Knowing we're dealing with a lot of floating point SIMD data, I watch the xmm values as I step over the get_string() sub:
 ```
 xmm0: 0x27a8a35f0f00000000000000017
 xmm1: 0x69726f76616620796d207369206f6857 'Who is my favori'

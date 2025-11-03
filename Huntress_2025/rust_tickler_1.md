@@ -7,7 +7,7 @@ Category    Author
 Ooooh Rust! AND tickles? Rusty tickles...?
 ```
 
-For various reasons I wasn't a serious competitor in the Huntress CTF for 2025, but I did seek out the more interesting and challenging tasks. As part of the reverse engineering ones I was enjoying learning more about Binary Ninja's Time Travel Debugging (TTD). I decided to do a write-up of the three Rust Tickler challenges while focusing on using BN TTD.
+For various reasons I wasn't a serious competitor in the Huntress CTF for 2025, but I did seek out the more interesting and challenging tasks. As part of the reverse engineering ones I was enjoying learning more about Binary Ninja's implementation of Time Travel Debugging (TTD). I decided to do a write-up of the three Rust Tickler challenges while focusing on using TTD.
 
 Warning: I use an ultrawide monitor, so all screenshots were taken on that. 
 
@@ -89,7 +89,7 @@ So, let's start by making sure we can find our input value in memory after it is
 
 ![Finding input in memory_user input as return](img/1_9.png)
 
-So, let's now scroll down to the weird text and ... sigh. There's the flag. That was very anti-climatic. Binary Ninja shows values as they exist in memory, not in the file. So it knows that the string was decrypted back to text, and just shows its final value. Challenge over. 
+So, let's now scroll down to the weird text and ... sigh. There's the flag. That was very anti-climatic. TTD analysis shows values as they exist in memory, not in the file. So it knows that the string was decrypted back to text, and just shows its final value. Challenge over. 
 
 ```
 flag{6066ba5ab67c17d6d530b2a9925c21e3}
@@ -97,9 +97,9 @@ flag{6066ba5ab67c17d6d530b2a9925c21e3}
 
 ![LOL there be the flag](img/1_10.png)
 
-But let's just look to see how it was created. There is no obvious string encryption XOR loops, the value just appears out of nowhere. And that's because it was being performed on the floating point registers (xmm*). Most debuggers hide these away and make them very difficult to view, typically displaying them as numbers with scientific notation. In BN we can display them as hex. BN will then determine it's text and will provide a "hint" value of the contents.
+But let's just look to see how it was created. There is no obvious string encryption XOR loops, the value just appears out of nowhere. And that's because it was being performed on the floating point SIMD registers (XMM*). Most debuggers hide these away and make them very difficult to view, typically displaying them as numbers with scientific notation. In BN we can display them as hex. BN will then determine it's text and will provide a "hint" value of the contents.
 
-![FPU math obfuscation](img/1_11.png)
+![XMM math obfuscation](img/1_11.png)
 
 All that leads to the final memcmp(). Here, the Binary Ninja TTD Debugger info gives a quick view at the argument stack at that specific point in time, showing the actual strings being sent in.
 
