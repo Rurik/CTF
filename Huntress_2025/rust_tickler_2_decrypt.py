@@ -1,6 +1,4 @@
 import struct
-import sys
-
 
 def decrypt_str(data, seed):
     result = []
