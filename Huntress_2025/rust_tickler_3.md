@@ -40,7 +40,7 @@ Also, the compile time is later than the release time? Oh, but just barely. 02:2
 
 Anyway, let's sic Claude on it for basic annotation. Which is actually problematic with so many functions. Tools like Binary Ninja and IDA Pro will try to disassemble and analyze every function, which could take hours for large binaries. Literally hours. And it really does not like it.
 
-![](3_1.png)
+![](img/3_1.png)
 
 It appears that analysis puts a pause on Claude and the MCP. So, for now, let's abort analysis:
 
@@ -112,7 +112,7 @@ Apparently Binary Ninja won't save half-completed analysis, so every time you op
 
 One thing weird that popped out to me were function sizes. I will typically sort functions by their size to find obvious junk ones, or hashing routines (massive amounts of math).
 
-![](3_2.png)
+![](img/3_2.png)
 
 Here what I realized was dozens of functions that were all exactly 0x10005 (65,541) bytes large, and two others that were 0x23d9eb9 (37,592,761) and 0x23d9ebf (37,592,767). The math doesn't math ... and just clicking on these functions immediately freezes Binary Ninja. Attempting to view one of these during analysis just froze the app completely. Lesson learned, don't touch the forbidden functions. That is why auto analysis is taking so long. If I was a smarter person, I'd NOP those functions out... actually, why not?
 
@@ -200,7 +200,7 @@ You can also do this directly within Binary Ninja, where you specify the number 
 bv.write(0x140011fc6, b'\x90' * 0x240FE00)
 ```
 
-![](3_3.png)
+![](img/3_3.png)
 
 So a few different ways you could do it, and I'm sure there are much better and cleaer ways. But I wanted a permanent way just in case I need to reopen this file up in other tools.
 
@@ -286,13 +286,13 @@ Another challenge, and another attempt at a response.
 
 What is my favorite sha256 hash?
 
-![](3_4.png)
+![](img/3_4.png)
 
 This time I can just verify my assumptions. Instead of a HNTS, there is an HNTB header that is being parsed apart.
 (Claude said it was "HNTH"? WTF Claude) This time the table appears to be 0x5216DB (5,379,803) bytes. Yikes.
 
 
-![](3_5.png)
+![](img/3_5.png)
 
 Again, I see it decrypting with a very similar FPU output in xmm registers:
 
@@ -359,7 +359,7 @@ So an apparent flag, but also much more to this. Skipping flag check, let's find
 
 Checking code refs, I see 5 calls to check strings but none with this 0x1341.
 
-![](3_6.png)
+![](img/3_6.png)
 
 Check for:
 ```
@@ -442,7 +442,7 @@ So it does it twice? Meh, I'm tired. Just TTD it.
 
 Rerun with correct flag:
 
-![](3_7.png)
+![](img/3_7.png)
 
 "Thank you, Bingus! But our princess is in another castle!"
 
@@ -463,7 +463,7 @@ Just skip past to the payload decryption.
 
 Monitor XMM registers ... this is not what I expected...
 
-![](3_8.png)
+![](img/3_8.png)
 
 Keep following code. There's another XOR loop down below:
 
@@ -501,13 +501,13 @@ Keep following code. There's another XOR loop down below:
 
 There it is. This is doing the final XOR to get an MZ header. A second executable.
 
-![](3_9.png)
+![](img/3_9.png)
 
 I follow along more until this is sent into a function with an NtWriteFile. However, the NtWriteFile is being called dynamically from a register. Binary Ninja / TTD does not really like this. So you get the decompiler view but not the values in the Debugger Info. No matter, I can trace the args and see that the MZ file is being written here to a file named C:\Users\Admin\AppData\Local\Temp\.tmptzXQY0.txt
 
 Since I'm looking at data after the fact, the file is no longer there. But, we're in TTD. We have the contents as they were in memory at this time, and NtWriteFile shows a size of 0x521400 bytes. 
 
-![](3_10.png)
+![](img/3_10.png)
 
 
 While staying at this timestamp, I can extract this data from this point in time from the Binary Ninja console:
@@ -686,7 +686,7 @@ This is set right at the beginning of main() actually:
 ```
 But doesn't seem explicitly called from there. OK, good time to start a TTD (yes, it probably would've been best to do this immediately).
 
-![](3_11.png)
+![](img/3_11.png)
 
 
 "Okay for real this time, the flag is actually going to be the password. I definitely not in the icon file..."
@@ -885,7 +885,7 @@ When I first did this I accidentally landed on the right place. In doing this wr
 
 I provided Claude my Binary Ninja MCP, the URL to env_enc.c, and told it to rename functions that match. This actually takes you right to the answer that required me to spend another half an hour on my own.
 
-![](3_12.png)
+![](img/3_12.png)
 
 But, the TTD never got there. I sat and stared for a bit and then re-read the question:
 
@@ -911,7 +911,7 @@ Finally, right here, it all hit. Debugger info shows the values going in, which 
 
 Note: If your Debugger info still shows arg1, arg2, that's because you have to rename them from within the function, not rename the variables as they go in.
 
-![](3_13.png)
+![](img/3_13.png)
 
 With that set, I just did a simple decrypt of the values in front of me.
 
@@ -930,7 +930,7 @@ Rerun TTD to see what happens:
 
 With the correct key we can see it properly function. Actually, it was doing this before, we just didn't monitor it.
 
-![](3_14.png)
+![](img/3_14.png)
 
 It appears to be encrypting your flag with the preset key in 16-byte blocks to check if the encrypted value of the flag matches the encrypted payload.
 
