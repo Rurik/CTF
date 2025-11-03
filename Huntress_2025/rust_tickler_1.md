@@ -42,52 +42,52 @@ Running strings showed oddly that there were no real strings, just one obscure l
 7=06*gagg30d03gf2`f5g5dba3c0hhcd2c`4b,
 ```
 
-![Finding unusual string in full-screen Binary Ninja](1_1.png)
+![Finding unusual string in full-screen Binary Ninja](img/1_1.png)
 
 Cool
 
 When reversing Rust it isn't straightforward how to find main(), but through a bit of poking you'll find it. If you can't, find interesting code and work backwards until you go too far and get into init
 
-![Where entry point will usually take you](1_2.png)
+![Where entry point will usually take you](img/1_2.png)
 
 A few weird traps that signal short circuits we should look at later. And a lot of obvious bitwise math checks that are byte-by-byte.
 
-![Real main and some traps](1_2b.png)
+![Real main and some traps](img/1_2b.png)
 
 We see some primary code that looks like flag checking. Weird value, a few calls, a memcmp against something 0x26 (38) bytes long. We know flag{} structure is 38 bytes, so there's our goal.
 
-![Apparent flag check with memcmp](1_3.png)
+![Apparent flag check with memcmp](img/1_3.png)
 
 Now that main() is found, and I renamed it, I do a very quick AI cleanup to identify common things. This helps me to getting stuck in unusual code that is actually just optimized standard Windows routines.
 
 This did the tedious work of finding basic routines that are buried within calls, subcalls, etc. And ensures I don't accidentally dig into memory management.
 
-![Yay lets AI help](1_4.png)
+![Yay lets AI help](img/1_4.png)
 
 Claude Pro has paid dividends over the past year :) 
 
-![Claude Pro can be worth it](1_5.png)
+![Claude Pro can be worth it](img/1_5.png)
 
 Claude pointed out some very obvious hardcoded values that we would've found. I bet success_msg and failure_msg were assumed values just because of a potential flag check it saw. Expected_input is the only odd one out that is used for actual comparison checking?
 
-![Hardcoded values after markup](1_6.png)
+![Hardcoded values after markup](img/1_6.png)
 
 I typically do static analysis on a Mac host, a new habit formed by work laptops being ARM-based without good access to an Intel-VM. But, working off my Intel MBP for this, so copied the Binary Ninja database into my Windows VM for detonation.
 
 There, just open BN, ensure TTD package is installed and on the Development Build update channel, then start TTD.
 
-![Kicking off TTD](1_7.png)
+![Kicking off TTD](img/1_7.png)
 
 Ignoring the standard TTD.exe output, we see the challenge prompt: "What is the flag?"
 I made a very reasonable, scientic guess with my fingers crossed .. it didn't work.
 
-![Running the program](1_8.png)
+![Running the program](img/1_8.png)
 
 That's fine. So, we start the process. TTDs benefit is that it allows full time travel during the execution flow. The recording "run" is stored for replay. WinDbg and Binary Ninja can read this run and find the actual events that occurred at each step, replaying them back to you. WinDbg has had this feature for a long time but it is very cumbersome to use (just as WinDbg is). The benefit here is that Binary Ninja's debugger that usually does F7/F8 (step) or F9 (run), can now do Shift-F7/F8 (step backwards) or Shift-F9 (run backwards). Miss an action? Just step back. Trying to blackbox a routine? Just F8/Shift-F8 over the call while you analyzing the inputs and outputs. And instead of mentally rebuilding a function argument stack, BH's debugger inspection just shows the values easily.
 
 So, let's start by making sure we can find our input value in memory after it is prompted. We still hit the crux of the challenge in that there are no actual strings. So, by stepping over functions and monitoring outputs, I finally see a text error message constructed and staged for potential display in an upcoming check. 
 
-![Finding input in memory_user input as return](1_9.png)
+![Finding input in memory_user input as return](img/1_9.png)
 
 So, let's now scroll down to the weird text and ... sigh. There's the flag. That was very anti-climatic. Binary Ninja shows values as they exist in memory, not in the file. So it knows that the string was decrypted back to text, and just shows its final value. Challenge over. 
 
@@ -95,15 +95,15 @@ So, let's now scroll down to the weird text and ... sigh. There's the flag. That
 flag{6066ba5ab67c17d6d530b2a9925c21e3}
 ```
 
-![LOL there be the flag](1_10.png)
+![LOL there be the flag](img/1_10.png)
 
 But let's just look to see how it was created. There is no obvious string encryption XOR loops, the value just appears out of nowhere. And that's because it was being performed on the floating point registers (xmm*). Most debuggers hide these away and make them very difficult to view, typically displaying them as numbers with scientific notation. In BN we can display them as hex. BN will then determine it's text and will provide a "hint" value of the contents.
 
-![FPU math obfuscation](1_11.png)
+![FPU math obfuscation](img/1_11.png)
 
 All that leads to the final memcmp(). Here, the Binary Ninja TTD Debugger info gives a quick view at the argument stack at that specific point in time, showing the actual strings being sent in.
 
-![Final memcmp](1_12.png)
+![Final memcmp](img/1_12.png)
 
 
 Pa pa ya!
