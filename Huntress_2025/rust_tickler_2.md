@@ -32,7 +32,7 @@ Oof. That ... did a lot. But I didn't actually do that when I looked at the file
 
 Let's dance!
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=yepUXS9k6DM" target="_blank"><img src="http://img.youtube.com/vi/yepUXS9k6DM/0.jpg" width="240" height="180" border="10"><br>YouTube Link</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=yepUXS9k6DM" target="_blank"><img src="http://img.youtube.com/vi/yepUXS9k6DM/0.jpg" width="240" height="180" border="10"><br>Attack Attack! - Dance!</a></div>
 
 
 With main() quickly found, we look for any major logic checks to determine flow. Especially any early short circuits to die Find main check for one big logic flow. Here, early on is a big logic check based on the output of a previous call, followed by another function leading to a second check. Then more and more levels of checks before getting to a memcmp().
@@ -69,7 +69,7 @@ While here I start getting sidetracked with the FPU XOR I saw earlier and wanted
 
 Now we're getting somewhere fun! Time to start some happy rage!
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=EpXtD6dD0MU" target="_blank"><img src="http://img.youtube.com/vi/EpXtD6dD0MU/0.jpg" width="240" height="180" border="10"><br>YouTube Link</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=EpXtD6dD0MU" target="_blank"><img src="http://img.youtube.com/vi/EpXtD6dD0MU/0.jpg" width="240" height="180" border="10"><br>BABYMETAL - from me to u (feat. Poppy)</a></div>
 
 
 
@@ -222,7 +222,7 @@ Going in are just a bunch of byte validation junk, until I see this beauty:
 Oh bestill my heart! Lots of constants, with the math based upon rax3 (arg1[0x18]).
 
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=cdkBs0VCSX0" target="_blank"><img src="http://img.youtube.com/vi/cdkBs0VCSX0/0.jpg" width="240" height="180" border="10"><br>YouTube Link</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=cdkBs0VCSX0" target="_blank"><img src="http://img.youtube.com/vi/cdkBs0VCSX0/0.jpg" width="240" height="180" border="10"><br>TURISAS - Rasputin</a></div>
 
 
 
@@ -336,7 +336,7 @@ At this point I realize I could just manually change the bytes going in while de
 
 Tekkno Train vibes from now on
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=CFlhlZbeKgE" target="_blank"><img src="http://img.youtube.com/vi/CFlhlZbeKgE/0.jpg" alt="Electric Callboy - Tekkno Train" width="240" height="180" border="10"><br>YouTube Link</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=CFlhlZbeKgE" target="_blank"><img src="http://img.youtube.com/vi/CFlhlZbeKgE/0.jpg" alt="Electric Callboy - Tekkno Train" width="240" height="180" border="10"><br>Electric Callboy - TEKKNO TRAIN</a></div>
 
 
 But, something is still off. The data going into get_string() looks nothing like the original data block where we know the string is coming from. So, we need to go back and review the earlier HNTS validation routine. It's only called once, and then the results are reused across multiple string calls. I see the HNTS going in as arg2 and a hardcoded number 616 as arg3.
@@ -599,4 +599,4 @@ flag{f59a5f604d236425490133c3fac89a88}
 
 And I really only needed the first TTD run to get this. I just took the very long route to it.
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=AOpHFHCko3s" target="_blank"><img src="http://img.youtube.com/vi/AOpHFHCko3s/0.jpg" width="240" height="180" border="10"><br>YouTube Link</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=AOpHFHCko3s" target="_blank"><img src="http://img.youtube.com/vi/AOpHFHCko3s/0.jpg" width="240" height="180" border="10"><br>Saltatio Mortis vs. Eskimo Callboy - Hypa Hypa</a></div>

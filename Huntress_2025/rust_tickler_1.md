@@ -13,7 +13,7 @@ Warning: I use an ultrawide monitor, so all screenshots were taken on that.
 
 Let's start with the easiest, and put on some nice chill music.
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=UclCQ3zJOt4" target="_blank"><img src="http://img.youtube.com/vi/UclCQ3zJOt4/0.jpg" alt="Bisou - Warm Atmosphere" width="240" height="180" border="10"><br>YouTube Link</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=UclCQ3zJOt4" target="_blank"><img src="http://img.youtube.com/vi/UclCQ3zJOt4/0.jpg" alt="Bisou - Warm Atmosphere" width="240" height="180" border="10"><br>Bisou - Warm Atmosphere</a></div>
 
 
 The provided binary was just a simple, small executable with the warning that it was written in Rust:
@@ -108,5 +108,5 @@ All that leads to the final memcmp(). Here, the Binary Ninja TTD Debugger info g
 
 Pa pa ya!
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=oO7Y8NsnkRg" target="_blank"><img src="http://img.youtube.com/vi/oO7Y8NsnkRg/0.jpg" alt="Bisou - Warm Atmosphere" width="240" height="180" border="10"><br>YouTube Link</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=oO7Y8NsnkRg" target="_blank"><img src="http://img.youtube.com/vi/oO7Y8NsnkRg/0.jpg" alt="" width="240" height="180" border="10"><br>BABYMETAL - PA PA YA!!</a></div>
 
