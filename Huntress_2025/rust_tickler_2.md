@@ -10,7 +10,7 @@ You all looked like you were having so much fun reverse engineering Rust code...
 
 Let's skip straight to Claude doing markup. Because it finds rust_main_entry pretty easily but also does some of our analysis for us (by accident in a write up :)) 
 
-![Clade markup and hints](2_1.png)
+![Clade markup and hints](img/2_1.png)
 
 ```
   The main function (main_decrypt_and_validate at 0x140001350) now has inline comments explaining:
@@ -39,33 +39,33 @@ With main() quickly found, we look for any major logic checks to determine flow.
 
 I looked around the area to find any obvious stand-outs like Tickler 1 had, but just more basic FPU obfuscation. Nothing super simple.
 
-![Big logic fork within main()](2_2.png)
+![Big logic fork within main()](img/2_2.png)
 
 This is a good time to just move my work into a Windows VM and kick off my first TTD run. Similar to the first, a basic console window with a string input. "Who is my favorite cat?"
 
-![Launching TTD](2_3.png)
+![Launching TTD](img/2_3.png)
 
 I try to find good breakpoints to begin analysis. Going to Binary Ninja symbol view I find memcmp and see that there's only one usage within main(). That's a good place to set a BP and run.
 
-![Refs to memcmp](2_4.png)
+![Refs to memcmp](img/2_4.png)
 
 Oops. It never got there and somehow terminated here. B
 
-![It's a trap!](2_5.png)
+![It's a trap!](img/2_5.png)
 
 ut we'll use TTD to help here. First, Shift-G to get our current timestamp "2F2:0". So we have some measurement in time to compare against, to at least know if something we'll review earlier may be halfway through, etc.
 
-![Getting a timestamp](2_6.png)
+![Getting a timestamp](img/2_6.png)
 
 The thing about being trapped is that in Windows API-land you may be 30 subroutines deep in calls. And that's exactly where this is. So, you can Shift-F8 step your way out ... dozens of times. Or, just go back to main and set some more realistic breakpoints. Then just Shift-F9 to run blindly backwards until one is hit. That should put you very close to the failed check. I see that a comparison to var_f8 fails because var_f8 was set to 0x08 ... why? Don't know. I reviewed the data in and out of this routine and it didn't make sense. So, put a pin in that and come back later.
 
-![Setting more realistic breakpoints](2_7.png)
+![Setting more realistic breakpoints](img/2_7.png)
 
 While here I start getting sidetracked with the FPU XOR I saw earlier and wanted to trace along. We see a large string of "3"s loaded into xmm0 and then used to XOR decrypt a large block of data. This takes a very large block of weird "3"s in memory and unveils a "HNTS" block. 
 
-![More FPU XOR Magic](2_8.png)
-![Decryption against a large data block](2_9.png)
-![A Huntress Appears](2_10.png)
+![More FPU XOR Magic](img/2_8.png)
+![Decryption against a large data block](img/2_9.png)
+![A Huntress Appears](img/2_10.png)
 
 Now we're getting somewhere fun! Time to start some happy rage!
 
@@ -77,7 +77,7 @@ I want to see how this data is being used later. Using TTD I set a watch on the 
 
 You can see the original contents, changes made during XOR, and the final results (0x53544e48 = STNH = HNTS)
 
-![Hunt for memory hits](2_11.png)
+![Hunt for memory hits](img/2_11.png)
 
 The last write corresponds to the XOR. But the last read? And why is there only one read and then it's done?
 From this table you can double click on any time stamp to go to that RIP, with the registers set. However, it's actually at the RIP after the change was made. So you would realistically step back one. In this case, it was stepping back out of multiple functions to get to a memcmp within sub_7ff65e8f3ea0.
@@ -100,7 +100,7 @@ With the memcmp highlighted we can see the contents. 4 bytes from some buffer co
       int64_t r13_1 = 4
 ```
 
-![](2_12.png)
+![](img/2_12.png)
 
 
 So that's why there's only one read, there was a memcpy elsewhere. After that it moves to varying offsets within that data set but never refers to the original. Going back up, this all occurs directly after the XOR routines:
@@ -273,7 +273,7 @@ Seeing that this is a failure message being formed, I look upward for the checks
 At this point, in the registers I see my guess "garfield" as well as "Bingus" and "bingus". I just need to look at the values during cmp
 
 
-![](2_13.png)
+![](img/2_13.png)
 
 Sweet. There's our cat name comparison. 
 
@@ -285,7 +285,7 @@ Knowing this, I run TTD for a second time and enter the correct cat name.
 
 ... And still failed the check.
 
-![](2_14.png)
+![](img/2_14.png)
 
 OK. So the challenge at this point seems to be targeting the string table to get other values out of it. I could start brute forcing the values, but let's do it systematically. First, go back and use the first TTD run so that my base address syncs across all runs for note-taking.
 
@@ -329,7 +329,7 @@ if (decrypt_str_actual(rcx_2, &var_20) != 0)
 
 Looking at HNTS data, there's structure to the beginning, then a lot of bytes. Table of contents? I see 0xaaaa, 0xaaaaaa. Yeah. Definitely some sort of table of contents with a set structure.
 
-![](2_15.png)
+![](img/2_15.png)
 
 
 At this point I realize I could just manually change the bytes going in while debugging to brute force a flag out :) But I wanted to find a complete solution.
