@@ -167,15 +167,16 @@ Let's look at the file in a hex editor. There is obvious code, and then very obv
 ```
 Alllll junk code. Go to BN and set disassembly view for address, opcodes, and scroll down to that section while trying to avoid the forbidden code. We want to find the forbidden function prologue and NOP it out. 
 
-Let's orientate ourselves. The code base starts at 0x140001000, so that has to be applied to file offsets. I can look at main(), which starts at 0x1400011f0, grab the opcode bytes, search in the binary and find their offset:
-415741564155415456575553
+Let's orient ourselves. The code base starts at virtual address (VA) 0x140001000, which is the start of the .text section relative to the image base 0x140000000. main() is at VA 0x1400011f0, giving it an RVA of 0x11F0. I can grab the opcode bytes at that RVA and map them to the corresponding file offset for patching.
+
 
 ```
 000:05E0  4C 40 02 CC CC CC CC CC CC CC CC CC CC CC CC CC  L@.ÌÌÌÌÌÌÌÌÌÌÌÌÌ 
 000:05F0  41 57 41 56 41 55 41 54 56 57 55 53 48 81 EC 48  AWAVAUATVWUSH.ìH 
 000:0600  02 00 00 8B 05 DF FE 40 02 83 F8 03 0F 85 DA 0B  ...‹.ßþ@.ƒø..…Ú. 
 ```
-Perfect. 0x5F0, and you can see the byte padding before it (0xCC) letting us know this is really likely the start of something new. 
+
+Perfect. "415741564155415456575553" is located at 0x5F0, and you can see the byte padding before it (0xCC) letting us know this is really likely the start of something new. 
 
 So any code in disassembly will need its address subtracted by 0x140000C00 to find the file offset of the same code. If the big function starts at 0x140001FC0, that's file offset 0x13C0. If you look at the data blob above, that it just prior to all the junk code. Nice. So, NOP first 8 bytes just to prevent analysis by replacing them with 0x90s. 
 
@@ -294,7 +295,7 @@ This time I can just verify my assumptions. Instead of a HNTS, there is an HNTB 
 
 ![](img/3_5.png)
 
-Again, I see it decrypting with a very similar FPU output in xmm registers:
+Again, I see it decrypting with a very similar FPU/SIMD output in xmm registers:
 
 xmm0: 0x2226730de100000000000000020
 xmm1: 0x726f76616620796d2073692074616857 'What is my favor'
