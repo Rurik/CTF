@@ -1,9 +1,11 @@
-⚙️ Rust Tickler 3
+# Rust Tickler 3
+
+```
 Category    Author
 ⚙️ Reverse Engineering  @Nordgaren
-Challenge Prompt
-It's back. Good luck.
 
+It's back. Good luck.
+```
 
 The final form of Rust Tickler 3, which apparently was a blocker for many teams. I was looking forward to a good advanced RE challenge :) Like the other two challenges I will focus on Binary Ninja TTD, though in reality I did use a debugger to handle getting stage2 in place.
 
