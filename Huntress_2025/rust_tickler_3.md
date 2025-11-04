@@ -209,7 +209,7 @@ So a few different ways you could do it, and I'm sure there are much better and 
 
 At this point we have royally mucked with the database. So, I delete it and start over, then ask Claude to reapply all its annotations back to it.
 
-This is a very hack-ish way to fix the problem, but it works. Now the code comes up quickly, it's easily read, and there is no junk to worry about. And instead of carrying a 90MB BNDB around, this is just 5MB. I did not do this during my analysis, but it will make your life much easier.
+This is a very hack-ish way to fix the data loading problem, but it works. Now that the methodology is there, do not do this. The actual data needed for further analysis is contained within that patched data. (coming very soon: how to verify and work around this)
 
 
 Back to a function analysis, I look at main() and see the staging just like the previous challenge:
