@@ -184,7 +184,14 @@ So any code in disassembly will need its address subtracted by 0x140000C00 to fi
 
 That's if you like to work simultaneously on disk and in memory, like I do. You can also just patch it directly in Binary Ninja :) Patch the bytes, right click on the function and 'Undefine function', and wait about 60 seconds ... and it's gone! After it are a few dozen functions that were all 0x1005 in size. All junk. Let's nuke them. In my symbol view, these are all lined up sequentially by address. Perfect, so I can nuke the entire block all at once! This is easiest done on disk.
 
-The first function starts at 0x140011fc6 and the first non-junk function starts at 0x1423ebe80. Apply math, and that is file offsets 0x113C6 through 0x23EB280. Wow. I verified that this all looks like junk in 010 Editor, stepped a few bytes prior to the good function, and overwrote 0x113C6 through 0x23EB270 with 0x90s. But, while I'm at it, why not nuke the earlier one too?
+The first function starts at 0x140001fc0 and the first non-junk function starts at 0x1423ebe80. Apply math, and that is file offsets 0x113C6 through 0x23EB280. Wow. I verified that this all looks like junk in 010 Editor, stepped a few bytes prior to the good function, and overwrote 0x113C6 through 0x23EB270 with 0x90s. But, while I'm at it, why not nuke the earlier one too?
+
+Before we nuke, let's backup to a file. We're not animals (unlike when I published the first version of this post ... 🫠)
+
+```
+data = bv.read(0x140011fc6, 0x240FE00)
+open('/tmp/data_dump_backup.dat', 'wb').write(data)
+```
 
 Quick script to read all data in, replace the specific bytes, then write it all back out.
 ```
@@ -207,12 +214,105 @@ bv.write(0x140011fc6, b'\x90' * 0x240FE00)
 
 So a few different ways you could do it, and I'm sure there are much better and cleaer ways. But I wanted a permanent way just in case I need to reopen this file up in other tools.
 
-At this point we have royally mucked with the database. So, I delete it and start over, then ask Claude to reapply all its annotations back to it.
+Since Binary Ninja failed on these routines, let's review them manually to see why.
 
-This is a very hack-ish way to fix the data loading problem, but it works. Now that the methodology is there, do not do this. The actual data needed for further analysis is contained within that patched data. (coming very soon: how to verify and work around this)
+Using defuse.ca we can paste raw hex bytes to get their disassembled view. If you've done this enough you likely have capstone installed and can use it in Python:
 
+```
+from capstone import *
+code = open('backup_data.dat', 'rb').read()
+md = Cs(CS_ARCH_X86, CS_MODE_64) # x64, x86 = CS_MODE_32
+for i in md.disasm(code, 0x00):
+    print('0x{:04x}:  {:8s} {}'.format(i.address, i.mnemonic, i.op_str))
+```
 
-Back to a function analysis, I look at main() and see the staging just like the previous challenge:
+Let's start with the first bytes of the massive function at 0x140001fc0:
+
+```
+4883ec2854554881ece01653004889e548c74500d81652004883c508c6450048c645014ec6450254c6450353c6450437c6450513c6450600c6450711c64508a3c6450912c6450a00c6450b00c6450cb4c6450d01c6450e00c6450f00c6451060
+```
+disassembles to
+```
+0x0000:  sub      rsp, 0x28
+0x0004:  push     rsp
+0x0005:  push     rbp
+0x0006:  sub      rsp, 0x5316e0
+0x000d:  mov      rbp, rsp
+0x0010:  mov      qword ptr [rbp], 0x5216d8
+0x0018:  add      rbp, 8
+0x001c:  mov      byte ptr [rbp], 0x48
+0x0020:  mov      byte ptr [rbp + 1], 0x4e
+0x0024:  mov      byte ptr [rbp + 2], 0x54
+0x0028:  mov      byte ptr [rbp + 3], 0x53
+0x002c:  mov      byte ptr [rbp + 4], 0x37
+0x0030:  mov      byte ptr [rbp + 5], 0x13
+0x0034:  mov      byte ptr [rbp + 6], 0
+0x0038:  mov      byte ptr [rbp + 7], 0x11
+0x003c:  mov      byte ptr [rbp + 8], 0xa3
+0x0040:  mov      byte ptr [rbp + 9], 0x12
+0x0044:  mov      byte ptr [rbp + 0xa], 0
+```
+
+It's a good thing you didn't just nuke this from the very start .. 
+
+Let's look at the end of the bytes we copied out:
+```
+0x23e9e68:  mov      byte ptr [rbp + 0x5216d4], 0x87
+0x23e9e6f:  mov      byte ptr [rbp + 0x5216d5], 0xa6
+0x23e9e76:  mov      byte ptr [rbp + 0x5216d6], 0xe3
+0x23e9e7d:  mov      byte ptr [rbp + 0x5216d7], 0x4b
+0x23e9e84:  mov      rax, rsp
+0x23e9e87:  add      rsp, 0x5316e0
+0x23e9e8e:  pop      rbp
+0x23e9e8f:  pop      rsp
+0x23e9e90:  mov      qword ptr [rsp + 0x20], rax
+0x23e9e95:  mov      eax, dword ptr [rip + 0x2528d]
+0x23e9e9b:  cmp      eax, 3
+0x23e9e9e:  jne      0x23e9ea7
+0x23e9ea0:  xor      eax, eax
+0x23e9ea2:  add      rsp, 0x28
+0x23e9ea6:  ret
+0x23e9ea7:  lea      rcx, [rip + 0x25272]
+0x23e9eae:  lea      rdx, [rsp + 0x20]
+0x23e9eb3:  call     0x2406550
+0x23e9eb8:  xor      eax, eax
+0x23e9eba:  add      rsp, 0x28
+0x23e9ebe:  ret
+```
+
+Phew. It's constructing an array 0x5216d8 (5,379,800) bytes in size. It then just builds one massive stack string into this, a technique seen typically for strings or small data sets. Rarely for anything this large.
+
+Not a big deal. Capstone can help us get these bytes out easily (but slowly):
+
+```
+from capstone import *
+from capstone.x86 import *
+
+CODE = open("0x140001fc0.dat", "rb").read()
+
+md = Cs(CS_ARCH_X86, CS_MODE_64)
+
+output_array = []
+
+for i in md.disasm(CODE, 0):
+    if i.mnemonic == "mov" and len(i.operands) == 2:
+        dst, src = i.operands
+
+        # Only handle byte writes to [rbp + offset]
+        if (dst.type == X86_OP_MEM and
+            dst.mem.base == X86_REG_RBP and
+            src.type == X86_OP_IMM and
+            i.op_str.startswith("byte ptr")): # no qword ptr
+            
+            value = src.imm & 0xFF
+            output_array.append(value)
+
+open("0x140001fc0_reconstructed.dat", "wb").write(bytes(output_array))
+```
+
+When reviewing the export we see an "HNTS" structure that seems very much like the string structure from Rust Tickler 2. We'll come back to this in a second.
+
+Returning to static function analysis, I look at main() and see the staging just like the previous challenge:
 
 ```
   int64_t main()
@@ -273,7 +373,7 @@ Previously we knew that an HNTS data structure was decrypted, restructured, and 
   while (rdi != rdx_1)
 ```
 
-And that Claude thinks the string decryption routine is an exception handler :D Obviously, AI was wrong. Remember kids, don't trust AI. 
+And that Claude thinks the string decryption routine is an exception handler 😂 Obviously, AI was wrong. Remember kids, don't trust AI. 
 
 ```
   int64_t panic_handler(void* arg1, int64_t* arg2)
@@ -291,8 +391,107 @@ What is my favorite sha256 hash?
 
 ![](img/3_4.png)
 
-This time I can just verify my assumptions. Instead of a HNTS, there is an HNTB header that is being parsed apart.
-(Claude said it was "HNTH"? WTF Claude) This time the table appears to be 0x5216DB (5,379,803) bytes. Yikes.
+This time I can just verify my assumptions. If you remember, we extracted and restored this array earlier in analysis. It started as HNTS before XOR encoded to HNTB, etc. At least we now have context! This time the table appears to be 0x5216DB (5,379,803) bytes. Yikes. Let's figure this out now.
+
+If we find the memory address holding HNTB and hold it in the hex editor, we can find the change. Within Binary Ninja ensure your hex editor is not synced with your other panes (it never should be synced). Then just Shift-F8 backward until you find the changes.
+
+You keep hitting Shift-F8 and realize you're out of main() and keep going. Finally, the HNTS disappears once you step backward over `_initterm()` call within the original Rusty `_start`. You know, all that junk that happens before main() that we never care about? Well, today we do.
+
+Eventually within it hits this loop:
+```
+      do
+          if (*rbx != 0)
+              sub_7ffdf51aaf20()
+          
+          rbx = &rbx[1]
+          rsi += 1
+      while (rsi != rdi_3)
+```
+
+This seem a small, innocent loop within startup code so it's easily overlooked. It appears to be just a loop calling the same routine repeatedly while increasing offets within rbx. But, in HLIL or decompiler there's no clue to rbx's origin. In disassembly there's a suble `mov rbx, rcx`, but no assignment to rcx. So, we step back out of `_initterm()` and find it:
+
+```
+{ Continuation of function __scrt_common_main_seh() }
+
+lea     rdx, [rel data_7ff61303a3f0]
+lea     rcx, [rel data_7ff61303a3b0]
+call    _initterm
+```
+
+rcx there holds the data we're looking for. What's in rdx? Nothing.
+Back to this loop, in dissassembly, it makes a little more sense. When we look at the data in rbx we see it's an array of function addresses. The loop ignores the first (0x00 value), and iterates through the rest, calling each in turn.
+
+We see the structure in memory, as well as the other value I said was "nothing".
+
+```
+data_7ff61303a3b0:
+00 00 00 00 00 00 00 00                          ........
+
+void* data_7ff61303a3b8 = sub_7ff61303799c
+void* data_7ff61303a3c0 = sub_7ff610c31df0
+void* data_7ff61303a3c8 = sub_7ff610c31df0
+void* data_7ff61303a3d0 = sub_7ff610c31fc0
+void* data_7ff61303a3d8 = sub_7ff61301bee0
+void* data_7ff61303a3e0 = sub_7ff61301be80
+void* data_7ff61303a3e8 = sub_7ff61301bee0
+
+data_7ff61303a3f0:
+00 00 00 00 00 00 00 00                          ........
+data_7ff61303a3f8:
+                        00 00 00 00 00 00 00 00          ........
+
+void* data_7ff61303a400 = sub_7ff6130378d0
+void* data_7ff61303a408 = sub_7ff613037988
+```
+At this point we can iterate over. each of these calls, one at a time, and see their impact to the HNTS data. That's all where here for. Stay focused. No rabbit holes this time. Get in and get out. If you feel like getting distracted, open a second hex window and get distracted there. Leave the first for HNTS.
+
+It's on the third loop iteration that we get into trouble. It calls directly into our forbidden 0x...1fc0 function. If you were not in HLIL mode, you probably did okay and saw the same disassembly that we pulled earlier with capstone. I step backward out and step over the call instead of step into ... but we have our data loaded now!
+
+A few more calls later and we have an encoding routine:
+```
+  int64_t sub_7ff61301be80()
+      if (data_7ff6130410e8 == 3)
+          int64_t* rax = 0xc46cf1e370
+          int64_t rcx_1 = *rax
+          
+          if (rcx_1 u>= 4)
+              uint64_t rcx_2 = rcx_1 u>> 2
+              *(rax + (rcx_2 << 2) + 4) ^= 0xc0dec475
+              uint64_t rdx_1 = rcx_2
+              
+              while (true)
+                  uint64_t r8_1 = rdx_1 - 1
+                  
+                  if (rdx_1 u< rcx_2)
+                      if (r8_1 u>= rcx_2)
+                          break
+                      
+                      *(rax + (rdx_1 << 2) + 4) ^= *(rax + (rdx_1 << 2) + 8)
+                  
+                  rdx_1 = r8_1
+                  
+                  if (r8_1 == 0)
+                      return 0
+      
+```
+
+If you try to step through it a few times and look for changes, you may fail. It is encoding the data in reverse. If you want to verify, Ctrl-F9 to step out, then Shift-F7 to step back in at the return. Then walk backwards in time to see the encoding.
+
+This results in turning our HNTS data into the HNTB data:
+
+```
+00000000: d8 16 52 00 00 00 00 00 48 4e 54 53 37 13 00 11  ..R.....HNTS7...
+00000010: a3 12 00 00 b4 01 00 00 60 13 00 00 a5 06 52 00  ........`.....R.
+00000020: d7 15 52 00 7b 13 00 00 fd 05 52 00 b3 16 52 00  ..R.{.....R...R.
+
+>>>
+
+00000000: d8 16 52 00 00 00 00 00 48 4e 54 42 00 00 00 11  ..R.....HNTB....
+00000010: 37 13 00 00 94 01 00 00 20 00 00 00 40 13 00 00  7....... ...@...
+00000020: e5 15 52 00 32 00 00 00 49 13 00 00 b4 16 52 00  ..R.2...I.....R.
+```
+
+NOW! With that understood, let's go back to where strings are parsed out of HNTB:
 
 
 ![](img/3_5.png)
