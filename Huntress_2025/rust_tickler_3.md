@@ -13,7 +13,7 @@ Let's start off with some chill tunes.
 
 <div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=v_8NVwu8jyU" target="_blank"><img src="http://img.youtube.com/vi/v_8NVwu8jyU/0.jpg" width="240" height="180" border="10"><br>San Holo - lift me from the ground (ft. Sofie Winterson)</a></div>
 
-A few big challenges from the start. One, this is now a huge 38MB file, and that is all stored within the .text section. If it was overlay it'd be easy, but this is 38MB of functions :( 
+A few big challenges from the start. One, this is now a huge 38MB file, and that is all stored within the .text section. If it was overlay it'd be easy, but this is 38MB of functions :(
 
 ```
 File Name       : rust-tickler-3.exe
@@ -50,7 +50,7 @@ It appears that analysis puts a pause on Claude and the MCP. So, for now, let's 
 bv.abort_analysis()
 ```
 
-This immediately speeds up Claude analysis. This time I'm less choosy about using its hints to guide me. 
+This immediately speeds up Claude analysis. This time I'm less choosy about using its hints to guide me.
 
 Claude analysis:
 ```
@@ -107,7 +107,7 @@ Challenge Type: Multi-Stage Reverse Engineering with Custom Cryptography
 Cool, so it's just expanding what we already saw in the previous challenge. With annotations done, I continue the Binary Ninja analysis:
 
 ```
-bv.workflow.machine.enable() 
+bv.workflow.machine.enable()
 ```
 
 Apparently Binary Ninja won't save half-completed analysis, so every time you open in the future it will need to re-analyze. So may as well get a cup of coffee and get it done now... While it's analyzing you can still review the functions that were completed. And make sure you Save your database after annotations, even while it warns you that analysis will need to be redone.
@@ -120,67 +120,67 @@ Here what I realized was dozens of functions that were all exactly 0x10005 (65,5
 
 NOP (0x90) is assembly code for no-op, or basically "do nothing here, just keep going".
 
-Let's look at the file in a hex editor. There is obvious code, and then very obvious NOT code.
+Let's look at the file in a hex editor. There is obvious code, and then what looks like very obvious NOT code.
 
 ```
-000:1370  F7 E1 48 69 C2 00 00 70 00 48 29 C7 F6 44 3C 50  ÷áHiÂ..p.H)ÇöD<P 
-000:1380  01 75 30 48 8D 05 7E 85 40 02 48 89 44 24 20 48  .u0H..~…@.H‰D$ H 
-000:1390  C7 44 24 28 01 00 00 00 48 C7 44 24 30 08 00 00  ÇD$(....HÇD$0... 
-000:13A0  00 0F 57 C0 0F 11 44 24 38 48 8D 4C 24 20 E8 3D  ..WÀ..D$8H.L$ è= 
-000:13B0  E0 3E 02 31 C0 48 81 C4 50 00 70 00 5B 5F 5E C3  à>.1ÀH.ÄP.p.[_^Ã 
-000:13C0  48 83 EC 28 54 55 48 81 EC E0 16 53 00 48 89 E5  Hƒì(TUH.ìà.S.H‰å 
-000:13D0  48 C7 45 00 D8 16 52 00 48 83 C5 08 C6 45 00 48  HÇE.Ø.R.HƒÅ.ÆE.H 
-000:13E0  C6 45 01 4E C6 45 02 54 C6 45 03 53 C6 45 04 37  ÆE.NÆE.TÆE.SÆE.7 
-000:13F0  C6 45 05 13 C6 45 06 00 C6 45 07 11 C6 45 08 A3  ÆE..ÆE..ÆE..ÆE.£ 
-000:1400  C6 45 09 12 C6 45 0A 00 C6 45 0B 00 C6 45 0C B4  ÆE..ÆE..ÆE..ÆE.´ 
-000:1410  C6 45 0D 01 C6 45 0E 00 C6 45 0F 00 C6 45 10 60  ÆE..ÆE..ÆE..ÆE.` 
-000:1420  C6 45 11 13 C6 45 12 00 C6 45 13 00 C6 45 14 A5  ÆE..ÆE..ÆE..ÆE.¥ 
-000:1430  C6 45 15 06 C6 45 16 52 C6 45 17 00 C6 45 18 D7  ÆE..ÆE.RÆE..ÆE.× 
-000:1440  C6 45 19 15 C6 45 1A 52 C6 45 1B 00 C6 45 1C 7B  ÆE..ÆE.RÆE..ÆE.{ 
-000:1450  C6 45 1D 13 C6 45 1E 00 C6 45 1F 00 C6 45 20 FD  ÆE..ÆE..ÆE..ÆE ý 
-000:1460  C6 45 21 05 C6 45 22 52 C6 45 23 00 C6 45 24 B3  ÆE!.ÆE"RÆE#.ÆE$³ 
-000:1470  C6 45 25 16 C6 45 26 52 C6 45 27 00 C6 45 28 45  ÆE%.ÆE&RÆE'.ÆE(E 
-000:1480  C6 45 29 13 C6 45 2A 00 C6 45 2B 00 C6 45 2C 63  ÆE).ÆE*.ÆE+.ÆE,c 
-000:1490  C6 45 2D 12 C6 45 2E 00 C6 45 2F 00 C6 45 30 01  ÆE-.ÆE..ÆE/.ÆE0. 
-000:14A0  C6 45 31 01 C6 45 32 00 C6 45 33 00 C6 45 34 1E  ÆE1.ÆE2.ÆE3.ÆE4. 
-000:14B0  C6 45 35 13 C6 45 36 00 C6 45 37 00 C6 45 38 8A  ÆE5.ÆE6.ÆE7.ÆE8Š 
-000:14C0  C6 45 39 06 C6 45 3A 52 C6 45 3B 00 C6 45 3C 85  ÆE9.ÆE:RÆE;.ÆE<… 
-000:14D0  C6 45 3D 15 C6 45 3E 52 C6 45 3F 00 C6 45 40 09  ÆE=.ÆE>RÆE?.ÆE@. 
-000:14E0  C6 45 41 13 C6 45 42 00 C6 45 43 00 C6 45 44 79  ÆEA.ÆEB.ÆEC.ÆEDy 
-000:14F0  C6 45 45 12 C6 45 46 00 C6 45 47 00 C6 45 48 6D  ÆEE.ÆEF.ÆEG.ÆEHm 
-000:1500  C6 45 49 01 C6 45 4A 00 C6 45 4B 00 C6 45 4C 13  ÆEI.ÆEJ.ÆEK.ÆEL. 
-000:1510  C6 45 4D 13 C6 45 4E 00 C6 45 4F 00 C6 45 50 37  ÆEM.ÆEN.ÆEO.ÆEP7 
-000:1520  C6 45 51 12 C6 45 52 00 C6 45 53 00 C6 45 54 11  ÆEQ.ÆER.ÆES.ÆET. 
-000:1530  C6 45 55 01 C6 45 56 00 C6 45 57 00 C6 45 58 73  ÆEU.ÆEV.ÆEW.ÆEXs 
-000:1540  C6 45 59 13 C6 45 5A 00 C6 45 5B 00 C6 45 5C FC  ÆEY.ÆEZ.ÆE[.ÆE\ü 
-000:1550  C6 45 5D 05 C6 45 5E 52 C6 45 5F 00 C6 45 60 92  ÆE].ÆE^RÆE_.ÆE`’ 
-000:1560  C6 45 61 16 C6 45 62 52 C6 45 63 00 C6 45 64 45  ÆEa.ÆEbRÆEc.ÆEdE 
-000:1570  C6 45 65 13 C6 45 66 00 C6 45 67 00 C6 45 68 F5  ÆEe.ÆEf.ÆEg.ÆEhõ 
-000:1580  C6 45 69 12 C6 45 6A 00 C6 45 6B 00 C6 45 6C B4  ÆEi.ÆEj.ÆEk.ÆEl´ 
-000:1590  C6 45 6D 15 C6 45 6E 52 C6 45 6F 00 C6 45 70 3A  ÆEm.ÆEnRÆEo.ÆEp: 
-000:15A0  C6 45 71 07 C6 45 72 52 C6 45 73 00 C6 45 74 27  ÆEq.ÆErRÆEs.ÆEt' 
-000:15B0  C6 45 75 05 C6 45 76 52 C6 45 77 00 C6 45 78 5D  ÆEu.ÆEvRÆEw.ÆEx] 
-000:15C0  C6 45 79 16 C6 45 7A 52 C6 45 7B 00 C6 45 7C 7B  ÆEy.ÆEzRÆE{.ÆE|{ 
-000:15D0  C6 45 7D 13 C6 45 7E 00 C6 45 7F 00 C6 85 80 00  ÆE}.ÆE~.ÆE..Æ…€. 
-000:15E0  00 00 EF C6 85 81 00 00 00 13 C6 85 82 00 00 00  ..ïÆ….....Æ…‚... 
-000:15F0  00 C6 85 83 00 00 00 00 C6 85 84 00 00 00 CB C6  .Æ…ƒ....Æ…„...ËÆ 
-000:1600  85 85 00 00 00 00 C6 85 86 00 00 00 00 C6 85 87  ……....Æ…†....Æ…‡ 
+000:1370  F7 E1 48 69 C2 00 00 70 00 48 29 C7 F6 44 3C 50  ÷áHiÂ..p.H)ÇöD<P
+000:1380  01 75 30 48 8D 05 7E 85 40 02 48 89 44 24 20 48  .u0H..~…@.H‰D$ H
+000:1390  C7 44 24 28 01 00 00 00 48 C7 44 24 30 08 00 00  ÇD$(....HÇD$0...
+000:13A0  00 0F 57 C0 0F 11 44 24 38 48 8D 4C 24 20 E8 3D  ..WÀ..D$8H.L$ è=
+000:13B0  E0 3E 02 31 C0 48 81 C4 50 00 70 00 5B 5F 5E C3  à>.1ÀH.ÄP.p.[_^Ã
+000:13C0  48 83 EC 28 54 55 48 81 EC E0 16 53 00 48 89 E5  Hƒì(TUH.ìà.S.H‰å
+000:13D0  48 C7 45 00 D8 16 52 00 48 83 C5 08 C6 45 00 48  HÇE.Ø.R.HƒÅ.ÆE.H
+000:13E0  C6 45 01 4E C6 45 02 54 C6 45 03 53 C6 45 04 37  ÆE.NÆE.TÆE.SÆE.7
+000:13F0  C6 45 05 13 C6 45 06 00 C6 45 07 11 C6 45 08 A3  ÆE..ÆE..ÆE..ÆE.£
+000:1400  C6 45 09 12 C6 45 0A 00 C6 45 0B 00 C6 45 0C B4  ÆE..ÆE..ÆE..ÆE.´
+000:1410  C6 45 0D 01 C6 45 0E 00 C6 45 0F 00 C6 45 10 60  ÆE..ÆE..ÆE..ÆE.`
+000:1420  C6 45 11 13 C6 45 12 00 C6 45 13 00 C6 45 14 A5  ÆE..ÆE..ÆE..ÆE.¥
+000:1430  C6 45 15 06 C6 45 16 52 C6 45 17 00 C6 45 18 D7  ÆE..ÆE.RÆE..ÆE.×
+000:1440  C6 45 19 15 C6 45 1A 52 C6 45 1B 00 C6 45 1C 7B  ÆE..ÆE.RÆE..ÆE.{
+000:1450  C6 45 1D 13 C6 45 1E 00 C6 45 1F 00 C6 45 20 FD  ÆE..ÆE..ÆE..ÆE ý
+000:1460  C6 45 21 05 C6 45 22 52 C6 45 23 00 C6 45 24 B3  ÆE!.ÆE"RÆE#.ÆE$³
+000:1470  C6 45 25 16 C6 45 26 52 C6 45 27 00 C6 45 28 45  ÆE%.ÆE&RÆE'.ÆE(E
+000:1480  C6 45 29 13 C6 45 2A 00 C6 45 2B 00 C6 45 2C 63  ÆE).ÆE*.ÆE+.ÆE,c
+000:1490  C6 45 2D 12 C6 45 2E 00 C6 45 2F 00 C6 45 30 01  ÆE-.ÆE..ÆE/.ÆE0.
+000:14A0  C6 45 31 01 C6 45 32 00 C6 45 33 00 C6 45 34 1E  ÆE1.ÆE2.ÆE3.ÆE4.
+000:14B0  C6 45 35 13 C6 45 36 00 C6 45 37 00 C6 45 38 8A  ÆE5.ÆE6.ÆE7.ÆE8Š
+000:14C0  C6 45 39 06 C6 45 3A 52 C6 45 3B 00 C6 45 3C 85  ÆE9.ÆE:RÆE;.ÆE<…
+000:14D0  C6 45 3D 15 C6 45 3E 52 C6 45 3F 00 C6 45 40 09  ÆE=.ÆE>RÆE?.ÆE@.
+000:14E0  C6 45 41 13 C6 45 42 00 C6 45 43 00 C6 45 44 79  ÆEA.ÆEB.ÆEC.ÆEDy
+000:14F0  C6 45 45 12 C6 45 46 00 C6 45 47 00 C6 45 48 6D  ÆEE.ÆEF.ÆEG.ÆEHm
+000:1500  C6 45 49 01 C6 45 4A 00 C6 45 4B 00 C6 45 4C 13  ÆEI.ÆEJ.ÆEK.ÆEL.
+000:1510  C6 45 4D 13 C6 45 4E 00 C6 45 4F 00 C6 45 50 37  ÆEM.ÆEN.ÆEO.ÆEP7
+000:1520  C6 45 51 12 C6 45 52 00 C6 45 53 00 C6 45 54 11  ÆEQ.ÆER.ÆES.ÆET.
+000:1530  C6 45 55 01 C6 45 56 00 C6 45 57 00 C6 45 58 73  ÆEU.ÆEV.ÆEW.ÆEXs
+000:1540  C6 45 59 13 C6 45 5A 00 C6 45 5B 00 C6 45 5C FC  ÆEY.ÆEZ.ÆE[.ÆE\ü
+000:1550  C6 45 5D 05 C6 45 5E 52 C6 45 5F 00 C6 45 60 92  ÆE].ÆE^RÆE_.ÆE`’
+000:1560  C6 45 61 16 C6 45 62 52 C6 45 63 00 C6 45 64 45  ÆEa.ÆEbRÆEc.ÆEdE
+000:1570  C6 45 65 13 C6 45 66 00 C6 45 67 00 C6 45 68 F5  ÆEe.ÆEf.ÆEg.ÆEhõ
+000:1580  C6 45 69 12 C6 45 6A 00 C6 45 6B 00 C6 45 6C B4  ÆEi.ÆEj.ÆEk.ÆEl´
+000:1590  C6 45 6D 15 C6 45 6E 52 C6 45 6F 00 C6 45 70 3A  ÆEm.ÆEnRÆEo.ÆEp:
+000:15A0  C6 45 71 07 C6 45 72 52 C6 45 73 00 C6 45 74 27  ÆEq.ÆErRÆEs.ÆEt'
+000:15B0  C6 45 75 05 C6 45 76 52 C6 45 77 00 C6 45 78 5D  ÆEu.ÆEvRÆEw.ÆEx]
+000:15C0  C6 45 79 16 C6 45 7A 52 C6 45 7B 00 C6 45 7C 7B  ÆEy.ÆEzRÆE{.ÆE|{
+000:15D0  C6 45 7D 13 C6 45 7E 00 C6 45 7F 00 C6 85 80 00  ÆE}.ÆE~.ÆE..Æ…€.
+000:15E0  00 00 EF C6 85 81 00 00 00 13 C6 85 82 00 00 00  ..ïÆ….....Æ…‚...
+000:15F0  00 C6 85 83 00 00 00 00 C6 85 84 00 00 00 CB C6  .Æ…ƒ....Æ…„...ËÆ
+000:1600  85 85 00 00 00 00 C6 85 86 00 00 00 00 C6 85 87  ……....Æ…†....Æ…‡
 
 ```
-Alllll junk code. Go to BN and set disassembly view for address, opcodes, and scroll down to that section while trying to avoid the forbidden code. We want to find the forbidden function prologue and NOP it out. 
+My initial interpretation was that this all junk code. So, I my task is to go to BN and set disassembly view for address, opcodes, and scroll down to that section while trying to avoid the forbidden code. We want to find the forbidden function prologue and NOP it out.
 
-Let's orient ourselves. The code base starts at virtual address (VA) 0x140001000, which is the start of the .text section relative to the image base 0x140000000. main() is at VA 0x1400011f0, giving it an RVA of 0x11F0. I can grab the opcode bytes at that RVA and map them to the corresponding file offset for patching.
+Let's first orient ourselves. The code base starts at virtual address (VA) 0x140001000, which is the start of the .text section relative to the image base 0x140000000. main() is at VA 0x1400011f0, giving it an RVA of 0x11F0. I can grab the opcode bytes at that RVA and map them to the corresponding file offset for patching.
 
 
 ```
-000:05E0  4C 40 02 CC CC CC CC CC CC CC CC CC CC CC CC CC  L@.ÌÌÌÌÌÌÌÌÌÌÌÌÌ 
-000:05F0  41 57 41 56 41 55 41 54 56 57 55 53 48 81 EC 48  AWAVAUATVWUSH.ìH 
-000:0600  02 00 00 8B 05 DF FE 40 02 83 F8 03 0F 85 DA 0B  ...‹.ßþ@.ƒø..…Ú. 
+000:05E0  4C 40 02 CC CC CC CC CC CC CC CC CC CC CC CC CC  L@.ÌÌÌÌÌÌÌÌÌÌÌÌÌ
+000:05F0  41 57 41 56 41 55 41 54 56 57 55 53 48 81 EC 48  AWAVAUATVWUSH.ìH
+000:0600  02 00 00 8B 05 DF FE 40 02 83 F8 03 0F 85 DA 0B  ...‹.ßþ@.ƒø..…Ú.
 ```
 
-Perfect. "415741564155415456575553" is located at 0x5F0, and you can see the byte padding before it (0xCC) letting us know this is really likely the start of something new. 
+Perfect. "0x415741564155415456575553" is located at 0x5F0, and you can see the function byte padding before it (0xCC) letting us know this is really likely the start of something new.
 
-So any code in disassembly will need its address subtracted by 0x140000C00 to find the file offset of the same code. If the big function starts at 0x140001FC0, that's file offset 0x13C0. If you look at the data blob above, that it just prior to all the junk code. Nice. So, NOP first 8 bytes just to prevent analysis by replacing them with 0x90s. 
+So any code in disassembly will need its address subtracted by 0x140000C00 to find the file offset of the same code. If the big function starts at 0x140001FC0, that's file offset 0x13C0. If you look at the data blob above, that it just prior to all the junk code. Nice. So, NOP first 8 bytes just to prevent analysis by replacing them with 0x90s.
 
 That's if you like to work simultaneously on disk and in memory, like I do. You can also just patch it directly in Binary Ninja :) Patch the bytes, right click on the function and 'Undefine function', and wait about 60 seconds ... and it's gone! After it are a few dozen functions that were all 0x1005 in size. All junk. Let's nuke them. In my symbol view, these are all lined up sequentially by address. Perfect, so I can nuke the entire block all at once! This is easiest done on disk.
 
@@ -189,7 +189,7 @@ The first function starts at 0x140001fc0 and the first non-junk function starts 
 Before we nuke, let's backup to a file. We're not animals (unlike when I published the first version of this post ... 🫠)
 
 ```
-data = bv.read(0x140011fc6, 0x240FE00)
+data = bv.read(0x140011fc0, 0x240FE00)
 open('/tmp/data_dump_backup.dat', 'wb').write(data)
 ```
 
@@ -207,7 +207,7 @@ Modify the file, rename it to replace original, close Binary Ninja database, reo
 
 You can also do this directly within Binary Ninja, where you specify the number of bytes to write
 ```
-bv.write(0x140011fc6, b'\x90' * 0x240FE00)
+bv.write(0x140011fc0, b'\x90' * 0x240FE00)
 ```
 
 ![](img/3_3.png)
@@ -216,7 +216,7 @@ So a few different ways you could do it, and I'm sure there are much better and 
 
 Since Binary Ninja failed on these routines, let's review them manually to see why.
 
-Using defuse.ca we can paste raw hex bytes to get their disassembled view. If you've done this enough you likely have capstone installed and can use it in Python:
+Using [defuse.ca's online assembler](https://defuse.ca/online-x86-assembler.htm) we can paste raw hex bytes to get their disassembled view. If you've done this enough you likely already have capstone installed and can use it in Python:
 
 ```
 from capstone import *
@@ -253,7 +253,7 @@ disassembles to
 0x0044:  mov      byte ptr [rbp + 0xa], 0
 ```
 
-It's a good thing you didn't just nuke this from the very start .. 
+It's a good thing you didn't just nuke this from the very start ..
 
 Let's look at the end of the bytes we copied out:
 ```
@@ -303,7 +303,7 @@ for i in md.disasm(CODE, 0):
             dst.mem.base == X86_REG_RBP and
             src.type == X86_OP_IMM and
             i.op_str.startswith("byte ptr")): # no qword ptr
-            
+
             value = src.imm & 0xFF
             output_array.append(value)
 
@@ -311,6 +311,51 @@ open("0x140001fc0_reconstructed.dat", "wb").write(bytes(output_array))
 ```
 
 When reviewing the export we see an "HNTS" structure that seems very much like the string structure from Rust Tickler 2. We'll come back to this in a second.
+
+One thing that stood out with the large block of code were relational JMP and CALL statements, but the one that now stands out is the last call 0x2406550. I assumed that this large function and all the various 0x10005 functions were separate things! This suggests that they are chained together... As a quick aside, I want to verify this by grabbing just a few bytes and reviewing them. Then I see things like this:
+
+```
+0x0679:  movdqa   xmmword ptr [rsp + 0x40], xmm10
+0x0680:  pshufd   xmm13, xmm13, 0x4e
+0x0686:  pshufd   xmm4, xmm4, 0x93
+0x068b:  pshufd   xmm10, xmmword ptr [rsp + 0x20], 0x39
+0x0693:  pshufd   xmm14, xmm14, 0x4e
+0x0699:  pshufd   xmm0, xmm0, 0x93
+0x069e:  paddd    xmm2, xmm8
+0x06a3:  pxor     xmm1, xmm2
+0x06a7:  movdqa   xmm11, xmm1
+0x06ac:  psrld    xmm11, 0x10
+0x06b2:  pslld    xmm1, 0x10
+0x06b7:  por      xmm1, xmm11
+0x06bc:  paddd    xmm3, xmm1
+0x06c0:  pxor     xmm8, xmm3
+0x06c5:  movdqa   xmm11, xmm8
+0x06ca:  psrld    xmm11, 0x14
+0x06d0:  pslld    xmm8, 0xc
+0x06d6:  por      xmm8, xmm11
+0x06db:  paddd    xmm2, xmm8
+0x06e0:  movdqa   xmmword ptr [rsp + 0x30], xmm2
+0x06e6:  pxor     xmm1, xmm2
+0x06ea:  movdqa   xmm11, xmm1
+0x06ef:  psrld    xmm11, 0x18
+0x06f5:  pslld    xmm1, 8
+0x06fa:  por      xmm1, xmm11
+0x06ff:  paddd    xmm3, xmm1
+0x0703:  movdqa   xmmword ptr [rsp + 0x20], xmm3
+0x0709:  pxor     xmm8, xmm3
+0x070e:  movdqa   xmm11, xmm8
+0x0713:  psrld    xmm11, 0x19
+0x0719:  pslld    xmm8, 7
+0x071f:  por      xmm8, xmm11
+0x0724:  paddd    xmm15, xmm5
+0x0729:  pxor     xmm12, xmm15
+0x072e:  movdqa   xmm11, xmm12
+0x0733:  psrld    xmm11, 0x10
+0x0739:  pslld    xmm12, 0x10
+0x073f:  por      xmm12, xmm11
+0x0744:  paddd    xmm9, xmm12
+```
+Ooof. On second thought, let's not go there. 'Tis a silly place.
 
 Returning to static function analysis, I look at main() and see the staging just like the previous challenge:
 
@@ -321,11 +366,11 @@ Returning to static function analysis, I look at main() and see the staging just
       int64_t* rdx_1 = data_1424110e0
       void* const var_200
       parse_hnth_format(&var_200, &rdx_1[1], *rdx_1)
-      
+
       if (not(add_overflow(0, neg.q(var_200))))
           int128_t var_218 = var_200.o
           find_and_parse_entry(&var_200, &var_218, 0x1337)
-          
+
           if (var_200 != -0x8000000000000000)
               int64_t i_5
               int64_t i_7 = i_5
@@ -339,10 +384,10 @@ Returning to static function analysis, I look at main() and see the staging just
               int64_t var_1e8_1 = 1
               print_formatted(&var_200)
               int64_t rdx_4 = var_258.q
-              
+
               if (rdx_4 != 0)
                   deallocate_memory(var_258:8.q, rdx_4, 1)
-              
+
               int64_t var_140 = 0
               char* var_138_1 = 1
               int64_t var_130_1 = 0
@@ -351,10 +396,10 @@ Returning to static function analysis, I look at main() and see the staging just
               char rax_3
               void* rdx_6
               rax_3, rdx_6 = read_line_stdin(&var_200, &var_140)
-              
+
               if ((rax_3 & 1) == 0)
                   void* rax_4 = find_entry_by_id(&var_218, 0x133a)
-                  
+
                   if (rax_4 != 0)
 ```
 
@@ -373,7 +418,7 @@ Previously we knew that an HNTS data structure was decrypted, restructured, and 
   while (rdi != rdx_1)
 ```
 
-And that Claude thinks the string decryption routine is an exception handler 😂 Obviously, AI was wrong. Remember kids, don't trust AI. 
+And that Claude thinks the string decryption routine is an exception handler 😂 Obviously, AI was wrong. Remember kids, don't trust AI.
 
 ```
   int64_t panic_handler(void* arg1, int64_t* arg2)
@@ -385,7 +430,7 @@ And that Claude thinks the string decryption routine is an exception handler �
 
 With a basic static analysis done, let's throw it in a VM and run it to see what happens. Same method applies. Run in TTD, make a guess, and save results. Re-run as TTD and set a few BPs to see where it lands.
 
-Another challenge, and another attempt at a response. 
+Another challenge prompt:
 
 What is my favorite sha256 hash?
 
@@ -395,14 +440,14 @@ This time I can just verify my assumptions. If you remember, we extracted and re
 
 If we find the memory address holding HNTB and hold it in the hex editor, we can find the change. Within Binary Ninja ensure your hex editor is not synced with your other panes (it never should be synced). Then just Shift-F8 backward until you find the changes.
 
-You keep hitting Shift-F8 and realize you're out of main() and keep going. Finally, the HNTS disappears once you step backward over `_initterm()` call within the original Rusty `_start`. You know, all that junk that happens before main() that we never care about? Well, today we do.
+You keep hitting Shift-F8 and realize you're out of main() and keep going. Finally, the HNTS disappears once you step backward over `_initterm()` call within the original Rust `_start`. You know, all that junk that happens before main() that we never care about? Well, today we do.
 
 Eventually within it hits this loop:
 ```
       do
           if (*rbx != 0)
               sub_7ffdf51aaf20()
-          
+
           rbx = &rbx[1]
           rsi += 1
       while (rsi != rdi_3)
@@ -453,26 +498,26 @@ A few more calls later and we have an encoding routine:
       if (data_7ff6130410e8 == 3)
           int64_t* rax = 0xc46cf1e370
           int64_t rcx_1 = *rax
-          
+
           if (rcx_1 u>= 4)
               uint64_t rcx_2 = rcx_1 u>> 2
               *(rax + (rcx_2 << 2) + 4) ^= 0xc0dec475
               uint64_t rdx_1 = rcx_2
-              
+
               while (true)
                   uint64_t r8_1 = rdx_1 - 1
-                  
+
                   if (rdx_1 u< rcx_2)
                       if (r8_1 u>= rcx_2)
                           break
-                      
+
                       *(rax + (rdx_1 << 2) + 4) ^= *(rax + (rdx_1 << 2) + 8)
-                  
+
                   rdx_1 = r8_1
-                  
+
                   if (r8_1 == 0)
                       return 0
-      
+
 ```
 
 If you try to step through it a few times and look for changes, you may fail. It is encoding the data in reverse. If you want to verify, Ctrl-F9 to step out, then Shift-F7 to step back in at the return. Then walk backwards in time to see the encoding.
@@ -514,7 +559,7 @@ if (rax_2 != 0)
   memcpy(dest: rax_2, src: r12_1, count: rdi.d)
   int32_t rax_3 = *(arg1 + 0x18)
   int64_t rdx_1 = 0
-  
+
   do
       int32_t rcx_4 = not.d(rax_3)
       int32_t r9_3 = rol.d(rcx_4, 4) | 1
@@ -577,7 +622,7 @@ Here's where I realize there is a second routine to get a string, which I'm call
 It checks:
 ```
 0x133a: a4ec6d39192922bdec0e310db3dda25f21f1d7e8e9e68cfebc156553e4123b03
-0x1341: ",nc5d395929bdc0e" ... 
+0x1341: ",nc5d395929bdc0e" ...
 ```
 
 Oh wait, look at that. Line them up and there's overlap. Which would likely be NULLs if one is an XOR key to the other. Almost...
@@ -606,16 +651,16 @@ I look further in main() to see a function that Claude thought was decryption, a
   int64_t var_a8
   sub_7ff613034480(&var_a8, &rust_tickler_filename)
   sub_7ff61301e040(&var_258:8)
-  
+
   if (var_248_2 != 0)
       deallocate_memory(var_258:8.q, var_248_2, 1)
-  
+
   CloseHandle(hObject: var_258.q)
   int64_t rax_18 = var_a8
   int64_t var_d0
-  custom_cipher_encrypt(&var_d0, 
-      *(decoded_data + 0x18), 
-      *(decoded_data + 8), 
+  custom_cipher_encrypt(&var_d0,
+      *(decoded_data + 0x18),
+      *(decoded_data + 8),
       *(decoded_data + 0x10))
   char* var_c8
   char* r14_4 = var_c8
@@ -651,15 +696,15 @@ Rerun with correct flag:
 Then a long delay before an actual pause.
 
 
-Back to analysis, and Claude gets something wrong again :) 
+Back to analysis, and Claude gets something wrong again :)
 
 ```
   if (compare_bytes(rax_4, rax_5, rdx_8) == 0)
       get_string(rcx_9, rdx_10, 0x1338)
-                              
+
 ```
 
-That is NOT compare_bytes, it's another bitwise decryption routine :) 
+That is NOT compare_bytes, it's another bitwise decryption routine :)
 
 Just skip past to the payload decryption.
 
@@ -672,24 +717,24 @@ Keep following code. There's another XOR loop down below:
 ```
   do
       uint64_t rdx_29
-      
+
       if ((i_2 | rdx_8) u>> 0x20 == 0)
           rdx_29 =
               zx.q(modu.dp.d(0:(i_2.d), rdx_8.d))
       else
           rdx_29 = modu.dp.q(0:i_2, rdx_8)
-      
+
       *r14_4 ^= rax_5[rdx_29]
       int64_t r15_2
       r15_2.b = r11_1 != r9_5
       uint64_t rdx_27
-      
+
       if (((i_2 + 1) | rdx_8) u>> 0x20 != 0)
           rdx_27 = modu.dp.q(0:(i_2 + 1), rdx_8)
       else
           rdx_27 = zx.q(modu.dp.d(
               0:((i_2 + 1).d), rdx_8.d))
-      
+
       *r11_1 ^= rax_5[rdx_27]
       void* const r14_5
       r14_5.b = r15_2.b
@@ -707,7 +752,7 @@ There it is. This is doing the final XOR to get an MZ header. A second executabl
 
 I follow along more until this is sent into a function with an NtWriteFile. However, the NtWriteFile is being called dynamically from a register. Binary Ninja / TTD does not really like this. So you get the decompiler view but not the values in the Debugger Info. No matter, I can trace the args and see that the MZ file is being written here to a file named C:\Users\Admin\AppData\Local\Temp\.tmptzXQY0.txt
 
-Since I'm looking at data after the fact, the file is no longer there. But, we're in TTD. We have the contents as they were in memory at this time, and NtWriteFile shows a size of 0x521400 bytes. 
+Since I'm looking at data after the fact, the file is no longer there. But, we're in TTD. We have the contents as they were in memory at this time, and NtWriteFile shows a size of 0x521400 bytes.
 
 ![](img/3_10.png)
 
@@ -783,7 +828,7 @@ Legit math.
           zmm0_55 = _mm512_maskz_add_epi32(arg11, arg12, arg17)
           zmm3_60 = _mm512_maskz_add_epi32(arg11, zmm0_55, arg16)
           zmm4_33 = _mm512_maskz_add_epi32(arg11, zmm3_60, arg16)
-      
+
       uint64_t zmm30_37[0x8] = _mm512_broadcast_f64x2(arg11, *arg1)
       uint64_t zmm8_14[0x8] = _mm512_maskz_load_epi64(arg11, arg19)
       uint64_t zmm1_19[0x8] = _mm512_loadu_epi64(arg11, *(&__return_addr + arg5))
@@ -856,11 +901,11 @@ Wait, I see string math
 Inside 0x140001080 is:
 
 ```
-1400010db            
+1400010db
 1400010db            if (rsi != 1)
 140001138                int64_t r9_1 = 0x2dc3392926f15bf1
 140001142                i = 0
-140001142                
+140001142
 14000117c                do
 14000115e                    rbx[i] ^= ((r9_1 * 0x124a1419653016ec - 0x2e93c953c3021cae).d u>> 2).b
 140001166                    r9_1 = (r9_1 * 0x124a1419653016ec - 0x2e93c953c3021cae)
@@ -868,7 +913,7 @@ Inside 0x140001080 is:
 140001170                    rbx[i + 1] ^= (r9_1.d u>> 2).b
 140001175                    i += 2
 14000117c                while ((0x7ffffffffffffffe & rsi) != i)
-14000117c                
+14000117c
 140001192                if ((rsi.b & 1) != 0)
 140001194                    rbx[i] ^= ((r9_1.d * 0x2ec + 0x352) u>> 2).b
 ```
@@ -915,7 +960,7 @@ What? It's called by this routine in main():
       char* var_140 = &nullptr->:1
 ```
 
-Well, it is using that var_130. Maybe it's originating from the var_78 struct at the beginning? 
+Well, it is using that var_130. Maybe it's originating from the var_78 struct at the beginning?
 var+78 = rsp+0x120 = 0x72f05ff5d0
 
 No, doesn't line up. In the first str_decrypt call it's decrypting:
@@ -964,7 +1009,7 @@ So let's go up for a check right before that:
               int64_t var_170_1 = 0x23
               void* const var_168_1 = &data_7ff65da3d1a9
               int64_t var_160_1 = 0x23
-          
+
           void* const** var_158 = &var_178
           int32_t (* var_150_1)(int64_t* arg1, int64_t* arg2) = str_dec_incorrect
           var_130 = &str_incorrect
@@ -974,7 +1019,7 @@ So let's go up for a check right before that:
 Going into compare_strings_wrapper() is my guess "infected" and a ptr to data_14037d0f8, the "CB ..." value I called unknown1.
 
 That immediately leads to another function that breaks apart the unknown1 and sends it in pieces to a new routine:
-  
+
 ```
 uint64_t compare_strings_wrapper(int64_t* arg1, int128_t* arg2)
 
@@ -1020,28 +1065,28 @@ One of these rabbit holes led me to this:
 ```
   if (arg1[2].d != 0)
       void* rax_1 = *arg1
-      
+
       if (rax_1 == 0)
           sub_7ff65d80aa30()
-          sub_7ff65d80acb0(6, 0x83, nullptr, 
+          sub_7ff65d80acb0(6, 0x83, nullptr,
               sub_7ff65d80ab50("crypto\evp\evp_enc.c", 0x3e6, "EVP_EncryptUpdate"))
       else if (*(rax_1 + 0x70) != 0)
           int64_t rsi_1 = *(rax_1 + 0x98)
           int32_t rdx
-          
+
           if (rsi_1 != 0)
               rdx = *(rax_1 + 4)
-          
+
           if (rsi_1 == 0 || rdx s< 1)
               sub_7ff65d80aa30()
-              sub_7ff65d80acb0(6, 0xbd, nullptr, 
+              sub_7ff65d80acb0(6, 0xbd, nullptr,
                   sub_7ff65d80ab50("crypto\evp\evp_enc.c", 0x3f0, "EVP_EncryptUpdate"))
           else
               if (rdx == 1)
                   rdx = 0
-              
+
               int32_t rax_3 = rsi_1(arg1[0x16], arg2, &arg_8, sx.q(rdx) + r8, arg4, r8)
-              
+
               if (rax_3 == 0)
                   rbx_1 = rax_3
               else
@@ -1055,11 +1100,11 @@ Then I remembered the EVP code I tabled at the start. Was this EVP_EncryptUpdate
 
       if (out == 0)
       label_7ff65d6c2ef1:
-          
+
           if (inl u<= 0x7fffffff)
               int32_t outl = 0
               int64_t r12_2
-              
+
               if (EVP_EncryptUpdate(ctx, out, &outl, in, inl.d) s<= 0)
 
 ```
@@ -1109,7 +1154,7 @@ Yup, now I remembered that it failed earlier when I first tried that function. L
 
 Rename the variables for the call to clean it up.
 
-Finally, right here, it all hit. Debugger info shows the values going in, which all aligned to things I had marked up and knew. 
+Finally, right here, it all hit. Debugger info shows the values going in, which all aligned to things I had marked up and knew.
 
 Note: If your Debugger info still shows arg1, arg2, that's because you have to rename them from within the function, not rename the variables as they go in.
 
