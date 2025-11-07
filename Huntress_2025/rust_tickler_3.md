@@ -543,9 +543,11 @@ NOW! With that understood, let's go back to where strings are parsed out of HNTB
 
 Again, I see it decrypting with a very similar FPU/SIMD output in xmm registers:
 
+```
 xmm0: 0x2226730de100000000000000020
 xmm1: 0x726f76616620796d2073692074616857 'What is my favor'
 xmm2: 0x3f687361682036353261687320657469 'ite sha256 hash?'
+```
 
 Again, xmm0 is split in half with the size in the low half (or is it high? I don't want to research x64 endianness right now).
 
@@ -573,7 +575,7 @@ if (rax_2 != 0)
   while (rdi != rdx_1)
 ```
 
-Bit-wise math is much more difficult to reimplement in Python, which has no native functions for things like rotations. So you have to write helpers for that. Eventually it works... but I have to stop because one produces a massive blob of data.
+Bit-wise math is much more difficult to reimplement in Python, which has no native capability for things like bit rotations, so you have to write helpers for that. Eventually it works... but I have to stop because one produces a massive blob of data.
 
 ```
 $ python decrypt_all.py
@@ -602,7 +604,7 @@ W00t!
 
 <div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=I0WzT0OJ-E0" target="_blank"><img src="http://img.youtube.com/vi/I0WzT0OJ-E0/0.jpg" width="240" height="180" border="10"><br>Spiritbox - Circle With Me</a></div>
 
-So an apparent flag, but also much more to this. Skipping flag check, let's find 0x1341 in code.
+There's also the apparently correct SHA256 value, but also much more to this. Skipping SHA256 check, let's find 0x1341 in code.
 
 Checking code refs, I see 5 calls to check strings but none with this 0x1341.
 
@@ -746,7 +748,7 @@ Keep following code. There's another XOR loop down below:
   while ((var_c0 & 0xfffffffffffffffe)
 ```
 
-There it is. This is doing the final XOR to get an MZ header. A second executable.
+There it is. This is doing the final XOR to get an MZ header: a second executable.
 
 ![](img/3_9.png)
 
@@ -894,11 +896,9 @@ data_14037d148:
 42 0d 03 93 97 e9 17 77                          B......w
 ```
 
-Tagging as unknown 1-3
+Tagging these as unknown 1-3 for later reference. 
 
-Wait, I see string math
-
-Inside 0x140001080 is:
+Wait, I see string math.  Inside 0x140001080 is:
 
 ```
 1400010db
@@ -986,7 +986,7 @@ eb 82 c6 c7 c4 cb cc cb d6 c7 ce db 82 cc cd d6  ................
 c7 8c 8c 8c 0a 00 00 00                          ........
 ```
 
-But the memory addresses are moved around so much you can't get a good lock on it for tracking. And, this string decrypt is never called again? What?
+But the memory addresses are moved around so much you can't get a good lock on it for watching. And, this string decrypt is never called again? What?
 
 ... There are different string decrypts. Right before each reference of one of these values is a new math routine loaded into memory for execution.
 
@@ -1110,9 +1110,9 @@ Then I remembered the EVP code I tabled at the start. Was this EVP_EncryptUpdate
 ```
 I compared and the argument count and type matched ... so maybe this weird3 is EVP_CipherUpdate? No, arguments aren't exactly right. But I'm seeing a trend.
 
-Now, I'll pause right here and admit something. I was tired and AI threw me off. I saw big math, I thought hashing, Claude said it was MD5. So I tried to figure out an MD5 to match these values. When I questioned Claude, it praised me for my thinking and said it was SHA256 instead. When that didn't work, Claude complimented my keen eye and said it was MD5... I wasted hours going down the wrong route here.
+Now, I'll pause right here and admit something. I was tired and AI threw me off. I saw big math, I thought hashing, Claude said it was MD5. So I tried to figure out an MD5 to match these values. When I questioned Claude, it praised me for my thinking and said it was SHA256 instead. When that didn't work, Claude complimented my keen eye and said it was MD5... I wasted hours going down the wrong route here. I mentioned brute forcing it in Discord and got the weird side eye from the CTF author, justifiably so.
 
-So back to identifying copied code. I started looking for one-off strings used in EVP, comparing those functions to the functions in the sample, and found most are very similar if not identical.
+Back to identifying copied code: I started looking for one-off strings used in EVP, comparing those functions to the functions in the sample, and found most are very similar if not identical.
 
 EVP_CIPHER_CTX_set_key_length() with keylen started my real chain. That led me up to the get_string(). I searched github for code using EVP_CIPHER_CTX_set_key_length() (not just declaring it). I'm realizing that this is the entire OpenSSL library statically compiled in. I need to stay as close to the surface as possible.
 
@@ -1181,8 +1181,8 @@ With the correct key we can see it properly function. Actually, it was doing thi
 
 It appears to be encrypting your flag with the preset key in 16-byte blocks to check if the encrypted value of the flag matches the encrypted payload.
 
-Clever. There is no decryption in the routine, only encryption.
+Clever. There is no decryption in the routine, only encryption. That really threw me off in static analysis as `EVP_CipherInit_ex2()` is called with a `enc` value that is either 0x01 (encrypt) or 0x00 (decrypt). The decrypt mode was never called, only encrypt, which led to a lot of confusion (intentional from the author, I'm sure).
 
 One more appropriate song to close it out.
 
-<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=D1NdGBldg3w" target="_blank"><img src="http://img.youtube.com/vi/D1NdGBldg3w/0.jpg" width="240" height="180" border="10"><br>Electric Callboy - WE GOT THE MOVES</a></div>
+<div align="center"><a href="http://www.youtube.com/watch?feature=player_embedded&v=D1NdGBldg3w" target="_blank"><img src="http://img.youtube.com/vi/D1NdGBldg3w/0.jpg" width="240" height="180" border="10"><br>Electric Callboy - We got the moves</a></div>
