@@ -84,3 +84,8 @@ E:\CTF\PaloAlto\Windows\7\PCAP>C:\Python27\python TEA_Decrypt.py
 PADDINGPADDINGPADDINGPADDINGPADDINGPADDINGPADDINGPADDINGP
 PAN{did_1_mention_th0se_pupp3ts_fr34ked_m3_out_recent1y?}
 PADDINGPADDINGPADDINGhibobPADDINGPADDINGPADDINGPADe¦+a¦E?r
+
+
+
+
+https://www.exploit-db.com/exploits/41738

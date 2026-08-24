@@ -92,7 +92,7 @@ At 0x169CB8 is a weird array:
   dword_16BD24 = (dword_16BD24 + 1) % num_53;
   return result;
   
-Each call to routine grabs next byte in oreder?
+Each call to routine grabs next byte in oreder?  Not sure what this means
 
 Back to game script:
 
@@ -265,3 +265,8 @@ Kevin says, with a nod and a wink: '6D 75 64 64 31 6E 67 5F 62 79 5F 79 30 75 72
 oh god he didn't say that the first time. Sigh.
 
 mudd1ng_by_y0ur53lph@flare-on.com
+
+OMG, in review, I just saw that I had the route all along. It was at the very top with the array of 3,0,0,2,2,1,1,1,0,2,3,0,2,2,3,3,3,5,4,0,5,4,0,5,4,0,1,4,0,2,4,0,1,2,3,5,4,0,1,2,3,1,2,3,1,2,3,1,2,3,5,4,0.
+53 moves, array % 53.
+0 = n, 1 = s, 2 = e, 3 = w, 4 = up, 5 = down
+
