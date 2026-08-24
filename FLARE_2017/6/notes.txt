@@ -77,7 +77,7 @@ puts offset near start of PE ... rundll32?
 000007FEF89E4040  6F 70 68 69 6C 65 73 6C  61 70 73 73 63 72 61 70  ophileslapsscrap
 000007FEF89E4050  70 69 6E 67 00 00 00 00  00 00 00 00 00 00 00 00  ping............
 
-ext:000007FEF89E5A6B call    offset_near_pehdr
+.text:000007FEF89E5A6B call    offset_near_pehdr
 .text:000007FEF89E5A70 mov     [rsp+188h+var_128], rax
 .text:000007FEF89E5A75 mov     rax, [rsp+188h+var_128]
 .text:000007FEF89E5A7A mov     eax, [rax]

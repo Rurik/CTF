@@ -1091,7 +1091,7 @@ So three loops: 251, 16, 66 times. This is for a three-byte
 
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-s - 0x73
+text character 1 : s - 0x73
 
 line 1109-1118:
 0x0F0A  sub_401000(002b, 0000, 0000)  [73000000 : 00000000 : 00000000]  Reg: FFFFFF8D
@@ -1101,21 +1101,31 @@ line 1109-1118:
 >> lines 14893
 picks up again
 
-char 2 - 0x75
+char 2 - 0x75 (u)
 lines 4935 - shifts?
 0x0C61  sub_401000(0c60, 0000, 0000)  [01000000 : 00000000 : 00000000]  Reg: FFFFFFFF
 0x0C64  sub_401000(0000, 0bef, 0000)  [00000000 : 00000000 : 00000000]  Reg: 0075FFFF
 
 ~line 5200 - all the checks
 
-
-subleq_
-subleq_and_edu
-sub leq _an d_ edu
-
-
 loop between 0x463 and 0x1100??
 
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+:d6b
+var_3395 *= 2
+var_3395 += var_3393
+var_3391 *= 2
+var_3391 += var_3477 (1)
+var_3392 *= 2
+var_3392 += var_3505 (1)
+var_3398 += var_3518 (1)
+GOTO ca1
+
+chr1 = chr1 * 2
+chr1 = chr1 + chr2
 
 
 final check:
@@ -1134,30 +1144,105 @@ Bad:
 
 so going to 0x0DFB is a positive check?
 
-Reimplement code.
+yes. trace the logic manually:
 
-Check for (X, X, Y) where X==X at 0xDFB?
+mental catchup
+sub_401000(0e98, 0e99, 0000) means:
+  read the dword sitting at slot 0xe98
+  read the dword sitting at slot 0xe99
+  subtract: slot[0xe99] - slot[0xe98], write result back to slot[0xe99]
+  if result <= 0, jump to opcode 0x0000
 
-That seems to work, brute force two chars at a time:
+Valid check:
+0x0DEF: slot[e99] = slot[e99] - slot[e98]
+0x0DF2: slot[0] = slot[0] - slot[e99]. good?
+0x0DF8: slot[0]=slot[0]-slot[0]=0. fall through.
+0x0DFB: slot[e99] = slot[e99] - slot[0] = 0-0 = 0. 0<=0. jump to 0xE04. OK...
+
+Invalid check?
+slot[e98] != slot[e99] at 0x0DEF
+0xDF2: slot[0] - slot[e99] = 0 - (whatever)
+0xDF5: slot[0]=0. 0<=0. jump to 0xDFE.
+
+at 0x0DEF slot[e98]==slot[e99]
+which gets set up as chr1*2+chr2 
+
+so if I just watch whether we reach 0xDFB vs 0xDFE I know if the pair was right.
+
+entire password check is just one operation
+Taceing in IDA is too much. Just pull it directly and compare math statically for brute force?
+
+.data is at raw file offset 0xa00. vm data = data+8 = 0xa08.
+so mem slot i = file[0xa08 + i*4].
+
+python. read the file. implement slot[b] = slot[b] - slot[a], jump if <= 0
+slot 3 = scanf trigger (watch for write of 1 to slot 3, feed next byte)
+slot 1 = the byte that got read
+start at opcode 0x463. stop at 0x1100
+
+watch for opcode == 0x0DFB. if ac1==ac2 there, good.
+
+but how many times does 0x0DFB fire? once per pair
+
+from the chr1*2+chr2 thing and the ca1 loop running 66 times. it checks one pair each time through the big outer loop.
+so check 0 = chars 1-2, check 1 = chars 3-4, etc.
+
+for a candidate of N chars, need check (N/2 - 1) to fire equal.
+try 2 chars at a time. 27^2 = 729 combos. Bob the Builder, We can brute it!
+
+wrote it. ran it. ... hours later
+
+wrong candidate loops forever, need a step limit
+
+added max_steps=200000. now it runs but takes forever.
+40ms per bad candidate * 729 = 30sec per pair step. too slow.
+
+early exit: if check hits at count<=target but ac1!=ac2, return False right there
+cuts per-call from 40ms to ~6ms. now 729 * 6ms = 4sec per step. ok.
+
+ran it:
 
 su
 subl
 subleq
-
+subleq_a
+subleq_and
+subleq_and_r
+subleq_and_red
+subleq_and_reduc
+subleq_and_reducti
+subleq_and_reductio_
+subleq_and_reductio_ad
+subleq_and_reductio_ad_a
+subleq_and_reductio_ad_abs
 subleq_and_reductio_ad_absur
 subleq_and_reductio_ad_absurdu
 
-Is it dropping n's?
+then it tried single chars and picked 'a'.
+subleq_and_reductio_ad_absurdua
 
-subleq_and_reduction_and_absulm
-subleq_and_reduction_and_absurdu
+wrong. that's not a word. 'absurdum' is latin. should end in m?
 
-No ...
+After 30 chars the oracle accepts ANY single char extension...
 
-subleq_and_reductio_ad_absurdu
+Aim for 31 chars = (31+1)//2 - 1 = 15. but there's only 15 check hits (0-14) for 30 correct chars
+check 15 never fires equal for ANY 31st char. All fail 
 
-oh goddamn there was a non ascii at end?
+oh. off by one in the formula.
+using (n+1)//2 - 1 instead of n//2 - 1.
+for n=31: (32)//2 - 1 = 15. wrong.
+correct: 31//2 - 1 = 14. same target as 30 chars.
 
-subleq_and_reductio_ad_absurdum\n
+not working
 
-subleq_and_reductio_ad_absurdum@flare-on.com.
+I need to form a legit 2nd char with 'u'
+
+\n works
+
+subleq_and_reductio_ad_absurdum
+
+ran with the real binary
+"Congratulations! You've cracked the code!"
+
+
+subleq_and_reductio_ad_absurdum@flare-on.com

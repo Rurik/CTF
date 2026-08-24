@@ -561,35 +561,36 @@ alright, assumed $d=
 test valid code and see if it resolves to hex value. Swap back and forth between manual guessing from code and brute forcing from hex
 
 
-$_='';
-d_6952
+$d='';
+db6952
 
-$_='';rn$key
-d_6952b84a49f
+$d='';rn$key
+db6952b84a49f
 
-$_='';rn$key = "";
-d_6952b84a49b934ac
+db6952b84a49b934a
+$d='';rn$key = "";
+db6952b84a49b934ac
 
-$_='';rn$key = "";rn
-d_6952b84a49b934acb4
+$d='';rn$key = "";rn
+db6952b84a49b934acb4
 
-$_='';rn$key= " ";rnif (isset
-d_6952b84a49b934acb436418ad9d
+$d='';rn$key= " ";rnif (isset
+db6952b84a49b934acb436418ad9d
 
-$_='';rn$key = "";rnif (isset($_POST['o_o']))
-d_6952b84a49b934acb436418ad9d93d237df05769afc
-
-
-$_='';rn$key = "";rnif (isset($_POST['o_o']))rn  " << sneaky sneaky?
-d_6952b84a49b934acb436418ad9d93d237df05769afc796d
-
-$_='';rn$key = "";rnif (isset($_POST['o_o']))rn  $key = $"
-d_6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb3
+$d='';rn$key = "";rnif (isset($_POST['o_o']))
+db6952b84a49b934acb436418ad9d93d237df05769afc
 
 
-"$_='';\r\n$key = \"\";\r\nif (isset($_POST['o_o']))\r\n  $key = $")
-$_='';rn$key = "";rnif (isset($_POST['o_o']))rn  $key = $_POST["
-d_6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb379f2cac
+$d='';rn$key = "";rnif (isset($_POST['o_o']))rn  " << sneaky sneaky?
+db6952b84a49b934acb436418ad9d93d237df05769afc796d
+
+$d='';rn$key = "";rnif (isset($_POST['o_o']))rn  $key = $"
+db6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb3
+
+
+"$d='';\r\n$key = \"\";\r\nif (isset($_POST['o_o']))\r\n  $key = $")
+$d='';rn$key = "";rnif (isset($_POST['o_o']))rn  $key = $_POST["
+db6952b84a49b934acb436418ad9d93d237df05769afc796d067bccb379f2cac
 
 c = '
 f = "
